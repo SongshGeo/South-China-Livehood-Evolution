@@ -160,3 +160,6 @@ multirun
 # MacOS
 .DS_Store
 .obsidian
+
+# abses 包正式发布之前挪动过来调用
+abses
