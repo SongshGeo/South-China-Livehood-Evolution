@@ -5,6 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+from abc import abstractmethod
 from typing import Optional, Self
 
 import numpy as np
@@ -39,17 +40,33 @@ class Person(Actor):
 
     def diffusion(self, threshold: int, possibility: float) -> Self:
         """人口分散"""
-        # TODO: 应当尽量减少农民主体和狩猎采集者之间的不同，分化和扩散可以写成一个方法吗？
         # 如果人口大于一定规模
-        cond1 = self.size >= threshold
+        cond1 = self.size >= threshold  # SCALE[1] * 2
+        # TODO 狩猎采集者只有条件一
         # 如果随机数小于概率
         cond2 = np.random.random() < possibility
         if cond1 and cond2:
-            # TODO 确认一下是否能这样表示30～60人规模队伍
             scale = np.arange(SCALE[0], SCALE[1])
             size = np.random.choice(scale)
             self.size -= size
-            # TODO: 扩散到队伍到哪里？
-            return self.__class__(size=size)
+            # TODO: 扩散到队伍到哪里？周围格子随机(r=1,2,3...)
+            # self.__class__(size=size)
+            return
         else:
             return None
+
+    def convert(self, sphere: int = 1):
+        region = self.buffer(sphere)
+        # TODO 范围内若有其它农民，就转换？ + rate %
+        # TODO 也在适宜耕种的地方
+        # 有一定
+        if self.model.select(region):
+            # farmer = Farmer(location=self.loc)
+            self.die()
+            return
+        self.move_to("到一个可以耕种的格子")
+
+    @abstractmethod
+    def able_to_go(self, pos) -> None:
+        """能否到 pos 的地方"""
+        # 是否是随机到pos，如果不行怎么办？

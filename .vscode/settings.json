@@ -2,5 +2,6 @@
     "conventionalCommits.scopes": [
         "project",
         "modules"
-    ]
+    ],
+    "todo-tree.tree.scanMode": "workspace only"
 }

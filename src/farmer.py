@@ -5,10 +5,12 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from typing import Optional, Self
+from typing import Self
 
-from const import MIN_SIZE
-from src.const import AFFILIATED, COMPLEXITY, MAX_SIZE
+import numpy as np
+
+from src.const import COMPLEXITY, GROWTH_RATE_FARMER, MIN_SIZE
+from src.model import Model
 from src.people import Person
 
 
@@ -19,7 +21,8 @@ class Farmer(Person):
 
     def setup(self):
         super().setup()
-        self._max_size: Optional[int] = MAX_SIZE
+        self.model = Model()
+        self.growth_rate = GROWTH_RATE_FARMER
 
     @property
     def size(self) -> int:
@@ -29,17 +32,19 @@ class Farmer(Person):
     def size(self, size):
         """人口规模有最大最小值限制"""
         if size < MIN_SIZE:
-            size = MIN_SIZE
-        elif size > self._max_size:
-            # NOTE: 在这里设置条件，达到人口上限就复杂化
+            self.die()
+        elif size > self.max_size:
             self.complicate()
-        # NOTE: 转化成整数
         self._size = int(size)
+
+    @property
+    def max_size(self) -> float:
+        """最大人口数量"""
+        return self.params.area * np.pi**2 * 2 / 0.005
 
     def complicate(self) -> Self:
         """农民的复杂化"""
-        # TODO 初始的规模是多少？
-        sub_group = Farmer(size=0, max_size=MAX_SIZE * AFFILIATED)
-        # TODO 这里有一个问题是，复杂化出来的上限很低，所以很容易进一步复杂化
-        self._max_size *= COMPLEXITY
+        # 耕地上限再增加耕地密度增加、人口增长率下降
+        self.max_size *= COMPLEXITY
+        sub_group = None
         return sub_group

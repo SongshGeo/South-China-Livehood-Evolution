@@ -23,6 +23,9 @@ class Env:
         """
         farmers = None
         positions = None
+        # TODO 农民迁移过来就直接定居吗
+        # 根据适合居住的程度来确定概率？ （1）
+        # ratio % <- 调参
         return farmers, positions
 
     def update_climate(self):
