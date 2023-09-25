@@ -11,10 +11,10 @@ import numpy as np
 
 from src.const import COMPLEXITY, GROWTH_RATE_FARMER, MIN_SIZE
 from src.model import Model
-from src.people import Person
+from src.people import SiteGroup
 
 
-class Farmer(Person):
+class Farmer(SiteGroup):
     """
     农民类
     """
@@ -41,6 +41,13 @@ class Farmer(Person):
     def max_size(self) -> float:
         """最大人口数量"""
         return self.params.area * np.pi**2 * 2 / 0.005
+
+    def diffuse(self) -> Self:
+        """农民的分散"""
+        cond1 = self.size >= self.loc("lim_h")
+        cond2 = np.random.random() < self.params.diffuse_prob
+        if cond1 and cond2:
+            super().diffuse()
 
     def complicate(self) -> Self:
         """农民的复杂化"""

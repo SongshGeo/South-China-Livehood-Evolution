@@ -1,0 +1,11 @@
+
+
+farmer:
+  growth_rate: 0.01
+  min_size: 6
+  new_group_size: [10, 20]
+  diffuse_prob: 0.05
+
+hunter:
+  min_size: 6
+  max_size: 5024

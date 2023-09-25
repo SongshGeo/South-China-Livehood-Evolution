@@ -7,18 +7,21 @@
 
 from typing import Optional
 
-from abses import Actor
-
 from src.const import INTENSIFIED, LOSS
-from src.people import Person
+from src.people import SiteGroup
 
 
-class Hunter(Actor):
+class Hunter(SiteGroup):
     """狩猎采集者"""
 
-    def setup(self):
-        super().setup()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._move: Optional[bool] = None
+
+    def diffuse(self):
+        """如果人口大于一定规模，狩猎采集者分散出去"""
+        if self.size >= self.loc("lim_h"):
+            super().diffuse()
 
     def move_to(self, *args, **kwargs):
         """有移动能力才能移动"""
@@ -26,7 +29,7 @@ class Hunter(Actor):
             # TODO 怎么移动？周围随机 r=1,2,3,..
             super().move_to(*args, **kwargs)
 
-    def compete(self, other: Person):
+    def compete(self, other: SiteGroup):
         if other.breed == "Farmer":
             if self.size * INTENSIFIED > other.size:
                 other.die()
