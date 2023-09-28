@@ -55,18 +55,11 @@ class SiteGroup(Actor):
         new_group = self.__class__(model=self.model, size=size)
         new_group.put_on(search_a_new_place(self._cell))
 
-    def convert(self, sphere: int = 1):
-        region = self.buffer(sphere)
-        # TODO 范围内若有其它农民，就转换？ + rate %
-        # TODO 也在适宜耕种的地方
-        # 有一定
-        if self.model.select(region):
-            # farmer = Farmer(location=self.loc)
-            self.die()
-            return
-        self.move_to("到一个可以耕种的格子")
+    def convert(self):
+        """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
+        if self.random.random() < self.params.convert_prob:
+            self._cell.convert(self)
 
     @abstractmethod
-    def able_to_go(self, pos) -> None:
-        """能否到 pos 的地方"""
-        # 是否是随机到pos，如果不行怎么办？
+    def able_to_go(self, cell: PatchCell) -> None:
+        """检查该主体能否能到特定的地方"""

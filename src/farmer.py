@@ -9,6 +9,7 @@ from typing import Self
 
 import numpy as np
 
+from abses.nature import PatchCell
 from src.const import COMPLEXITY, GROWTH_RATE_FARMER, MIN_SIZE
 from src.model import Model
 from src.people import SiteGroup
@@ -55,3 +56,6 @@ class Farmer(SiteGroup):
         self.max_size *= COMPLEXITY
         sub_group = None
         return sub_group
+
+    def able_to_go(self, cell: PatchCell) -> None:
+        """农民可以去哪里呢"""
