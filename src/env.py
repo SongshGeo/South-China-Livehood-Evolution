@@ -74,7 +74,7 @@ class CompetingCell(PatchCell):
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
         # 创建一个新的主体
-        converted = self.model.agents.create(
+        converted = self.layer.model.agents.create(
             convert_to, size=agent.size, singleton=True
         )
         agent.die()  # 旧的主体死亡

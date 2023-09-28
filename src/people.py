@@ -59,10 +59,11 @@ class SiteGroup(Actor):
         new.put_on(new_cell)
         return new
 
-    def convert(self):
+    def convert(self) -> Self:
         """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
         if self.random.random() < self.params.convert_prob:
-            self._cell.convert(self)
+            return self._cell.convert(self)
+        return self
 
 
 def search_a_new_place(

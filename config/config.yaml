@@ -9,6 +9,7 @@ time:
   freq: 'Y'
 
 farmer:
+  area: 1000  # TODO
   growth_rate: 0.1  # 0.1~0.25
   min_size: 6  # 最小为6（Binford 2001； Kelly 2013）
   # 在满足一定人口数量后，每时间单位有x几率向外扩散30-60人的农业殖民队
@@ -16,8 +17,10 @@ farmer:
   diffuse_prob: 0.05
   complexity: 1.25  # 复杂化时人口规模上限的增加系数
   affiliated: 0.5  # 复杂化时附属农民的人口上限规模
+  convert_prob: 0.08
 
 hunter:
+  convert_prob: 0.05
   new_group_size: [30, 60]
   growth_rate: 0.04
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）

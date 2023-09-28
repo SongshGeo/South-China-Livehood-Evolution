@@ -6,14 +6,16 @@
 # Website: https://cv.songshgeo.com/
 
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from hydra import compose, initialize
 
 # import numpy as np
-from abses import MainModel
+from abses import Actor, MainModel
 from src.env import CompetingCell
 from src.hunter import Hunter
+from src.people import SiteGroup
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -25,27 +27,36 @@ MIN_SIZE = cfg.hunter.min_size
 G_RATE = cfg.hunter.growth_rate
 
 
+class Farmer(Actor):
+    """用于测试的农民类"""
+
+
 class TestHunter:
     """测试狩猎采集者"""
 
     @pytest.fixture(name="cell")
     def mock_cell(self):
         """一个虚假的斑块"""
-        model = MainModel()
+        model = MainModel(parameters=cfg)
         layer = model.nature.create_module(
             how="from_resolution",
             shape=(4, 4),
             cell_cls=CompetingCell,
         )
         cell = layer.array_cells[3][3]
+        # 模拟最大可支持的人口规模
         cell.lim_h = cfg.hunter.settle_size
+        # 创建一个农民，放到它旁边
+        farmer = model.agents.create(Farmer, singleton=True)
+        farmer.put_on(layer.array_cells[3][2])
         return cell
 
     @pytest.fixture(name="group")
     def site_group(self):
         """原始的聚落"""
         # size = np.random.uniform(30, 60)
-        return Hunter(model=MainModel(parameters=cfg), size=50)
+        model = MainModel(parameters=cfg)
+        return model.agents.create(Hunter, size=50, singleton=True)
 
     @pytest.mark.parametrize(
         "size, expected, settled",
@@ -132,24 +143,32 @@ class TestHunter:
     #     ""
     # )
 
-    # @pytest.mark.parametrize(
-    #     "convert_prob, random_value, expected_convert_called",
-    #     [
-    #         (0.5, 0.4, True),
-    #         (0.5, 0.6, False),
-    #         (0.1, 0.05, True),
-    #         (0.1, 0.2, False),
-    #     ],
-    #     ids=["convert", "no_convert", "convert_low_prob", "no_convert_high_prob"],
-    # )
-    # def test_convert(self, group, convert_prob, random_value, expected_convert_called):
-    #     # Arrange
-    #     group.params.convert_prob = convert_prob
-    #     group.random.random = MagicMock(return_value=random_value)
-    #     group._cell.convert = MagicMock()
+    @pytest.mark.parametrize(
+        "convert_prob, random_value, arable, changed",
+        [
+            (0.5, 0.4, True, True),
+            (0.5, 0.6, True, False),
+            (0.1, 0.05, False, False),
+            (0.1, 0.2, False, False),
+        ],
+        ids=["convert", "no_convert", "convert_low_prob", "no_convert_high_prob"],
+    )
+    def test_convert(self, cell, group, convert_prob, random_value, changed, arable):
+        """测试当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
+        # Arrange
+        group.params.convert_prob = convert_prob
+        group.random.random = MagicMock(return_value=random_value)
+        group.put_on(cell)
+        # 配置是否是可耕地的条件
+        cell.slope = 5
+        cell.aspect = 100
+        cell.elevation = 100 if arable else 300
 
-    #     # Act
-    #     group.convert()
+        size = group.size
+        # Act
+        convert = group.convert()
 
-    #     # Assert
-    #     assert group._cell.convert.called == expected_convert_called
+        # Assert
+        assert isinstance(convert, SiteGroup)
+        assert (isinstance(convert, Hunter)) != changed
+        assert convert.size == size

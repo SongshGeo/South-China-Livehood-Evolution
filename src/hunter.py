@@ -26,13 +26,12 @@ class Hunter(SiteGroup):
     def convert(self):
         """周围有其他农民"""
         # 周围有农民
-        cells = self._cell.sphere(radius=1, moor=True)
-        cond1 = cells.has_agent({"breed": "Farmer"})
+        cells = self._cell.get_neighboring_cells(radius=1, moore=False)
+        cond1 = any(cells.trigger("has_agent", breed="Farmer"))
         # 且目前的土地是可耕地
         cond2 = self._cell.is_arable
         # 同时满足上述条件，狩猎采集者转化为农民
-        if cond1 and cond2:
-            super().convert()
+        return super().convert() if cond1 and cond2 else self
 
     def move(self):
         """有移动能力才能移动，在周围随机选取一个格子移动"""
