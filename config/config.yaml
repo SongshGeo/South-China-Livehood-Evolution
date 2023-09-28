@@ -18,12 +18,14 @@ farmer:
   affiliated: 0.5  # 复杂化时附属农民的人口上限规模
 
 hunter:
+  new_group_size: [30, 60]
   growth_rate: 0.04
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
   max_size: 5024
   settle_size: 100
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   convert_rate: 0.01  # 狩猎采集者转化成农民的概率
+  max_travel_distance: 5
 
 
 db:

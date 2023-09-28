@@ -17,6 +17,7 @@ from abses.nature import BaseNature, PatchCell
 
 from .farmer import Farmer
 from .hunter import Hunter
+from .people import SiteGroup
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -32,6 +33,7 @@ class CompetingCell(PatchCell):
         # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
         self.lim_h: float = 1042.57 / 32.65
         self.slope: float = np.random.uniform(0, 40)
+        self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 100)
         self.is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
         self.water_distance: Optional[float] = None
@@ -42,19 +44,40 @@ class CompetingCell(PatchCell):
         1 考古遗址分布推演出的分布特征（Wu et al. 2023 中农业相关遗址数据）
         2 发展农业所需的一般条件：坡度小于20，海拔、坡向……（Shelach, 1999; Qiao, 2010）；
         3 今天的农业用地分布特征？"""
-        # TODO 这里是不还不确定
-        return self.slope <= 20
+        # 坡度小于10度
+        cond1 = self.slope <= 10
+        # 如果是0-45度或315-360度，意味着朝北的，不利于种植
+        cond2 = self.aspect < 315 or self.aspect > 45
+        # 海拔高度小于200m
+        cond3 = self.elevation < 200
+        # 三个条件都满足才是可耕地
+        return cond1 & cond2 & cond3
+
+    def able_to_live(self, agent: SiteGroup) -> None:
+        """检查该主体能否能到特定的地方:
+        1. 对狩猎采集者而言，只要不是水域
+        2. 对农民而言，需要是可耕地
+        """
+        if isinstance(agent, Hunter):
+            return not self.is_water
+        if isinstance(agent, Farmer):
+            return self.is_arable
+        else:
+            raise TypeError("Agent must be Farmer or Hunter.")
 
     def convert(self, agent: Farmer | Hunter):
         """农民与狩猎采集者之间的互相转化"""
         if isinstance(agent, Farmer):
-            converted = Hunter(size=agent.size)
-            agent.die()
+            convert_to = Hunter
         elif isinstance(agent, Hunter):
-            converted = Farmer(size=agent.size)
-            agent.die()
+            convert_to = Farmer
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
+        # 创建一个新的主体
+        converted = self.model.agents.create(
+            convert_to, size=agent.size, singleton=True
+        )
+        agent.die()  # 旧的主体死亡
         converted.put_on(self)
         return converted
 

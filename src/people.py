@@ -5,7 +5,6 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from abc import abstractmethod
 from typing import Optional, Self
 
 import numpy as np
@@ -14,19 +13,14 @@ from abses import Actor
 from abses.nature import PatchCell
 
 
-def search_a_new_place(cell: PatchCell) -> PatchCell:
-    """在周围寻找一个新的地方，能够让迁徙的人过去"""
-    # TODO finish this
-    # TODO: 扩散到队伍到哪里？周围格子随机(r=1,2,3...)
-    return cell
-
-
 class SiteGroup(Actor):
     """原始的聚落"""
 
     def __init__(self, *arg, **kwargs) -> None:
         super().__init__(*arg, **kwargs)
-        self._size: Optional[int] = self.params.min_size
+        min_size = self.params.min_size
+        self._size: Optional[int] = min_size
+        self.size = kwargs.get("size", min_size)
 
     @property
     def size(self) -> int:
@@ -42,23 +36,50 @@ class SiteGroup(Actor):
             size = self.params.max_size
         self._size = int(size)
 
-    def population_growth(self, growth_rate: float) -> None:
+    def population_growth(self, growth_rate: Optional[float] = None) -> None:
         """人口增长"""
+        if not growth_rate:
+            growth_rate = self.params.growth_rate
         self.size += self.size * growth_rate
 
     def diffuse(self) -> Self:
         """人口分散，随机选择一个最小和最大的规模，分裂出去"""
         s_min, s_max = self.params.new_group_size
-        size = np.random.choice(np.arange(s_min, s_max))
+        # 随机大小的一个规模
+        size = np.random.uniform(s_min, s_max)
+        if size > self.size:
+            self.die()
+            return
         self.size -= size
-        new_group = self.__class__(model=self.model, size=size)
-        new_group.put_on(search_a_new_place(self._cell))
+        # 创建一个新的小队伍
+        new = self.model.agents.create(self.__class__, singleton=True, size=size)
+        # 在周围寻找一个可以去的格子
+        new_cell = search_a_new_place(new, cell=self._cell)
+        # 移动到那里
+        new.put_on(new_cell)
+        return new
 
     def convert(self):
         """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
         if self.random.random() < self.params.convert_prob:
             self._cell.convert(self)
 
-    @abstractmethod
-    def able_to_go(self, cell: PatchCell) -> None:
-        """检查该主体能否能到特定的地方"""
+
+def search_a_new_place(
+    agent: SiteGroup, cell: PatchCell, radius: int = 1, **kwargs
+) -> PatchCell:
+    """在周围寻找一个新的地方，能够让迁徙的人过去"""
+    # 先找到周围的格子
+    cells = cell.get_neighboring_cells(
+        radius=radius, moore=False, include_center=False, annular=True
+    )
+    # 检查周围的格子是否符合当前主体的停留要求
+    accessibility = [cell.able_to_live(agent) for cell in cells]
+    # 如果有符合要求的格子，随机选择一个符合要求的
+    if any(accessibility):
+        return cells.select(accessibility).random_choose()
+    if radius < agent.params.max_travel_distance:
+        return search_a_new_place(agent, cell, radius=radius + 1, **kwargs)
+    # 如果走了很远，没有符合要求的格子，主体就会死亡
+    agent.die()
+    return None
