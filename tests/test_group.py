@@ -139,10 +139,6 @@ class TestHunter:
         assert group.size == expected_size
         assert getattr(new_group, "size", None) == expected_new_group_size
 
-    # @pytest.mark.parametrize(
-    #     ""
-    # )
-
     @pytest.mark.parametrize(
         "convert_prob, random_value, arable, changed",
         [
@@ -172,3 +168,18 @@ class TestHunter:
         assert isinstance(convert, SiteGroup)
         assert (isinstance(convert, Hunter)) != changed
         assert convert.size == size
+
+    @pytest.mark.parametrize(
+        "size, expected_cell",
+        [(100, True), (0, True), (500, False), (7000, False)],
+        ids=["positive_size", "zero_size", "max_size", "large_size"],
+    )
+    def test_move(self, group, cell, size, expected_cell):
+        """测试有移动能力才能移动，在周围随机选取一个格子移动"""
+        # Arrange
+        group.size = size
+        group.put_on(cell)
+        initial_pos = group.pos
+        group.move()
+
+        assert (group.pos != initial_pos) is expected_cell

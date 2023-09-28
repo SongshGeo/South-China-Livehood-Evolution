@@ -18,6 +18,11 @@ class Hunter(SiteGroup):
         """关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格，把差异落在狩猎采集者是否定居，即丧失移动力。后者可大致设定为size_h大于100（Kelly 2013: 171）"""
         return self.size > self.params.settle_size
 
+    # def put_on(self, cell: PatchCell | None = None) -> None:
+    #     if cell.has_agent("Farmer"):
+    #         self.compete(cell.linked())
+    #     return super().put_on(cell)
+
     def diffuse(self) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去"""
         if self.size >= self.loc("lim_h"):
