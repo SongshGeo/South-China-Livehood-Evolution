@@ -10,8 +10,6 @@ from typing import Self
 import numpy as np
 
 from abses.nature import PatchCell
-from src.const import COMPLEXITY, GROWTH_RATE_FARMER, MIN_SIZE
-from src.model import Model
 from src.people import SiteGroup
 
 
@@ -20,11 +18,6 @@ class Farmer(SiteGroup):
     农民类
     """
 
-    def setup(self):
-        super().setup()
-        self.model = Model()
-        self.growth_rate = GROWTH_RATE_FARMER
-
     @property
     def size(self) -> int:
         return self._size
@@ -32,7 +25,7 @@ class Farmer(SiteGroup):
     @size.setter
     def size(self, size):
         """人口规模有最大最小值限制"""
-        if size < MIN_SIZE:
+        if size < self.params.min_size:
             self.die()
         elif size > self.max_size:
             self.complicate()
@@ -53,9 +46,9 @@ class Farmer(SiteGroup):
     def complicate(self) -> Self:
         """农民的复杂化"""
         # 耕地上限再增加耕地密度增加、人口增长率下降
-        self.max_size *= COMPLEXITY
-        sub_group = None
-        return sub_group
+        self.max_size *= self.params.complexity
+        # sub_group = None
+        # return sub_group
 
     def able_to_go(self, cell: PatchCell) -> None:
         """农民可以去哪里呢"""

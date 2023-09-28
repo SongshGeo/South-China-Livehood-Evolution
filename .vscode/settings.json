@@ -2,7 +2,8 @@
     "conventionalCommits.scopes": [
         "project",
         "modules",
-        "agents"
+        "agents",
+        "nature"
     ],
     "todo-tree.tree.scanMode": "workspace only"
 }

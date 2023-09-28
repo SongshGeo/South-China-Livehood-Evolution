@@ -7,14 +7,21 @@
 
 from __future__ import annotations
 
+import os
 from typing import Optional
 
 import numpy as np
+from hydra import compose, initialize
 
-from abses.nature import PatchCell
+from abses.nature import BaseNature, PatchCell
 
 from .farmer import Farmer
 from .hunter import Hunter
+
+# 加载项目层面的配置
+with initialize(version_base=None, config_path="../config"):
+    cfg = compose(config_name="config")
+os.chdir(cfg.root)
 
 
 class CompetingCell(PatchCell):
@@ -52,16 +59,19 @@ class CompetingCell(PatchCell):
         return converted
 
 
-class Env:
+class Env(BaseNature):
     """
     环境类
     """
 
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        pass
+    def __init__(self, model, name="nature"):
+        super().__init__(model, name)
+        self.dem = self.create_module(
+            how="from_file",
+            raster_file=cfg.db.dem,
+            cell_cls=CompetingCell,
+            attr_name="dem",
+        )
 
     def calculate_water_distance(self):
         """据大型水体（主要河流、海洋）距离 (km)"""

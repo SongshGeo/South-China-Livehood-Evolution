@@ -12,7 +12,6 @@ import numpy as np
 
 from abses import Actor
 from abses.nature import PatchCell
-from src.const import MAX_SIZE, MIN_SIZE
 
 
 def search_a_new_place(cell: PatchCell) -> PatchCell:
@@ -37,10 +36,10 @@ class SiteGroup(Actor):
     @size.setter
     def size(self, size):
         """人口规模有最大最小值限制"""
-        if size < MIN_SIZE:
-            size = MIN_SIZE
-        elif size > MAX_SIZE:
-            size = MAX_SIZE
+        if size < self.params.min_size:
+            size = self.params.min_size
+        elif size > self.params.max_size:
+            size = self.params.max_size
         self._size = int(size)
 
     def population_growth(self, growth_rate: float) -> None:
