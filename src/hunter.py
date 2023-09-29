@@ -7,6 +7,7 @@
 
 from typing import Self
 
+from src.farmer import Farmer
 from src.people import SiteGroup, search_a_new_place
 
 
@@ -23,8 +24,10 @@ class Hunter(SiteGroup):
     #         self.compete(cell.linked())
     #     return super().put_on(cell)
 
-    def diffuse(self) -> Self:
+    def diffuse(self, force: bool = False) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去"""
+        if force:
+            return super().diffuse()
         if self.size >= self.loc("lim_h"):
             return super().diffuse()
 
@@ -46,33 +49,41 @@ class Hunter(SiteGroup):
 
     def _loss_competition(self, loser: SiteGroup):
         """失败者"""
-        loss = self.model.loss_rate
+        loss = self.model.params.loss_rate
         if loser.breed == "Farmer":
             loser.die()
         elif loser.breed == "Hunter":
             # * 这里我进行了一些修改，算是逃跑一只，大部队消灭
             loser.size *= loss
-            loser.super().diffuse()
-            loser.die()
+            if _ := loser.diffuse(force=True):
+                loser.die()
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
+
+    def _compete_with_hunter(self, hunter: Self) -> bool:
+        """与其它狩猎采集者竞争"""
+        if self.size >= hunter.size:
+            self._loss_competition(hunter)
+            return True
+        self._loss_competition(self)
+        return False
+
+    def _compete_with_farmer(self, farmer: Farmer) -> bool:
+        """与其它农民竞争"""
+        power = self.size * self.params.intensified_coefficient
+        if power >= farmer.size:
+            self._loss_competition(farmer)
+            return True
+        self._loss_competition(self)
+        return False
 
     def compete(self, other: SiteGroup) -> bool:
         """与其它主体竞争
         other: 竞争者
         return: True or False，竞争成功或失败
         """
-        power = self.size * self.params.intensified_coefficient
-        if (
-            other.breed == "Farmer"
-            and power >= other.size
-            or other.breed != "Farmer"
-            and other.breed == "Hunter"
-            and self.size >= other.size
-        ):
-            self._loss_competition(other)
-            return True
-        if other.breed not in ["Farmer", "Hunter"]:
-            raise TypeError("Agent must be Farmer or Hunter.")
-        self._loss_competition(self)
-        return False
+        if other.breed == "Farmer":
+            return self._compete_with_farmer(other)
+        elif other.breed == "Hunter":
+            return self._compete_with_hunter(other)
+        raise TypeError("Agent must be Farmer or Hunter.")

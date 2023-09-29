@@ -35,8 +35,10 @@ class Farmer(SiteGroup):
         """最大人口数量"""
         return self.params.area * np.pi**2 * 2 / 0.005
 
-    def diffuse(self) -> Self:
+    def diffuse(self, force: bool = False) -> Self:
         """农民的分散"""
+        if force:
+            return super().diffuse()
         cond1 = self.size >= self.loc("lim_h")
         cond2 = np.random.random() < self.params.diffuse_prob
         if cond1 and cond2:

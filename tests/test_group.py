@@ -6,7 +6,7 @@
 # Website: https://cv.songshgeo.com/
 
 import os
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from hydra import compose, initialize
@@ -25,6 +25,7 @@ os.chdir(cfg.root)
 MAX_SIZE = cfg.hunter.max_size
 MIN_SIZE = cfg.hunter.min_size
 G_RATE = cfg.hunter.growth_rate
+INTENSITY = cfg.hunter.intensified_coefficient
 
 
 class Farmer(Actor):
@@ -34,29 +35,48 @@ class Farmer(Actor):
 class TestHunter:
     """测试狩猎采集者"""
 
-    @pytest.fixture(name="cell")
-    def mock_cell(self):
-        """一个虚假的斑块"""
+    @pytest.fixture(name="raw_model")
+    def mock_model(self) -> MainModel:
+        """一个虚假的模型"""
         model = MainModel(parameters=cfg)
         layer = model.nature.create_module(
             how="from_resolution",
             shape=(4, 4),
             cell_cls=CompetingCell,
         )
+        farmer = model.agents.create(Farmer, singleton=True)
         cell = layer.array_cells[3][3]
         # 模拟最大可支持的人口规模
         cell.lim_h = cfg.hunter.settle_size
-        # 创建一个农民，放到它旁边
-        farmer = model.agents.create(Farmer, singleton=True)
+        # 将虚假的农民放到它旁边
         farmer.put_on(layer.array_cells[3][2])
+        hunter = model.agents.create(Hunter, size=50, singleton=True)
+        return model, hunter, farmer, cell
+
+    @pytest.fixture(name="farmer")
+    def mock_farmer(self, raw_model) -> Farmer:
+        """一个虚假的农民"""
+        _, _, farmer, _ = raw_model
+        return farmer
+
+    @pytest.fixture(name="cell")
+    def mock_cell(self, raw_model) -> CompetingCell:
+        """一个虚假的斑块"""
+        _, _, _, cell = raw_model
         return cell
 
     @pytest.fixture(name="group")
-    def site_group(self):
+    def site_group(self, raw_model):
         """原始的聚落"""
         # size = np.random.uniform(30, 60)
+        _, hunter, _, _ = raw_model
+        return hunter
+
+    @pytest.fixture(name="other_group")
+    def mock_other_group(self):
+        """一个虚假的聚落"""
         model = MainModel(parameters=cfg)
-        return model.agents.create(Hunter, size=50, singleton=True)
+        return model.agents.create(Hunter, size=60, singleton=True)
 
     @pytest.mark.parametrize(
         "size, expected, settled",
@@ -183,3 +203,37 @@ class TestHunter:
         group.move()
 
         assert (group.pos != initial_pos) is expected_cell
+
+    @pytest.mark.parametrize(
+        "other_size, expected",
+        # intensified = 1.5
+        [
+            (10 * INTENSITY - 1, True),
+            (10 * INTENSITY + 1, False),
+            # Add more test cases as needed
+        ],
+    )
+    def test_compete_with_farmers(self, group, farmer, other_size, expected):
+        """测试主体之间的竞争"""
+        group.size = 10
+        farmer.size = other_size
+        with patch("src.hunter.Hunter._compete_with_farmer") as mock:
+            group.compete(farmer)
+            assert mock.called
+        assert group.compete(farmer) == expected
+
+    @pytest.mark.parametrize(
+        "other_size, expected",
+        # intensified = 1.5
+        [
+            (9, True),
+            (11, False),
+            # Add more test cases as needed
+        ],
+    )
+    def test_compete(self, group, other_group, other_size, expected):
+        """测试主体之间的竞争"""
+        group.size = 10
+        other_group.size = other_size
+        result = group.compete(other_group)
+        assert result == expected
