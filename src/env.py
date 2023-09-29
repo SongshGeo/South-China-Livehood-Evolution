@@ -127,6 +127,8 @@ class Env(BaseNature):
             farmer.size = farmer.random.uniform(min_size, max_size)
         arable_cells = np.random.choice(arable_cells, size=farmers_num, replace=False)
         for farmer, cell in zip(farmers, arable_cells):
+            if not cell:
+                raise ValueError(f"arable_cells {cell} is None")
             farmer.put_on(cell)
         return farmers
 

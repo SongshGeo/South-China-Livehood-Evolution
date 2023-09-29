@@ -73,10 +73,8 @@ class Farmer(SiteGroup):
         # 参考对裴李岗时期（9000-7000 BP）人均所需耕地为0.008平方公里的数据（乔玉 2010），结合华南气候条件下较高的生产力和更充沛的自然资源，将所需人均耕地设置为0.004平方公里，那么该单位人口上限即π2*2/0.004=3142人
         return self.area * np.pi**2 * 2 / 0.004
 
-    def diffuse(self, force: bool = False) -> Self:
+    def diffuse(self) -> Self:
         """农民的分散"""
-        if force:
-            return super().diffuse()
         cond1 = self.size >= self.loc("lim_h")
         cond2 = self.random.random() < self.params.diffuse_prob
         if cond1 and cond2:

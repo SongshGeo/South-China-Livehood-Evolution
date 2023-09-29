@@ -45,6 +45,7 @@ class SiteGroup(Actor):
     def diffuse(self) -> Self:
         """人口分散，随机选择一个最小和最大的规模，分裂出去"""
         s_min, s_max = self.params.new_group_size
+        cell = self._cell
         # 随机大小的一个规模
         size = np.random.uniform(s_min, s_max)
         if size > self.size:
@@ -54,10 +55,12 @@ class SiteGroup(Actor):
         # 创建一个新的小队伍
         new = self.model.agents.create(self.__class__, singleton=True, size=size)
         # 在周围寻找一个可以去的格子
-        new_cell = search_a_new_place(new, cell=self._cell)
-        # 移动到那里
-        new.put_on(new_cell)
-        return new
+        # 试图移动到那里
+        # 如果走了很远，没有符合要求的格子，主体就会死亡
+        if new_cell := search_a_new_place(new, cell=cell):
+            new.put_on(new_cell)
+            return new
+        new.die()
 
     def convert(self) -> Self:
         """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
@@ -65,11 +68,19 @@ class SiteGroup(Actor):
             return self._cell.convert(self)
         return self
 
+    # def put_on(self, cell: PatchCell):
+    #     """将主体放到某个斑块上"""
+    #     if not isinstance(cell, PatchCell):
+    #         raise TypeError("Cell must be PatchCell.")
+    #     super().put_on(cell=cell)
+
 
 def search_a_new_place(
     agent: SiteGroup, cell: PatchCell, radius: int = 1, **kwargs
 ) -> PatchCell:
     """在周围寻找一个新的地方，能够让迁徙的人过去"""
+    if not cell:
+        raise TypeError(f"Cell must be PatchCell, rather than None, radius: {radius}.")
     # 先找到周围的格子
     cells = cell.get_neighboring_cells(
         radius=radius, moore=False, include_center=False, annular=True
@@ -81,6 +92,4 @@ def search_a_new_place(
         return cells.select(accessibility).random_choose()
     if radius < agent.params.max_travel_distance:
         return search_a_new_place(agent, cell, radius=radius + 1, **kwargs)
-    # 如果走了很远，没有符合要求的格子，主体就会死亡
-    agent.die()
     return None

@@ -107,32 +107,30 @@ class TestFarmer:
         assert farmer.area == expected
 
     @pytest.mark.parametrize(
-        "force, size, lim_h, diffuse_prob, expected_result",
+        "size, lim_h, diffuse_prob, expected_result",
         [
-            (True, 100, 50, 0.0, True),
-            (False, 10, 50, 0.1, False),
-            (False, 100, 50, 0.1, False),
-            (False, 10, 50, 0.04, False),
-            (False, 100, 50, 0.04, True),
+            # (100, 50, 0.0, True),
+            (10, 50, 0.1, False),
+            (100, 50, 0.1, False),
+            (10, 50, 0.04, False),
+            (100, 50, 0.04, True),
         ],
         ids=[
-            "force_true",
+            # "force_true",
             "cond1_false_cond2_false",
             "cond1_true_cond2_false",
             "cond1_false_cond2_true",
             "cond1_true_cond2_true",
         ],
     )
-    def test_diffuse(
-        self, farmer, cell, force, size, lim_h, diffuse_prob, expected_result
-    ):
+    def test_diffuse(self, farmer, cell, size, lim_h, diffuse_prob, expected_result):
         """测试农民的分散"""
         # Arrange
         farmer.size = size
         cell.lim_h = lim_h
         farmer.random.random = MagicMock(return_value=diffuse_prob)
         # Act
-        result = farmer.diffuse(force)
+        result = farmer.diffuse()
 
         # Assert
         assert isinstance(result, Farmer) is expected_result
