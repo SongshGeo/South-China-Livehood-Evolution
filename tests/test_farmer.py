@@ -136,3 +136,36 @@ class TestFarmer:
 
         # Assert
         assert isinstance(result, Farmer) is expected_result
+
+    @pytest.mark.parametrize(
+        "growth_rate, area, complexity, expected_growth_rate",
+        [
+            (0.1, 100, 0.1, 0.09),
+            (0.2, 200, 0.2, 0.16),
+            (0.1, 100, 0.5, 0.05),
+            (0.2, 200, 0.5, 0.1),
+        ],
+        ids=[
+            "positive_complexity",
+            "positive_complexity",
+            "max_complexity",
+            "max_complexity",
+        ],
+    )
+    def test_complicate(
+        self, farmer, growth_rate, area, complexity, expected_growth_rate
+    ):
+        """测试农民的复杂化"""
+        # Arrange
+        farmer.growth_rate = growth_rate
+        farmer.area = area
+        farmer.params.complexity = complexity
+
+        # Act
+        farmer.complicate()
+        result_growth_rate = farmer.growth_rate
+        result_area = farmer.area
+
+        # Assert
+        assert round(result_growth_rate, 2) == expected_growth_rate
+        assert result_area == area + cfg.farmer.area * (1 - complexity)
