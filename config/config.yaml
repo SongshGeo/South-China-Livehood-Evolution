@@ -9,15 +9,16 @@ time:
   freq: 'Y'
 
 farmer:
-  area: 1000  # TODO
+  area: 2
+  # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
   growth_rate: 0.1  # 0.1~0.25
   min_size: 6  # 最小为6（Binford 2001； Kelly 2013）
   # 在满足一定人口数量后，每时间单位有x几率向外扩散30-60人的农业殖民队
   new_group_size: [30, 60]
   diffuse_prob: 0.05
-  complexity: 1.25  # 复杂化时人口规模上限的增加系数
-  affiliated: 0.5  # 复杂化时附属农民的人口上限规模
+  complexity: 0.1  # 复杂化后人口增加速率下降多少
   convert_prob: 0.08
+  max_travel_distance: 5
 
 hunter:
   convert_prob: 0.05
