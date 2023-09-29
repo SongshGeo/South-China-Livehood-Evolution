@@ -11,6 +11,7 @@ import os
 from typing import Optional
 
 import numpy as np
+import rasterio
 from hydra import compose, initialize
 
 from abses.nature import BaseNature, PatchCell
@@ -32,9 +33,9 @@ class CompetingCell(PatchCell):
         super().__init__(pos, indices)
         # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
         self.lim_h: float = 1042.57 / 32.65
-        self.slope: float = np.random.uniform(0, 40)
+        self.slope: float = np.random.uniform(0, 30)
         self.aspect: float = np.random.uniform(0, 360)
-        self.elevation: float = np.random.uniform(0, 100)
+        self.elevation: float = np.random.uniform(0, 300)
         self.is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
         self.water_distance: Optional[float] = None
 
@@ -95,6 +96,20 @@ class Env(BaseNature):
             cell_cls=CompetingCell,
             attr_name="dem",
         )
+        arr = self._open_rasterio(cfg.db.slo)
+        self.dem.apply_raster(arr, attr_name="slope")
+        arr = self._open_rasterio(cfg.db.asp)
+        self.dem.apply_raster(arr, attr_name="aspect")
+
+    def _open_rasterio(self, source: str) -> np.ndarray:
+        with rasterio.open(source) as dataset:
+            arr = dataset.read(1)
+            arr = np.where(arr < 0, np.nan, arr)
+            return arr.reshape((1, arr.shape[0], arr.shape[1]))
+
+    def initialize(self):
+        is_arable = np.vectorize(lambda x: x.is_arable)(self.dem.array_cells)
+        self.dem.apply_raster(is_arable.reshape(self.dem.shape3d), attr_name="arable")
 
     def calculate_water_distance(self):
         """据大型水体（主要河流、海洋）距离 (km)"""
@@ -103,12 +118,17 @@ class Env(BaseNature):
         """
         添加从北方来的农民，根据全局变量的泊松分布模拟
         """
-        farmers = None
-        positions = None
-        # TODO 农民迁移过来就直接定居吗
-        # 根据适合居住的程度来确定概率？ （1）
-        # ratio % <- 调参
-        return farmers, positions
+        farmers_num = np.random.poisson()
+        farmers = self.model.agents.create(Farmer, num=farmers_num)
+        arable = self.dem.get_raster("arable").reshape(self.dem.shape2d)
+        arable_cells = self.dem.array_cells[arable.astype(bool)]
+        for farmer in farmers:
+            min_size, max_size = farmer.params.new_group_size
+            farmer.size = farmer.random.uniform(min_size, max_size)
+        arable_cells = np.random.choice(arable_cells, size=farmers_num, replace=False)
+        for farmer, cell in zip(farmers, arable_cells):
+            farmer.put_on(cell)
+        return farmers
 
     def update_climate(self):
         """气候变化"""
