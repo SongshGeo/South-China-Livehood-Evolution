@@ -29,23 +29,29 @@ class Model(MainModel):
         return self.agents.select("Hunter")
 
     def step(self):
-        # TODO 加一个可耕地面积的变化
-        # print(f"step, time: {self.time}")
+        """每一时间步都按照以下顺序执行一次：
+        1. 更新农民数量
+        2. 所有主体互相转化
+        3. 更新狩猎采集者可以移动（这可能触发竞争）
+        """
         farmers = self.nature.add_farmers()
-        self.new_farmers.append(len(farmers))
         self.farmers.trigger("convert")
-        self.farmers.trigger("diffuse")
-        self.hunters.trigger("diffuse")
+        self.hunters.trigger("convert")
+        self.agents.trigger("diffuse")
         self.hunters.trigger("move")
+        # 更新农民和狩猎采集者数量
+        self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
         self.hunters_num.append(self.hunters.array("size").sum())
-        if not all(self.agents.to_list().array("on_earth")):
-            raise AttributeError("Agent not on earth")
-        # self.hunters.trigger('compete',)
+
+    def end(self):
+        """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
+        self.plot()
+        plt.show()
 
     def plot(self):
-        """绘图"""
-        fig, ax = plt.subplots()
+        """绘制狩猎采集者和农民的数量变化"""
+        _, ax = plt.subplots()
         ax.plot(self.farmers_num, label="farmers")
         ax.plot(self.hunters_num, label="hunters")
         ax.set_xlabel("time")
