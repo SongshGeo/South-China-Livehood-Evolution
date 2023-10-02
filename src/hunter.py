@@ -7,6 +7,8 @@
 
 from typing import Self
 
+from abses import PatchCell
+
 from src.farmer import Farmer
 from src.people import SiteGroup, search_a_new_place
 
@@ -19,10 +21,14 @@ class Hunter(SiteGroup):
         """关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格，把差异落在狩猎采集者是否定居，即丧失移动力。后者可大致设定为size_h大于100（Kelly 2013: 171）"""
         return self.size > self.params.settle_size
 
-    # def put_on(self, cell: PatchCell | None = None) -> None:
-    #     if cell.has_agent("Farmer"):
-    #         self.compete(cell.linked())
-    #     return super().put_on(cell)
+    def put_on(self, cell: PatchCell | None = None) -> None:
+        super().put_on(cell)
+        if cell is not None and cell.has_agent("Farmer"):
+            farmers = cell.agents.select("Farmer")
+            if len(farmers) > 1:
+                raise ValueError("Hunter put on more than one farmer")
+            farmer = farmers[0]
+            self.compete(farmer)
 
     def diffuse(self, force: bool = False) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去"""

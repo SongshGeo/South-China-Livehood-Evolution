@@ -9,11 +9,13 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from hydra import compose, initialize
 
 # import numpy as np
-from abses import Actor, MainModel
+from abses import MainModel
+from hydra import compose, initialize
+
 from src.env import CompetingCell
+from src.farmer import Farmer
 from src.hunter import Hunter
 from src.people import SiteGroup
 
@@ -26,10 +28,6 @@ MAX_SIZE = cfg.hunter.max_size
 MIN_SIZE = cfg.hunter.min_size
 G_RATE = cfg.hunter.growth_rate
 INTENSITY = cfg.hunter.intensified_coefficient
-
-
-class Farmer(Actor):
-    """用于测试的农民类"""
 
 
 class TestHunter:
@@ -126,7 +124,7 @@ class TestHunter:
         [
             (50, 50, 100, 50, 50),
             (200, 300, 99, 99, None),
-            # (100, 200, 100, 0, 100),  # TODO 测试一个很极端的情况
+            # (100, 200, 100, 0, 100),
         ],
         ids=[
             "within_range",
