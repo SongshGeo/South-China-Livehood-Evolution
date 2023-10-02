@@ -76,7 +76,8 @@ class CompetingCell(PatchCell):
         if isinstance(agent, Hunter):
             return not self.is_water
         if isinstance(agent, Farmer):
-            return self.is_arable
+            cond1 = not self.has_agent()
+            return self.is_arable & cond1
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
 

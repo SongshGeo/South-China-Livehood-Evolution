@@ -31,16 +31,13 @@ class Hunter(SiteGroup):
         Args:
             cell (PatchCell | None): 狩猎采集者放到的格子。
         """
-        super().put_on(cell)
         if cell is None:
+            super().put_on()
             return
-        agents = cell.agents
-        agents.remove(self)
-        if agents:
-            if len(agents) > 1:
-                raise ValueError("Hunter put on more than one farmer")
-            agent = agents[0]
-            self.compete(agent)
+        existing_agent = cell.agents[0] if cell.has_agent() else None
+        super().put_on(cell)
+        if existing_agent:
+            self.compete(existing_agent)
 
     def diffuse(self, force: bool = False) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
@@ -102,10 +99,8 @@ class Hunter(SiteGroup):
         if loser.breed == "Farmer":
             loser.die()
         elif loser.breed == "Hunter":
-            # * 这里我进行了一些修改，算是逃跑一只，大部队消灭
             loser.size *= loss
-            if _ := loser.diffuse(force=True):
-                loser.die()
+            loser.move()
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
 

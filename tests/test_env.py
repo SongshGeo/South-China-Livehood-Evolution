@@ -173,7 +173,7 @@ class TestCompetingCell:
         cell.aspect = 50
         cell.elevation = 100
         cell.is_water = False
-
+        assert cell.has_agent() is False
         assert cell.able_to_live(farmer) is True
 
     # Edge cases

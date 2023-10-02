@@ -49,6 +49,7 @@ class TestHunter:
         # 将虚假的农民放到它旁边
         farmer.put_on(layer.array_cells[3][2])
         hunter = model.agents.create(Hunter, size=50, singleton=True)
+        hunter.put_on(layer.array_cells[3][0])
         return model, hunter, farmer, cell
 
     @pytest.fixture(name="farmer")
@@ -74,7 +75,12 @@ class TestHunter:
     def mock_other_group(self):
         """一个虚假的聚落"""
         model = MainModel(parameters=cfg)
-        return model.agents.create(Hunter, size=60, singleton=True)
+        agent = model.agents.create(Hunter, size=60, singleton=True)
+        module = model.nature.create_module(
+            how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
+        )
+        agent.put_on(module.array_cells[3][3])
+        return agent
 
     @pytest.mark.parametrize(
         "size, expected, settled",
