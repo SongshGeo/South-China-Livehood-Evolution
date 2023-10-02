@@ -18,12 +18,21 @@ class Hunter(SiteGroup):
 
     @property
     def is_complex(self) -> bool:
-        """关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格，把差异落在狩猎采集者是否定居，即丧失移动力。后者可大致设定为size_h大于100（Kelly 2013: 171）"""
+        """超过定居规模的阈值，会变成复杂狩猎采集者。参数配置文件里的`settle_size`可以调节该阈值。
+
+        returns:
+            是否是复杂狩猎采集者
+        """
         return self.size > self.params.settle_size
 
     def put_on(self, cell: PatchCell | None = None) -> None:
+        """将狩猎采集者放到某个格子。狩猎采集者放到的格子如果已经有了一个主体，就会与他竞争（触发竞争方法）。
+
+        Args:
+            cell (PatchCell | None): 狩猎采集者放到的格子。
+        """
         super().put_on(cell)
-        if cell is not None and cell.has_agent("Farmer"):
+        if cell is not None and cell.has_agent():
             farmers = cell.agents.select("Farmer")
             if len(farmers) > 1:
                 raise ValueError("Hunter put on more than one farmer")
@@ -31,27 +40,58 @@ class Hunter(SiteGroup):
             self.compete(farmer)
 
     def diffuse(self, force: bool = False) -> Self:
-        """如果人口大于一定规模，狩猎采集者分散出去"""
+        """如果人口大于一定规模，狩猎采集者分散出去
+
+        Args:
+            force (bool): 是否强制触发该方法
+
+        returns:
+            分散后的结果。
+            - 如果成功分散，返回分散出的新主体。
+            - 当无法成功分散时，返回空值。
+        """
         if force:
             return super().diffuse()
         if self.size >= self.loc("lim_h"):
             return super().diffuse()
 
-    def convert(self):
-        """周围有其他农民"""
+    def convert(self, radius: int = 1, moore: bool = False) -> Self:
+        """狩猎采集者可能转化为农民，需要满足以下条件：
+        1. 周围有农民
+        2. 目前的土地是可耕地
+
+        Args:
+            radius (int): 搜索的半径范围，默认为周围一格。
+            moore (bool): 是否使用Moore邻域进行搜索，即搜索8临域，包括对角线的四个格子。默认不启用（即仅计算上下左右四个格子）。
+
+        returns:
+            如果没有转化，返回自身。
+            如果成功转化，返回转化后的主体。
+        """
         # 周围有农民
-        cells = self._cell.get_neighboring_cells(radius=1, moore=False)
+        cells = self._cell.get_neighboring_cells(radius=radius, moore=moore)
         cond1 = any(cells.trigger("has_agent", breed="Farmer"))
         # 且目前的土地是可耕地
         cond2 = self._cell.is_arable
         # 同时满足上述条件，狩猎采集者转化为农民
         return super().convert() if cond1 and cond2 else self
 
-    def move(self):
-        """有移动能力才能移动，在周围随机选取一个格子移动"""
+    def move(self, radius: int = 1) -> None:
+        """有移动能力才能移动，在周围随机选取一个格子移动。
+
+        *关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格，把差异落在狩猎采集者是否定居，即丧失移动力。后者可大致设定为size_h大于100（Kelly 2013: 171）。*
+
+        Args:
+            radius (int): 搜索的半径范围，在周围一格
+
+        returns:
+            如果成功移动，返回 `True`，否则返回 `False`。
+        """
         if not self.is_complex:
-            if cell := search_a_new_place(self, self._cell, radius=1):
+            if cell := search_a_new_place(self, self._cell, radius=radius):
                 self.put_on(cell)
+                return True
+        return False
 
     def _loss_competition(self, loser: SiteGroup):
         """失败者"""
@@ -84,9 +124,15 @@ class Hunter(SiteGroup):
         return False
 
     def compete(self, other: SiteGroup) -> bool:
-        """与其它主体竞争
-        other: 竞争者
-        return: True or False，竞争成功或失败
+        """与其它主体竞争，根据竞争对象有着不同的竞争规则：
+        1. 与狩猎采集者竞争时，比较两者的人口规模。
+        2. 与农民竞争时，狩猎采集者会具备一定强化系数，通过配置文件里的 `intensified_coefficient` 参数进行调节。
+
+        Args:
+            other: 与该主体竞争的另一个主体。
+
+        returns:
+            竞争成功则返回 `True`，否则返回 `False`。
         """
         if other.breed == "Farmer":
             return self._compete_with_farmer(other)

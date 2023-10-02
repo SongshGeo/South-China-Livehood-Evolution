@@ -3,7 +3,10 @@ site_name: sc-20230710-sce
 nav:
   - Home: index.md
   - Quick Start: quick_start.md
-  - API References: api/index.md
+  - API References:
+    - index: api/index.md
+    - hunter: api/hunter.md
+    # - farmer: api/farmer.md
 
 plugins:
     - search

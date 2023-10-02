@@ -8,7 +8,6 @@
 from typing import Optional, Self
 
 import numpy as np
-
 from abses import Actor
 from abses.nature import PatchCell
 
@@ -67,12 +66,6 @@ class SiteGroup(Actor):
         if self.random.random() < self.params.convert_prob:
             return self._cell.convert(self)
         return self
-
-    # def put_on(self, cell: PatchCell):
-    #     """将主体放到某个斑块上"""
-    #     if not isinstance(cell, PatchCell):
-    #         raise TypeError("Cell must be PatchCell.")
-    #     super().put_on(cell=cell)
 
 
 def search_a_new_place(
