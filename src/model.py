@@ -5,9 +5,8 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from matplotlib import pyplot as plt
-
 from abses import ActorsList, MainModel
+from matplotlib import pyplot as plt
 
 
 class Model(MainModel):
@@ -30,7 +29,8 @@ class Model(MainModel):
         return self.agents.select("Hunter")
 
     def step(self):
-        print(f"step, time: {self.time}")
+        # TODO 加一个可耕地面积的变化
+        # print(f"step, time: {self.time}")
         farmers = self.nature.add_farmers()
         self.new_farmers.append(len(farmers))
         self.farmers.trigger("convert")
@@ -41,6 +41,7 @@ class Model(MainModel):
         self.hunters_num.append(self.hunters.array("size").sum())
         if not all(self.agents.to_list().array("on_earth")):
             raise AttributeError("Agent not on earth")
+        # self.hunters.trigger('compete',)
 
     def plot(self):
         """绘图"""

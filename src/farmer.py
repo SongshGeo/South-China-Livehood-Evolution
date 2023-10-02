@@ -75,6 +75,7 @@ class Farmer(SiteGroup):
 
     def diffuse(self) -> Self:
         """农民的分散"""
+        # TODO 这里有问题，分散不需要考虑人口规模？
         cond1 = self.size >= self.loc("lim_h")
         cond2 = self.random.random() < self.params.diffuse_prob
         if cond1 and cond2:
