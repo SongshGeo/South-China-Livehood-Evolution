@@ -3,7 +3,8 @@
         "project",
         "modules",
         "agents",
-        "nature"
+        "nature",
+        "adding hunter api"
     ],
     "todo-tree.tree.scanMode": "workspace only"
 }

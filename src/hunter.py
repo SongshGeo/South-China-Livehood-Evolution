@@ -32,12 +32,15 @@ class Hunter(SiteGroup):
             cell (PatchCell | None): 狩猎采集者放到的格子。
         """
         super().put_on(cell)
-        if cell is not None and cell.has_agent():
-            farmers = cell.agents.select("Farmer")
-            if len(farmers) > 1:
+        if cell is None:
+            return
+        agents = cell.agents
+        agents.remove(self)
+        if agents:
+            if len(agents) > 1:
                 raise ValueError("Hunter put on more than one farmer")
-            farmer = farmers[0]
-            self.compete(farmer)
+            agent = agents[0]
+            self.compete(agent)
 
     def diffuse(self, force: bool = False) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
