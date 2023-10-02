@@ -4,9 +4,9 @@ nav:
   - Home: index.md
   - Quick Start: quick_start.md
   - API References:
-    - index: api/index.md
+    - index: api/model.md
     - hunter: api/hunter.md
-    # - farmer: api/farmer.md
+    - farmer: api/farmer.md
 
 plugins:
     - search
