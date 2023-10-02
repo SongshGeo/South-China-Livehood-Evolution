@@ -38,10 +38,20 @@ class CompetingCell(PatchCell):
 
     @raster_attribute
     def is_arable(self) -> bool:
-        """综合:
-        1 考古遗址分布推演出的分布特征（Wu et al. 2023 中农业相关遗址数据）
-        2 发展农业所需的一般条件：坡度小于20，海拔、坡向……（Shelach, 1999; Qiao, 2010）；
-        3 今天的农业用地分布特征？"""
+        """是否是可耕地，只有同时满足以下条件，才能成为一个可耕地:
+        1. 坡度小于10度。
+        2. 坡向不是朝北的（如果是0-45度或315-360度，意味着朝北的，不利于种植）。
+        3. 海拔高度小于200m。
+        4. 不是水体。
+
+        >  1. 考古遗址分布推演出的分布特征（Wu et al. 2023 中农业相关遗址数据）
+        > 2 发展农业所需的一般条件：坡度小于20，海拔、坡向……（Shelach, 1999; Qiao, 2010）；
+        > 3 今天的农业用地分布特征？
+
+        returns:
+            是否是耕地，是则返回 True，否则返回 False。
+        """
+
         # 坡度小于10度
         cond1 = self.slope <= 10
         # 如果是0-45度或315-360度，意味着朝北的，不利于种植
@@ -56,6 +66,12 @@ class CompetingCell(PatchCell):
         """检查该主体能否能到特定的地方:
         1. 对狩猎采集者而言，只要不是水域
         2. 对农民而言，需要是可耕地
+
+        Args:
+            agent (SiteGroup): 狩猎采集者或者农民，需要被检查的主体。
+
+        Returns:
+            如果被检查的主体能够在此处存活，返回True；否则返回False。
         """
         if isinstance(agent, Hunter):
             return not self.is_water
@@ -65,7 +81,17 @@ class CompetingCell(PatchCell):
             raise TypeError("Agent must be Farmer or Hunter.")
 
     def convert(self, agent: Farmer | Hunter):
-        """农民与狩猎采集者之间的互相转化"""
+        """让此处的农民与狩猎采集者之间互相转化。
+
+        Args:
+            agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
+
+        Returns:
+            被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
+
+        Raises:
+            TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
+        """
         if isinstance(agent, Farmer):
             convert_to = Hunter
         elif isinstance(agent, Hunter):
@@ -105,12 +131,12 @@ class Env(BaseNature):
             arr = np.where(arr < 0, np.nan, arr)
             return arr.reshape((1, arr.shape[0], arr.shape[1]))
 
-    def calculate_water_distance(self):
-        """据大型水体（主要河流、海洋）距离 (km)"""
-
     def add_farmers(self):
         """
-        添加从北方来的农民，根据全局变量的泊松分布模拟
+        添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
+
+        Returns:
+            本次新添加的农民列表。
         """
         farmers_num = np.random.poisson()
         farmers = self.model.agents.create(Farmer, num=farmers_num)
@@ -125,9 +151,3 @@ class Env(BaseNature):
                 raise ValueError(f"arable_cells {cell} is None")
             farmer.put_on(cell)
         return farmers
-
-    def update_climate(self):
-        """气候变化"""
-
-    def update_map(self):
-        """海陆变迁"""
