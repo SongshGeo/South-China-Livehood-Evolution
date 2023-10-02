@@ -8,12 +8,14 @@
 from abses import ActorsList, MainModel
 from matplotlib import pyplot as plt
 
+from src.env import Env
+
 
 class Model(MainModel):
     """运行的模型"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, nature_class=Env, **kwargs)
         self.farmers_num = []
         self.new_farmers = []
         self.hunters_num = []
