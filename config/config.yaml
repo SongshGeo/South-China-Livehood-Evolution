@@ -32,7 +32,6 @@ hunter:
   max_size: 5024
   settle_size: 100
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
-  convert_rate: 0.01  # 狩猎采集者转化成农民的概率
   max_travel_distance: 5
 
 

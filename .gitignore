@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea/
-data
+# data
 
 # LaTeX
 *.synctex(busy)
