@@ -8,6 +8,7 @@
 from typing import Optional, Self
 
 import numpy as np
+import pandas as pd
 from abses import Actor
 from abses.nature import PatchCell
 
@@ -66,6 +67,21 @@ class SiteGroup(Actor):
         if self.random.random() < self.params.convert_prob:
             return self._cell.convert(self)
         return self
+
+    def report(self) -> pd.Series:
+        """汇报主体的属性。
+
+        Returns:
+            返回一个`pandas.Series`表格，汇报该主体的属性。
+        """
+        return pd.Series(
+            {
+                "unique_id": self.unique_id,
+                "breed": self.breed,
+                "size": self.size,
+                "position": self.pos,
+            }
+        )
 
 
 def search_a_new_place(
