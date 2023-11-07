@@ -109,7 +109,7 @@ class TestFarmer:
         assert farmer.area == expected
 
     @pytest.mark.parametrize(
-        "size, lim_h, diffuse_prob, expected_result",
+        "size, lim_h, diffuse_prob, expected",
         [
             # (100, 50, 0.0, True),
             (10, 50, 0.1, False),
