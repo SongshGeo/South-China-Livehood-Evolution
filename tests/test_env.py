@@ -312,8 +312,8 @@ class TestEnvironmentSettings:
         """测试能设置主体"""
         model.nature.add_hunters(1)
         assert len(model.agents) == 1
-        right_cell: CompetingCell = model.nature.dem.cells[1][0]
-        assert model.agents.to_list()[0] in right_cell.agents
+        left_cell: CompetingCell = model.nature.dem.cells[0][0]
+        assert model.agents.to_list()[0] in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):
         """测试能否随机设置主体"""

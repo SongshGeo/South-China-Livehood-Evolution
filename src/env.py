@@ -110,8 +110,7 @@ class CompetingCell(PatchCell):
         if isinstance(agent, Farmer):
             cond1 = not self.has_agent()
             return self.is_arable & cond1
-        else:
-            raise TypeError("Agent must be Farmer or Hunter.")
+        raise TypeError("Agent must be Farmer or Hunter.")
 
     def suitable_level(self, agent: Farmer | Hunter) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
@@ -163,7 +162,7 @@ class Env(BaseNature):
     环境类
     """
 
-    def __init__(self, model, name="nature"):
+    def __init__(self, model, name="env"):
         super().__init__(model, name)
         self.dem = self.create_module(
             how="from_file",
@@ -184,19 +183,6 @@ class Env(BaseNature):
             arr = np.where(arr < 0, np.nan, arr)
             return arr.reshape((1, arr.shape[0], arr.shape[1]))
 
-    def add_hunters(self, ratio: float | None = 0.05):
-        """
-        添加初始的狩猎采集者，
-        随机抽取
-        """
-        not_water = ~self.dem.get_raster(attr_name="is_water").astype(bool)
-        not_water = not_water.reshape(self.dem.shape2d)
-        num = int(self.params.get("init_hunters", ratio) * not_water.sum())
-        hunters = self.model.agents.create(Hunter, num=num)
-        cells = self.dem.random_positions(k=num, where=not_water)
-        for hunter, cell in zip(hunters, cells):
-            hunter.put_on(cell)
-
     def add_farmers(self):
         """
         添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
@@ -210,7 +196,7 @@ class Env(BaseNature):
         arable_cells = self.dem.array_cells[arable.astype(bool)]
         for farmer in farmers:
             min_size, max_size = farmer.params.new_group_size
-            farmer.size = farmer.random.uniform(min_size, max_size)
+            farmer.size = farmer.random.randint(min_size, max_size)
         arable_cells = np.random.choice(arable_cells, size=farmers_num, replace=False)
         for farmer, cell in zip(farmers, arable_cells):
             if not cell:
