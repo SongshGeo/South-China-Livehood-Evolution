@@ -16,6 +16,7 @@ class Model(MainModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, nature_class=Env, **kwargs)
+        self.nature.add_hunters()
         self.farmers_num = []
         self.new_farmers = []
         self.hunters_num = []
