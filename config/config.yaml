@@ -25,10 +25,10 @@ farmer:
 
 hunter:
   convert_prob: 0.05
-  new_group_size: [30, 60]
+  new_group_size: [6, 31]  # TODO 6～max，先写死，后面有需要还改
   growth_rate: 0.04
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
-  max_size: 5024
+  max_size: 31.93  # TODO 这里先用了一个值，后面用空间数据的时候，还是要处理这个问题
   settle_size: 100
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   max_travel_distance: 5

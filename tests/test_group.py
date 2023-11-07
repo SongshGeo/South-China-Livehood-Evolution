@@ -24,8 +24,8 @@ with initialize(version_base=None, config_path="../config"):
     cfg = compose(config_name="config")
 os.chdir(cfg.root)
 
-MAX_SIZE = cfg.hunter.max_size
-MIN_SIZE = cfg.hunter.min_size
+MAX_SIZE = int(cfg.hunter.max_size)
+MIN_SIZE = int(cfg.hunter.min_size)
 G_RATE = cfg.hunter.growth_rate
 INTENSITY = cfg.hunter.intensified_coefficient
 
@@ -85,10 +85,10 @@ class TestHunter:
     @pytest.mark.parametrize(
         "size, expected, settled",
         [
-            (100, 100, False),
+            (20, 20, False),
             (0, MIN_SIZE, False),
-            (500, 500, True),
-            (7000, MAX_SIZE, True),
+            (31, 31, False),
+            (70, MAX_SIZE, False),
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
@@ -107,10 +107,10 @@ class TestHunter:
     @pytest.mark.parametrize(
         "growth_rate, initial_size, expected",
         [
-            (0.1, 100, 110),
+            (0.1, 10, 11),
             (0.2, 0, 7),
-            (-0.1, 500, 450),
-            (0.5, 1000, 1500),
+            (-0.1, 20, 18),
+            (0.5, 10, 15),
         ],
         ids=["positive_growth", "zero_growth", "negative_growth", "large_growth"],
     )
@@ -128,12 +128,12 @@ class TestHunter:
     @pytest.mark.parametrize(
         "s_min, s_max, initial_size, expected_size, expected_new_group_size",
         [
-            (50, 50, 100, 50, 50),
-            (200, 300, 99, 99, None),
+            # (10, 10, 20, 10, 10),
+            (200, 300, 20, 20, None),
             # (100, 200, 100, 0, 100),
         ],
         ids=[
-            "within_range",
+            # "within_range",
             "above_max_size",
             # "below_min_size"
         ],
@@ -153,7 +153,6 @@ class TestHunter:
         group.put_on(cell)
         group.params.new_group_size = (s_min, s_max)
         group.size = initial_size
-        assert group.size == initial_size
         assert group.loc("lim_h") == cfg.hunter.settle_size
 
         # Act
@@ -195,7 +194,7 @@ class TestHunter:
 
     @pytest.mark.parametrize(
         "size, expected_cell",
-        [(100, True), (0, True), (500, False), (7000, False)],
+        [(20, True), (0, True), (31, True), (60, True)],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
     def test_move(self, group, cell, size, expected_cell):

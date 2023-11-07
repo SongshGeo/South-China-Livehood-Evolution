@@ -87,6 +87,7 @@ class Hunter(SiteGroup):
         returns:
             如果成功移动，返回 `True`，否则返回 `False`。
         """
+        # self._check_moves()
         if not self.is_complex:
             if cell := search_a_new_place(self, self._cell, radius=radius):
                 self.put_on(cell)
