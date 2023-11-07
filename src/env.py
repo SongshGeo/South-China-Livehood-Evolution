@@ -34,7 +34,19 @@ class CompetingCell(PatchCell):
         self.slope: float = np.random.uniform(0, 30)
         self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 300)
-        self.is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
+        self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
+
+    @raster_attribute
+    def is_water(self) -> bool:
+        """是否是水体"""
+        return self._is_water
+
+    @is_water.setter
+    def is_water(self, value: bool) -> None:
+        """设置是否水体"""
+        if not isinstance(value, bool):
+            raise TypeError(f"Should be bool, got {type(value)} instead.")
+        self._is_water = value
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -131,6 +143,19 @@ class Env(BaseNature):
             arr = dataset.read(1)
             arr = np.where(arr < 0, np.nan, arr)
             return arr.reshape((1, arr.shape[0], arr.shape[1]))
+
+    def add_hunters(self, ratio: float | None = 0.05):
+        """
+        添加初始的狩猎采集者，
+        随机抽取
+        """
+        not_water = ~self.dem.get_raster(attr_name="is_water").astype(bool)
+        not_water = not_water.reshape(self.dem.shape2d)
+        num = int(self.params.get("init_hunters", ratio) * not_water.sum())
+        hunters = self.model.agents.create(Hunter, num=num)
+        cells = self.dem.random_positions(k=num, where=not_water)
+        for hunter, cell in zip(hunters, cells):
+            hunter.put_on(cell)
 
     def add_farmers(self):
         """

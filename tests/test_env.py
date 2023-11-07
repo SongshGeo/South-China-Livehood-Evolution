@@ -11,7 +11,7 @@ import pytest
 from abses import MainModel
 from hydra import compose, initialize
 
-from src.env import CompetingCell, Farmer, Hunter
+from src.env import BaseNature, CompetingCell, Env, Farmer, Hunter
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -20,6 +20,8 @@ os.chdir(cfg.root)
 
 
 class TestCompetingCell:
+    """测试每个斑块的计算"""
+
     @pytest.fixture(name="model")
     def mock_model(self):
         """一个虚假的模型"""
@@ -258,3 +260,63 @@ class TestCompetingCell:
         assert converted.size == hunter.size
         assert hunter not in the_model.agents
         assert converted.pos == cell.pos
+
+
+class TestEnvironmentSettings:
+    """测试环境的初始设置"""
+
+    @pytest.fixture
+    def model(self):
+        """设置用于测试的环境"""
+
+        class MockNature(BaseNature):
+            """模仿自然环境，但设置为简单的环境"""
+
+            def __init__(self, model, name="nature"):
+                super().__init__(model, name)
+                self.dem = self.create_module(
+                    how="from_resolution",
+                    shape=(1, 2),
+                    cell_cls=CompetingCell,
+                )
+                self.setup_is_water("right")
+
+            def add_hunters(self, *args, **kwargs):
+                """Mock Env add hunters"""
+                return getattr(Env, "add_hunters")(self, *args, **kwargs)
+
+            def setup_is_water(self, how: str = "right"):
+                """设置测试斑块为水体"""
+                if how == "right":
+                    self.dem.cells[0][0].is_water = False
+                    self.dem.cells[1][0].is_water = True
+                elif how == "left":
+                    self.dem.cells[0][0].is_water = True
+                    self.dem.cells[1][0].is_water = False
+                elif how == "all":
+                    self.dem.cells[0][0].is_water = False
+                    self.dem.cells[1][0].is_water = False
+
+        model = MainModel(parameters=cfg, nature_class=MockNature)
+        model.nature.params["init_hunters"] = 0.5
+        return model
+
+    def test_setup_is_correct(self, model: MainModel):
+        """测试环境的设置如预期"""
+        assert model.nature.dem.shape2d == (1, 2)
+        is_water = model.nature.dem.get_raster("is_water").reshape((1, 2))
+        assert is_water.sum() == 1
+        assert (~is_water.astype(bool)).any()
+
+    def test_setup_hunters(self, model: MainModel):
+        """测试能设置主体"""
+        model.nature.add_hunters(1)
+        assert len(model.agents) == 1
+        right_cell: CompetingCell = model.nature.dem.cells[1][0]
+        assert model.agents.to_list()[0] in right_cell.agents
+
+    def test_random_setup_hunters(self, model: MainModel):
+        """测试能否随机设置主体"""
+        model.nature.setup_is_water(how="all")
+        model.nature.add_hunters(0.6)
+        assert len(model.agents) == 1
