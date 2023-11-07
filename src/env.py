@@ -39,6 +39,24 @@ class CompetingCell(PatchCell):
         self.arable_level: float = np.random.uniform(0.0, 3.0)
 
     @raster_attribute
+    def farmers(self) -> int:
+        """这里的农民有多少（size）"""
+        if len(self.agents) > 1:
+            raise ValueError("More than one agent locates here.")
+        if self.has_agent("Farmer"):
+            return self.linked_attr("size")
+        return 0
+
+    @raster_attribute
+    def hunters(self) -> int:
+        """这里的农民有多少（size）"""
+        if len(self.agents) > 1:
+            raise ValueError("More than one agent locates here.")
+        if self.has_agent("Hunter"):
+            return self.linked_attr("size")
+        return 0
+
+    @raster_attribute
     def is_water(self) -> bool:
         """是否是水体"""
         return self._is_water

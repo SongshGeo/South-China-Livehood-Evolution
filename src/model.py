@@ -59,3 +59,14 @@ class Model(MainModel):
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
+
+    def heatmap(self):
+        """绘制狩猎采集者和农民的空间分布"""
+        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
+        mask = self.nature.dem.get_xarray("elevation") >= 0
+        farmers = self.nature.dem.get_xarray("farmers").where(mask)
+        hunters = self.nature.dem.get_xarray("hunters").where(mask)
+        farmers.plot.contourf(ax=ax1, cmap="Reds")
+        hunters.plot.contourf(ax=ax2, cmap="Greens")
+        ax1.set_xlabel("Farmers")
+        ax2.set_xlabel("Hunters")
