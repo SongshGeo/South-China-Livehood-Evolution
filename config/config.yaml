@@ -9,9 +9,7 @@ env:
   init_hunters: 0.05  # 初始设置5%的地块有狩猎采集者
 
 time:
-  start: 2000
-  end: 2100
-  freq: 'Y'
+  end: 100
 
 farmer:
   area: 2
