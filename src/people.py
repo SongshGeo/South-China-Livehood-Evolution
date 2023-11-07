@@ -82,7 +82,9 @@ def search_a_new_place(
     accessibility = [cell.able_to_live(agent) for cell in cells]
     # 如果有符合要求的格子，随机选择一个符合要求的
     if any(accessibility):
-        return cells.select(accessibility).random_choose()
+        selected_cells = cells.select(accessibility)
+        prob = [cell.suitable_level(agent) for cell in selected_cells]
+        return selected_cells.random_choose(prob=prob)
     if radius < agent.params.max_travel_distance:
         return search_a_new_place(agent, cell, radius=radius + 1, **kwargs)
     return None

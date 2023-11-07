@@ -6,7 +6,6 @@ kanban-plugin: basic
 
 ## Open
 
-- [ ] #feat✨ [[农业主体根据适宜度选取]]
 - [ ] #feat✨ [[检测主体的分布]]
 
 
@@ -16,6 +15,7 @@ kanban-plugin: basic
 
 ## Testing
 
+- [ ] #feat✨ [[农业主体根据适宜度选取]]
 
 
 ## Published

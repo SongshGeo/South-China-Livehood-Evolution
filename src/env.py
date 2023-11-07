@@ -35,6 +35,8 @@ class CompetingCell(PatchCell):
         self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
+        # arable level for farmers.
+        self.arable_level: float = np.random.uniform(0.0, 3.0)
 
     @raster_attribute
     def is_water(self) -> bool:
@@ -93,6 +95,24 @@ class CompetingCell(PatchCell):
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
 
+    def suitable_level(self, agent: Farmer | Hunter) -> float:
+        """根据此处的主体类型，返回一个适宜其停留的水平值。
+
+        Args:
+            agent (Farmer | Hunter): 狩猎采集者或者农民。
+
+        Returns:
+            适合该类主体停留此处的适宜度。
+
+        Raises:
+            TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
+        """
+        if isinstance(agent, Hunter):
+            return 1.0
+        if isinstance(agent, Farmer):
+            return self.arable_level
+        raise TypeError("Agent must be Farmer or Hunter.")
+
     def convert(self, agent: Farmer | Hunter):
         """让此处的农民与狩猎采集者之间互相转化。
 
@@ -137,6 +157,8 @@ class Env(BaseNature):
         self.dem.apply_raster(arr, attr_name="slope")
         arr = self._open_rasterio(cfg.db.asp)
         self.dem.apply_raster(arr, attr_name="aspect")
+        arr = self._open_rasterio(cfg.db.farmland)
+        self.dem.apply_raster(arr, attr_name="arable_level")
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:

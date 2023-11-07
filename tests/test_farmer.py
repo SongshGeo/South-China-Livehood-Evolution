@@ -9,9 +9,9 @@ import os
 from unittest.mock import MagicMock
 
 import pytest
+from abses import MainModel
 from hydra import compose, initialize
 
-from abses import MainModel
 from src.env import CompetingCell
 from src.farmer import Farmer
 from src.hunter import Hunter
@@ -27,6 +27,8 @@ AREA = cfg.farmer.area
 
 
 class TestFarmer:
+    """用于测试的农民主体"""
+
     @pytest.fixture(name="raw_model")
     def mock_model(self) -> MainModel:
         """一个虚假的模型"""
@@ -123,7 +125,7 @@ class TestFarmer:
             "cond1_true_cond2_true",
         ],
     )
-    def test_diffuse(self, farmer, cell, size, lim_h, diffuse_prob, expected_result):
+    def test_diffuse(self, farmer, cell, size, lim_h, diffuse_prob, expected):
         """测试农民的分散"""
         # Arrange
         farmer.size = size
@@ -133,7 +135,7 @@ class TestFarmer:
         result = farmer.diffuse()
 
         # Assert
-        assert isinstance(result, Farmer) is expected_result
+        assert isinstance(result, Farmer) is expected
 
     @pytest.mark.parametrize(
         "growth_rate, area, complexity, expected_growth_rate",
