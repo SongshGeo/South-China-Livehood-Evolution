@@ -73,7 +73,7 @@ class SiteGroup(Actor):
             growth_rate = self.params.growth_rate
         self.size = self._size + self._size * growth_rate
 
-    def diffuse(self, group_range: Tuple[Number] = (10, 20)) -> Self | None:
+    def diffuse(self, group_range: Tuple[Number] | None = None) -> Self | None:
         """人口分散，采用均匀分布随机选择一个最小和最大的规模，分裂出去。
         如果分裂出新的小队之后，原有的主体数量小于最小阈值，则原有主体会死掉。
 
@@ -87,15 +87,22 @@ class SiteGroup(Actor):
             如果没产生新的小队，则返回 None。
             如果产生了新的小队，但走了很远也没找到适合生存的地方，也会返回 None。
         """
+        # 获取分散小组的最小-最大人数.
+        if group_range is None:
+            group_range = self.params.get("new_group_size", (0, 0))
         s_min, s_max = group_range
-        cell = self._cell
+        # 如果当前的人数还不足以产生一支最小的小队，则不会产生
+        if self.size < s_min:
+            return None
         # 随机大小的一个规模，用于创建新的小队
         random_size = self.random.randint(s_min, s_max)
-        # 如果这个随机来的大小比原来主体拥有的人数还多，则全部的人口
+        # 如果这个随机来的大小比原来主体拥有的人数还多，则将大小设置为之前主体的全部人口
         size = min(random_size, self.size)
         # 创建一个新的小队伍
         cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
         new = self.model.agents.create(cls, singleton=True, size=size)
+        # 记录当前的位置
+        cell = self._cell
         # 原有人口减少，这里会触发减少到人数不足最小值时，死去
         self.size -= size
         # 新的人在周围寻找一个可以去的格子，并试图移动到那里
