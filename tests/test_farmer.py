@@ -5,145 +5,122 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-import os
 from unittest.mock import MagicMock
 
 import pytest
-from abses import MainModel
-from hydra import compose, initialize
+from abses import MainModel, PatchModule
 
-from src.env import CompetingCell
 from src.farmer import Farmer
-from src.hunter import Hunter
 
-# 加载项目层面的配置
-with initialize(version_base=None, config_path="../config"):
-    cfg = compose(config_name="config")
-os.chdir(cfg.root)
-
-MIN_SIZE = cfg.farmer.min_size
-G_RATE = cfg.farmer.growth_rate
-AREA = cfg.farmer.area
+from .conftest import cfg
 
 
 class TestFarmer:
     """用于测试的农民主体"""
 
-    @pytest.fixture(name="raw_model")
-    def mock_model(self) -> MainModel:
-        """一个虚假的模型"""
-        model = MainModel(parameters=cfg)
-        layer = model.nature.create_module(
-            how="from_resolution",
-            shape=(4, 4),
-            cell_cls=CompetingCell,
-        )
-        farmer = model.agents.create(Farmer, singleton=True)
-        cell = layer.array_cells[3][2]
-        # 模拟最大可支持的人口规模
-        cell.lim_h = cfg.hunter.settle_size
-        # 将虚假的农民放到它旁边
-        farmer.put_on(layer.array_cells[3][2])
-        hunter = model.agents.create(Hunter, size=50, singleton=True)
-        return model, hunter, farmer, cell
-
     @pytest.fixture(name="farmer")
-    def mock_farmer(self, raw_model) -> Farmer:
+    def mock_farmer(self, model: MainModel, layer: PatchModule) -> Farmer:
         """一个虚假的农民"""
-        _, _, farmer, _ = raw_model
+        farmer = model.agents.create(Farmer, singleton=True)
+        farmer.put_on(layer.cells[2][2])
         return farmer
 
-    @pytest.fixture(name="cell")
-    def mock_cell(self, raw_model) -> CompetingCell:
-        """一个虚假的格子"""
-        _, _, _, cell = raw_model
-        return cell
-
-    def test_init(self, farmer):
+    def test_init(self, farmer: Farmer):
         """测试初始化"""
-        # Arrange / Act / Assert
-        assert farmer.growth_rate == G_RATE
-        assert farmer.area == AREA
+        # Arrange
+        assert farmer.growth_rate == cfg.farmer.growth_rate
+        assert farmer.area == cfg.farmer.area
+
+        # Act
+        farmer.area = 2  # 2km
+
+        # Assert
+        assert farmer.min_size == 6
+        assert farmer.max_size == 3142
+        assert farmer.size == 6
+        assert farmer.on_earth
 
     @pytest.mark.parametrize(
         "growth_rate, expected",
-        [
-            (0.1, 0.1),
-            (0.2, 0.2),
-            (-0.1, 0),
-            (-0.2, 0),
-        ],
-        ids=[
-            "positive_growth_rate",
-            "positive_growth_rate",
-            "negative_growth_rate",
-            "negative_growth_rate",
-        ],
+        [(-0.1, 0.0), (0.1, 0.1), (1.0, 1.0)],
+        ids=["负增长", "正常增长", "快速增长"],
     )
-    def test_growth_rate_setter(self, farmer, growth_rate, expected):
-        """测试人口增长率变化"""
-        # Arrange / Act
+    def test_set_growth_rate(self, farmer: Farmer, growth_rate, expected):
+        """测试人口增长率是否合规"""
+        # Arrange / act
         farmer.growth_rate = growth_rate
-        result = farmer.growth_rate
 
         # Assert
-        assert result == expected
+        assert farmer.growth_rate == expected
 
     @pytest.mark.parametrize(
-        "area, expected",
-        [
-            (1, 2),
-            (2, 2),
-            (3, 3),
-            (-100, 2),
-        ],
-        ids=["positive_area", "positive_area", "zero_area", "negative_area"],
+        "area, change, expected",
+        [(4, -0.1, 4.0), (4, 0.1, 4.1), (4, 1.0, 5.0)],
+        ids=["负增长", "正常增长", "快速增长"],
     )
-    def test_area_setter(self, farmer, area, expected):
-        """测试耕地面积变化"""
-        # Arrange / Act
-        assert farmer.area == AREA
+    def test_set_area(self, farmer: Farmer, area, change, expected):
+        """测试人口增长率是否合规"""
+        # Arrange
         farmer.area = area
+
+        # Act
+        farmer.area += change
 
         # Assert
         assert farmer.area == expected
 
     @pytest.mark.parametrize(
-        "size, lim_h, diffuse_prob, expected",
+        "size, expected",
+        [(5, None), (10, 10), (60, 60), (1_000, 1_000), (100_000, 3142)],
+    )
+    def test_set_size(self, farmer: Farmer, size, expected):
+        """测试当设置主体大小"""
+        farmer.size = size
+        if expected is None:
+            assert not farmer.on_earth
+        else:
+            assert farmer.size == expected
+
+    @pytest.mark.parametrize(
+        "size, diffuse_prob, expected",
         [
-            # (100, 50, 0.0, True),
-            (10, 50, 0.1, False),
-            (100, 50, 0.1, False),
-            (10, 50, 0.04, False),
-            (100, 50, 0.04, True),
+            # (100, 0.0, True),
+            (10, 0.1, False),
+            (100, 0.1, False),
+            (10, 0.04, False),
+            (100, 0.04, True),
         ],
         ids=[
             # "force_true",
-            "cond1_false_cond2_false",
-            "cond1_true_cond2_false",
-            "cond1_false_cond2_true",
-            "cond1_true_cond2_true",
+            "The odds are off. We can't generate a squad",
+            "The odds are off. We can't generate a squad",
+            "The odds are OK. But not enough size for a squad",
+            "A squad, GO!",
         ],
     )
-    def test_diffuse(self, farmer, cell, size, lim_h, diffuse_prob, expected):
+    def test_diffuse(self, farmer, size, diffuse_prob, expected):
         """测试农民的分散"""
         # Arrange
         farmer.size = size
-        cell.lim_h = lim_h
+        assert farmer.size == size
         farmer.random.random = MagicMock(return_value=diffuse_prob)
+        assert farmer.params.diffuse_prob == 0.05
+        assert farmer.params.new_group_size == [30, 60]
+
         # Act
         result = farmer.diffuse()
 
         # Assert
+        print(getattr(result, "size", None))
         assert isinstance(result, Farmer) is expected
 
     @pytest.mark.parametrize(
-        "growth_rate, area, complexity, expected_growth_rate",
+        "growth_rate, area, complexity, expected_growth_rate, expected_area",
         [
-            (0.1, 100, 0.1, 0.09),
-            (0.2, 200, 0.2, 0.16),
-            (0.1, 100, 0.5, 0.05),
-            (0.2, 200, 0.5, 0.1),
+            (0.1, 100, 0.1, 0.09, 100 + 2 * (1 - 0.1)),
+            (0.2, 200, 0.2, 0.16, 200 + 2 * (1 - 0.2)),
+            (0.1, 100, 0.5, 0.05, 100 + 2 * (1 - 0.5)),
+            (0.2, 200, 0.5, 0.1, 200 + 2 * (1 - 0.5)),
         ],
         ids=[
             "positive_complexity",
@@ -153,13 +130,20 @@ class TestFarmer:
         ],
     )
     def test_complicate(
-        self, farmer, growth_rate, area, complexity, expected_growth_rate
+        self,
+        farmer: Farmer,
+        growth_rate,
+        area,
+        complexity,
+        expected_growth_rate,
+        expected_area,
     ):
         """测试农民的复杂化"""
         # Arrange
         farmer.growth_rate = growth_rate
         farmer.area = area
         farmer.params.complexity = complexity
+        farmer.params.area = 2
 
         # Act
         farmer.complicate()
@@ -168,4 +152,4 @@ class TestFarmer:
 
         # Assert
         assert round(result_growth_rate, 2) == expected_growth_rate
-        assert result_area == area + cfg.farmer.area * (1 - complexity)
+        assert result_area == expected_area

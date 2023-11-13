@@ -35,10 +35,10 @@ class SiteGroup(Actor):
     @size.setter
     def size(self, size: Number) -> None:
         """人口规模有最大最小值限制"""
-        if size < self._min_size:
+        if size < self.min_size:
             # 如果小于能够生存的最小情况，就死去
             self.die()
-        elif size > self._max_size:
+        elif size > self.max_size:
             # 相当于超出承载力的人口死去
             size = self.max_size
         self._size = size

@@ -5,20 +5,16 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-import os
-from typing import Self
+"""在基础主体之上，农民有以下不同：
+1. 新属性：人口增长率，是可变的，会因为复杂化而下降。
+"""
+
+from numbers import Number
+from typing import Self, Tuple
 
 import numpy as np
-from hydra import compose, initialize
 
 from src.people import SiteGroup
-
-# 加载项目层面的配置
-with initialize(version_base=None, config_path="../config"):
-    cfg = compose(config_name="config")
-os.chdir(cfg.root)
-
-INIT_AREA = cfg.farmer.area
 
 
 class Farmer(SiteGroup):
@@ -27,19 +23,20 @@ class Farmer(SiteGroup):
     """
 
     def __init__(self, *arg, **kwargs) -> None:
-        self._area = INIT_AREA
         super().__init__(*arg, **kwargs)
+        self._area = self.params.area
         self._growth_rate = self.params.growth_rate
+        self.size = kwargs.get("size", self.min_size)
 
     @property
     def growth_rate(self) -> float:
         """人口增长率，默认值可以在配置文件里的`growth_rate`中调节，也可以因复杂化而下降。设置新的人口增长率时不能下降到负增长。"""
-        return self._growth_rate
+        return getattr(self, "_growth_rate", 0.0)
 
     @growth_rate.setter
     def growth_rate(self, growth_rate) -> None:
         """人口增长率变化"""
-        growth_rate = max(growth_rate, 0)
+        growth_rate = max(growth_rate, 0.0)
         self._growth_rate = float(growth_rate)
 
     @property
@@ -50,7 +47,7 @@ class Farmer(SiteGroup):
 
         其中complexity为复杂化时的损失系数，应该在0-1之间。
         """
-        return self._area
+        return getattr(self, "_area", 0)
 
     @area.setter
     def area(self, area: float) -> None:
@@ -58,39 +55,42 @@ class Farmer(SiteGroup):
         area = max(self.area, area)
         self._area = float(area)
 
-    @property
-    def size(self) -> int:
-        """农民的人口规模和狩猎采集者有些区别，当人口规模小于最小值时，农民会死亡（见不到独居的农民）。
-        此外，一旦新的人口规模大于当前的最大值，则会复杂化。
-        """
-        return self._size
-
-    @size.setter
-    def size(self, size):
+    @SiteGroup.size.setter
+    def size(self, size: Number) -> None:
         """人口规模有最大最小值限制"""
-        if size < self.params.min_size:
-            # * 这里是不是少于就死了
-            self.die()
-        elif size > self.max_size:
+        SiteGroup.size.fset(self, size)
+        if size > self.max_size:
             self.complicate()
-        self._size = int(size)
 
     @property
     def max_size(self) -> float:
         """最大人口数量
 
-        > 参考对裴李岗时期（9000-7000 BP）人均所需耕地为0.008平方公里的数据（乔玉 2010），结合华南气候条件下较高的生产力和更充沛的自然资源，将所需人均耕地设置为0.004平方公里，那么该单位人口上限即π2*2/0.004=3142人
+        Note:
+            参考裴李岗时期（9000-7000 BP），人均耕地为0.008平方公里（乔玉 2010），
+            结合华南气候条件下较高的生产力和更充沛的自然资源，将所需人均耕地设置为0.004平方公里，
+            那么该单位人口上限即π * 2 * 2 / 0.004=3142人。
         """
-        return self.area * np.pi**2 * 2 / 0.004
+        max_size = np.pi * self.area**2 / 0.004
+        return np.ceil(max_size)
 
-    def diffuse(self) -> Self:
-        """农民的分散。一旦随机数小于分散概率，则会分散出去。可以在配置文件里`diffuse_prob`参数调节分散概率。"""
-        # cond1 = self.size >= self.loc("lim_h")
-        if self.random.random() < self.params.diffuse_prob:
-            # if cond1 and cond2:
-            return super().diffuse()
+    def diffuse(
+        self, group_range: Tuple[Number] | None = None, diffuse_prob: Number = None
+    ) -> Self:
+        """农民的分散。一旦随机数小于分散概率，则会分散出去。
+        但不像狩猎采集者，农民如果分裂不出最小的一支队伍，就不会扩散出去。
+        可以在配置文件里`diffuse_prob`参数调节分散概率。
+        """
+        # 检测概率是否够产生小队
+        if diffuse_prob is None:
+            diffuse_prob = self.params.get("diffuse_prob", 0.0)
+        if self.random.random() < diffuse_prob:
+            return super().diffuse(group_range=group_range)
+        return None
 
-    def complicate(self) -> Self:
+    def complicate(self, complexity: float | None = None) -> Self:
         """农民的复杂化，耕地上限再增加耕地密度增加、人口增长率下降。人口增长率的下降比例也为复杂化系数的值。"""
-        self.growth_rate *= 1 - self.params.complexity
-        self.area += INIT_AREA * (1 - self.params.complexity)
+        if complexity is None:
+            complexity = self.params.get("complexity", 0.0)
+        self.growth_rate *= 1 - complexity
+        self.area += self.params.area * (1 - complexity)
