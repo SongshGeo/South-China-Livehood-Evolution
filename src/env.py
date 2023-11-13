@@ -110,7 +110,9 @@ class CompetingCell(PatchCell):
         if isinstance(agent, Farmer):
             cond1 = not self.has_agent()
             return self.is_arable & cond1
-        raise TypeError("Agent must be Farmer or Hunter.")
+        if isinstance(agent, SiteGroup):
+            return True
+        raise TypeError("Agent must be People, Farmer or Hunter.")
 
     def suitable_level(self, agent: Farmer | Hunter) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
@@ -128,6 +130,8 @@ class CompetingCell(PatchCell):
             return 1.0
         if isinstance(agent, Farmer):
             return self.arable_level
+        if isinstance(agent, SiteGroup):
+            return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
     def convert(self, agent: Farmer | Hunter):
