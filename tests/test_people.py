@@ -9,52 +9,11 @@
 """测试基本主体类，包括其规模的设置，以及衍生。
 """
 
-import os
 from typing import Tuple
 
 import pytest
-from abses import MainModel, PatchModule
-from hydra import compose, initialize
 
-from src.env import CompetingCell
 from src.people import SiteGroup
-
-# 加载项目层面的配置
-with initialize(version_base=None, config_path="../config"):
-    cfg = compose(config_name="config")
-os.chdir(cfg.root)
-
-MAX_SIZE = int(cfg.hunter.max_size)
-MIN_SIZE = int(cfg.hunter.min_size)
-G_RATE = cfg.hunter.growth_rate
-INTENSITY = cfg.hunter.intensified_coefficient
-
-
-@pytest.fixture(name="model_and_layer")
-def mock_model_layer():
-    """创建一个用于测试的基本模型，拥有一个 4 * 4 的名为'layer'的图层。"""
-    model = MainModel(parameters=cfg)
-    layer = model.nature.create_module(
-        name="layer",
-        how="from_resolution",
-        shape=(4, 4),
-        cell_cls=CompetingCell,
-    )
-    return model, layer
-
-
-@pytest.fixture(name="model")
-def mock_model(model_and_layer) -> MainModel:
-    """只提取模型"""
-    model, _ = model_and_layer
-    return model
-
-
-@pytest.fixture(name="layer")
-def mock_layer(model_and_layer) -> PatchModule:
-    """只提取图层"""
-    _, layer = model_and_layer
-    return layer
 
 
 class TestGroup:

@@ -23,11 +23,9 @@ class SiteGroup(Actor):
 
     def __init__(self, *arg, **kwargs) -> None:
         super().__init__(*arg, **kwargs)
-        min_size = self.params.get("min_size", 0.0)
-        max_size = self.params.get("max_size", 0.0)
-        self.min_size = min_size
-        self.max_size = max_size
-        self.size = kwargs.get("size", min_size)
+        self._min_size = self.params.get("min_size", 0.0)
+        self._max_size = self.params.get("max_size", 0.0)
+        self.size = kwargs.get("size", self.min_size)
 
     @property
     def size(self) -> int:
