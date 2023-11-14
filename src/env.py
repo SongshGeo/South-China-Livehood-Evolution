@@ -5,6 +5,9 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+"""环境类
+"""
+
 from __future__ import annotations
 
 import os
@@ -153,6 +156,7 @@ class CompetingCell(PatchCell):
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
         # 创建一个新的主体
+        # print(f"Going to create size {agent.size} {convert_to}")
         converted = self.layer.model.agents.create(
             convert_to, size=agent.size, singleton=True
         )
@@ -210,7 +214,7 @@ class Env(BaseNature):
         Returns:
             本次新添加的农民列表。
         """
-        farmers_num = np.random.poisson()
+        farmers_num = np.random.poisson(self.params.lam)
         farmers = self.model.agents.create(Farmer, num=farmers_num)
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = self.dem.array_cells[arable.astype(bool)]
