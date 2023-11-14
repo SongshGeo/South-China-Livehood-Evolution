@@ -69,7 +69,7 @@ class SiteGroup(Actor):
 
     def population_growth(self, growth_rate: Optional[float] = None) -> None:
         """人口增长"""
-        if not growth_rate:
+        if growth_rate is None:
             growth_rate = self.params.growth_rate
         self.size = self._size + self._size * growth_rate
 
@@ -141,7 +141,7 @@ def search_a_new_place(
     agent: SiteGroup, cell: PatchCell, radius: int = 1, **kwargs
 ) -> PatchCell:
     """在周围寻找一个新的地方，能够让迁徙的人过去"""
-    if not cell:
+    if cell is None:
         raise TypeError(f"Expect PatchCell, got {type(cell)}, r={radius}.")
     # 先找到周围的格子
     cells = cell.get_neighboring_cells(

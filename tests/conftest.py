@@ -10,6 +10,7 @@
 
 import os
 
+import numpy as np
 import pytest
 from abses import MainModel, PatchModule
 from hydra import compose, initialize
@@ -37,6 +38,7 @@ def mock_model_layer():
         shape=(4, 4),
         cell_cls=CompetingCell,
     )
+    layer.apply_raster(np.ones((1, 4, 4)) * cfg.sitegroup.max_size, "lim_h")
     return model, layer
 
 

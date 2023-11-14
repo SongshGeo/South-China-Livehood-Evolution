@@ -5,8 +5,13 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from typing import Self
+"""狩猎采集者的。
+"""
 
+from numbers import Number
+from typing import Self, Tuple
+
+import numpy as np
 from abses import PatchCell
 
 from src.farmer import Farmer
@@ -15,6 +20,12 @@ from src.people import SiteGroup, search_a_new_place
 
 class Hunter(SiteGroup):
     """狩猎采集者"""
+
+    @property
+    def max_size(self) -> int:
+        if not self.on_earth:
+            return 100_000_000
+        return np.ceil(self.loc("lim_h"))
 
     @property
     def is_complex(self) -> bool:
@@ -31,6 +42,7 @@ class Hunter(SiteGroup):
         Args:
             cell (PatchCell | None): 狩猎采集者放到的格子。
         """
+        # 如果没有目标格子（死亡）
         if cell is None:
             super().put_on()
             return
@@ -38,8 +50,10 @@ class Hunter(SiteGroup):
         super().put_on(cell)
         if existing_agent:
             self.compete(existing_agent)
+        # 每到一个格子，重新设置大小，因为人口上限发生改变
+        self.size = self.size
 
-    def diffuse(self, force: bool = False) -> Self:
+    def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
 
         Args:
@@ -50,19 +64,21 @@ class Hunter(SiteGroup):
             - 如果成功分散，返回分散出的新主体。
             - 当无法成功分散时，返回空值。
         """
-        if force:
-            return super().diffuse()
-        if self.size >= self.loc("lim_h"):
-            return super().diffuse()
+        if self.size >= self.max_size:
+            return super().diffuse(group_range=group_range)
 
-    def convert(self, radius: int = 1, moore: bool = False) -> Self:
+    def convert(
+        self, convert_prob: float | None = None, radius: int = 1, moore: bool = False
+    ) -> Self:
         """狩猎采集者可能转化为农民，需要满足以下条件：
         1. 周围有农民
         2. 目前的土地是可耕地
 
         Args:
             radius (int): 搜索的半径范围，默认为周围一格。
-            moore (bool): 是否使用Moore邻域进行搜索，即搜索8临域，包括对角线的四个格子。默认不启用（即仅计算上下左右四个格子）。
+            moore (bool): 是否使用Moore邻域进行搜索，
+            即搜索8临域，包括对角线的四个格子。
+            默认不启用（即仅计算上下左右四个格子）。
 
         returns:
             如果没有转化，返回自身。
@@ -74,12 +90,15 @@ class Hunter(SiteGroup):
         # 且目前的土地是可耕地
         cond2 = self._cell.is_arable
         # 同时满足上述条件，狩猎采集者转化为农民
-        return super().convert() if cond1 and cond2 else self
+        return super().convert(convert_prob) if cond1 and cond2 else self
 
     def move(self, radius: int = 1) -> None:
         """有移动能力才能移动，在周围随机选取一个格子移动。
 
-        *关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格，把差异落在狩猎采集者是否定居，即丧失移动力。后者可大致设定为size_h大于100（Kelly 2013: 171）。*
+        Note:
+            *关于移动力大小的讨论尺度都太小，或许可以简化为1次移动1格。
+            把差异落在狩猎采集者是否定居，即丧失移动力。
+            后者可大致设定为size_h大于100（Kelly 2013: 171）。*
 
         Args:
             radius (int): 搜索的半径范围，在周围一格
@@ -101,7 +120,9 @@ class Hunter(SiteGroup):
             loser.die()
         elif loser.breed == "Hunter":
             loser.size *= loss
-            loser.move()
+            # 如果损失人口之后还在世界上，就溜了
+            if loser.on_earth:
+                loser.move()
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
 
@@ -125,7 +146,9 @@ class Hunter(SiteGroup):
     def compete(self, other: SiteGroup) -> bool:
         """与其它主体竞争，根据竞争对象有着不同的竞争规则：
         1. 与狩猎采集者竞争时，比较两者的人口规模。输了的一方将人口减半并进行一次移动。
-        2. 与农民竞争时，狩猎采集者会具备一定强化系数，通过配置文件里的 `intensified_coefficient` 参数进行调节。输了的一方如果是农民，则直接被狩猎采集者消灭；如果是狩猎采集者，则将人口减半并进行一次移动。
+        2. 与农民竞争时，狩猎采集者会具备一定强化系数，通过配置文件里的 `intensified_coefficient` 参数进行调节。
+        输了的一方如果是农民，则直接被狩猎采集者消灭；
+        如果是狩猎采集者，则将人口减半并进行一次移动。
 
         Args:
             other: 与该主体竞争的另一个主体。
@@ -135,6 +158,6 @@ class Hunter(SiteGroup):
         """
         if other.breed == "Farmer":
             return self._compete_with_farmer(other)
-        elif other.breed == "Hunter":
+        if other.breed == "Hunter":
             return self._compete_with_hunter(other)
         raise TypeError("Agent must be Farmer or Hunter.")
