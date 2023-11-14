@@ -67,6 +67,10 @@ class SiteGroup(Actor):
             raise TypeError("Max size of {self.breed} {type(value)} not num.")
         self._max_size = value
 
+    def random_size(self) -> None:
+        """在当前的最小、最大值之间，随机选择一个值作为本主体的规模。"""
+        self.size = self.random.randint(self.min_size, self.max_size)
+
     def population_growth(self, growth_rate: Optional[float] = None) -> None:
         """人口增长"""
         if growth_rate is None:

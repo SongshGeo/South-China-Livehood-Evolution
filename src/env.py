@@ -202,10 +202,8 @@ class Env(BaseNature):
         hunters = self.model.agents.create(Hunter, num=num)
         cells = np.random.choice(not_water_cells, size=num, replace=False)
         for hunter, cell in zip(hunters, cells):
-            min_size = cfg.hunter.min_size
-            max_size = cell.lim_h
             hunter.put_on(cell)
-            hunter.size = hunter.random.randint(int(min_size), int(max_size))
+            hunter.random_size()
 
     def add_farmers(self):
         """
