@@ -184,8 +184,8 @@ class Env(BaseNature):
         self.dem.apply_raster(arr, attr_name="aspect")
         arr = self._open_rasterio(cfg.db.farmland)
         self.dem.apply_raster(arr, attr_name="arable_level")
-        arr = self._open_rasterio(cfg.db.lim)
-        self.dem.apply_raster(arr, attr_name="lim_h")
+        # arr = self._open_rasterio(cfg.db.lim)
+        # self.dem.apply_raster(arr, attr_name='lim_h')
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:

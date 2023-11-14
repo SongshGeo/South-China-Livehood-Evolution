@@ -5,7 +5,7 @@ model:
 
 env:
 # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
-  lim_h: 31.93
+  lim_h: 31.93  # 如果不输入空间数据，就用这个默认值
   init_hunters: 0.05  # 初始设置5%的地块有狩猎采集者
   lam: 1  # 添加农民数量的期望
 
@@ -42,4 +42,4 @@ db:
   slo: data/hn_slo_10km1.tif
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
-  lim: hg_popu.tif
+  lim: data/hg_popu.tif

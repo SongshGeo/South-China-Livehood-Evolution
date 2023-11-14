@@ -57,8 +57,8 @@ class Hunter(SiteGroup):
         super().put_on(cell)
         if existing_agent:
             self.compete(existing_agent)
-        # 每到一个格子，重新设置大小，因为人口上限发生改变
-        self.size = self.size
+        # # 每到一个格子，重新设置大小，因为人口上限发生改变
+        # self.size = self.size
 
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
@@ -114,7 +114,7 @@ class Hunter(SiteGroup):
             如果成功移动，返回 `True`，否则返回 `False`。
         """
         # self._check_moves()
-        if not self.is_complex:
+        if not self.is_complex and self.on_earth:
             if cell := search_a_new_place(self, self._cell, radius=radius):
                 self.put_on(cell)
                 return True
