@@ -21,6 +21,13 @@ from src.people import SiteGroup, search_a_new_place
 class Hunter(SiteGroup):
     """狩猎采集者"""
 
+    @SiteGroup.size.setter
+    def size(self, size: Number) -> None:
+        if size < self.min_size:
+            SiteGroup.size.fset(self, size)
+        else:
+            self._size = size
+
     @property
     def max_size(self) -> int:
         if not self.on_earth:
@@ -34,7 +41,7 @@ class Hunter(SiteGroup):
         returns:
             是否是复杂狩猎采集者
         """
-        return self.size > self.params.settle_size
+        return self.size > self.max_size
 
     def put_on(self, cell: PatchCell | None = None) -> None:
         """将狩猎采集者放到某个格子。狩猎采集者放到的格子如果已经有了一个主体，就会与他竞争（触发竞争方法）。

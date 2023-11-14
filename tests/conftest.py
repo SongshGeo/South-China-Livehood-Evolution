@@ -22,11 +22,6 @@ with initialize(version_base=None, config_path="../config"):
     cfg = compose(config_name="config")
 os.chdir(cfg.root)
 
-MAX_SIZE = int(cfg.hunter.max_size)
-MIN_SIZE = int(cfg.hunter.min_size)
-G_RATE = cfg.hunter.growth_rate
-INTENSITY = cfg.hunter.intensified_coefficient
-
 
 @pytest.fixture(name="model_and_layer")
 def mock_model_layer():

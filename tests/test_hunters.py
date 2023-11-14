@@ -44,8 +44,9 @@ class TestHunters:
     def test_hunter_init(self, hunter: Hunter, layer):
         """测试狩猎采集者的初始化"""
         # arrange
-        assert hunter.size == 31
+        assert hunter.size == 50
         assert hunter.min_size == 6
+        assert hunter.is_complex
         assert hunter.max_size == np.ceil(cfg.sitegroup.max_size) == 31
 
         # act
@@ -57,7 +58,7 @@ class TestHunters:
             (20, 20, False),
             (0, None, False),
             (31, 31, False),
-            (70, np.ceil(cfg.sitegroup.max_size), False),
+            (70, 70, True),
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
@@ -140,7 +141,7 @@ class TestHunters:
 
     @pytest.mark.parametrize(
         "size, expected_move",
-        [(20, True), (6, True), (31, True), (60, True)],
+        [(20, True), (6, True), (31, True), (60, False)],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
     def test_move(self, hunter, size, expected_move):
