@@ -26,7 +26,7 @@ class TestHunters:
 
     @pytest.fixture(name="hunter")
     def mock_hunter(self, model, layer) -> Hunter:
-        """一个虚假的农民"""
+        """一个虚假的狩猎采集者"""
         hunter = model.agents.create(Hunter, size=50, singleton=True)
         hunter.put_on(layer.array_cells[3][2])
         return hunter
@@ -41,16 +41,13 @@ class TestHunters:
         agent.put_on(module.array_cells[3][3])
         return agent
 
-    def test_hunter_init(self, hunter: Hunter, layer):
+    def test_hunter_init(self, hunter: Hunter):
         """测试狩猎采集者的初始化"""
         # arrange
         assert hunter.size == 50
         assert hunter.min_size == 6
         assert hunter.is_complex
         assert hunter.max_size == np.ceil(cfg.sitegroup.max_size) == 31
-
-        # act
-        layer.array_cells[2][2].lim_h = 15
 
     @pytest.mark.parametrize(
         "size, expected, settled",

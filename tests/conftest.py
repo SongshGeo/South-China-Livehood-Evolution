@@ -18,8 +18,8 @@ from hydra import compose, initialize
 from src.env import CompetingCell
 
 # 加载项目层面的配置
-with initialize(version_base=None, config_path="../config"):
-    cfg = compose(config_name="config")
+with initialize(version_base=None, config_path="."):
+    cfg = compose(config_name="config_test")
 os.chdir(cfg.root)
 
 
