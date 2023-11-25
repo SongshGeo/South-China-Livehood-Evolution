@@ -38,7 +38,8 @@ class SiteGroup(Actor):
         if size < self.min_size:
             # 如果小于能够生存的最小情况，就死去
             self.die()
-        elif size > self.max_size:
+            return
+        if size > self.max_size:
             # 相当于超出承载力的人口死去
             size = self.max_size
         self._size = size
@@ -115,7 +116,7 @@ class SiteGroup(Actor):
             return new
         # 如果走了很远，没有符合要求的格子，主体就会死亡
         new.die()
-        return None
+        return "Died"
 
     def convert(self, convert_prob: float | None = None) -> Self:
         """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""

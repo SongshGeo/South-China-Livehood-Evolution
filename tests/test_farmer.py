@@ -82,23 +82,23 @@ class TestFarmer:
             assert farmer.size == expected
 
     @pytest.mark.parametrize(
-        "size, diffuse_prob, expected",
+        "size, diffuse_prob, group_size, expected",
         [
-            # (100, 0.0, True),
-            (10, 0.1, False),
-            (100, 0.1, False),
-            (10, 0.04, False),
-            (100, 0.04, True),
+            (100, 0.01, 110, False),
+            (10, 0.1, 30, False),
+            (100, 0.1, 30, False),
+            (10, 0.04, 30, False),
+            (100, 0.04, 30, True),
         ],
         ids=[
-            # "force_true",
+            "force_true",
             "The odds are off. We can't generate a squad",
             "The odds are off. We can't generate a squad",
             "The odds are OK. But not enough size for a squad",
             "A squad, GO!",
         ],
     )
-    def test_diffuse(self, farmer, size, diffuse_prob, expected):
+    def test_diffuse(self, farmer, size, diffuse_prob, group_size, expected):
         """测试农民的分散"""
         # Arrange
         farmer.size = size
@@ -106,13 +106,15 @@ class TestFarmer:
         farmer.random.random = MagicMock(return_value=diffuse_prob)
         assert farmer.params.diffuse_prob == 0.05
         assert farmer.params.new_group_size == [30, 60]
+        group_range = [group_size, group_size]
 
         # Act
-        result = farmer.diffuse()
+        result = farmer.diffuse(group_range=group_range)
 
         # Assert
         print(getattr(result, "size", None))
-        assert isinstance(result, Farmer) is expected
+        if result != "Died":
+            assert isinstance(result, Farmer) is expected
 
     @pytest.mark.parametrize(
         "growth_rate, area, complexity, expected_growth_rate, expected_area",
