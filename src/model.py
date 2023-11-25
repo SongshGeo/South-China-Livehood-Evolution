@@ -22,14 +22,18 @@ class Model(MainModel):
         self.hunters_num = []
 
     @property
+    def actors(self) -> ActorsList:
+        return super().actors.select({"on_earth": True})
+
+    @property
     def farmers(self) -> ActorsList:
         """农民列表"""
-        return self.agents.select("Farmer")
+        return self.agents.select("Farmer").select({"on_earth": True})
 
     @property
     def hunters(self) -> ActorsList:
         """狩猎采集者列表"""
-        return self.agents.select("Hunter")
+        return self.agents.select("Hunter").select({"on_earth": True})
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：
@@ -38,9 +42,9 @@ class Model(MainModel):
         3. 更新狩猎采集者可以移动（这可能触发竞争）
         """
         farmers = self.nature.add_farmers()
-        self.farmers.trigger("convert")
-        self.hunters.trigger("convert")
-        self.agents.trigger("diffuse")
+        self.actors.trigger("population_growth")
+        self.actors.trigger("convert")
+        self.actors.trigger("diffuse")
         self.hunters.trigger("move")
         # 更新农民和狩猎采集者数量
         self.new_farmers.append(len(farmers))
