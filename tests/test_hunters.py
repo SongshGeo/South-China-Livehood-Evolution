@@ -54,7 +54,7 @@ class TestHunters:
         [
             (20, 20, False),
             (0, None, False),
-            (31, 31, False),
+            (31, 31, True),
             (70, 70, True),
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
@@ -138,7 +138,7 @@ class TestHunters:
 
     @pytest.mark.parametrize(
         "size, expected_move",
-        [(20, True), (6, True), (31, True), (60, False)],
+        [(20, True), (6, True), (31, False), (60, False)],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
     def test_move(self, hunter, size, expected_move):

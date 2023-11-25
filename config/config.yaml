@@ -8,6 +8,7 @@ env:
   lim_h: 31.93  # 如果不输入空间数据，就用这个默认值
   init_hunters: 0.05  # 初始设置5%的地块有狩猎采集者
   lam: 1  # 添加农民数量的期望
+  lim_g: 30  # 一般格子的上限
 
 time:
   end: 100
@@ -38,4 +39,5 @@ db:
   slo: data/hn_slo_10km1.tif
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
-  lim: data/hg_popu.tif
+  lim_h: data/hg_popu.tif  # 修改最大的上限数据路径
+  lim_g: data/xxxxxx.tif  # 修改一般的上限数据路径

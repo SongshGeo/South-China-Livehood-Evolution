@@ -34,6 +34,7 @@ class CompetingCell(PatchCell):
     def __init__(self, pos=None, indices=None):
         super().__init__(pos, indices)
         self.lim_h: float = cfg.env.lim_h
+        self.lim_g: float = cfg.env.lim_g
         self.slope: float = np.random.uniform(0, 30)
         self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 300)
@@ -184,8 +185,10 @@ class Env(BaseNature):
         self.dem.apply_raster(arr, attr_name="aspect")
         arr = self._open_rasterio(cfg.db.farmland)
         self.dem.apply_raster(arr, attr_name="arable_level")
-        # arr = self._open_rasterio(cfg.db.lim)
+        # arr = self._open_rasterio(cfg.db.lim_h)
         # self.dem.apply_raster(arr, attr_name='lim_h')
+        # arr = self._open_rasterio(cfg.db.lim_g)
+        # self.dem.apply_raster(arr, attr_name='lim_g')
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:
