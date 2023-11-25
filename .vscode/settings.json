@@ -6,5 +6,9 @@
         "nature",
         "docs",
     ],
-    "todo-tree.tree.scanMode": "workspace only"
+    "todo-tree.tree.scanMode": "workspace only",
+    "cSpell.words": [
+        "contourf",
+        "sitegroup"
+    ]
 }

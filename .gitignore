@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea/
-data
+# data
 
 # LaTeX
 *.synctex(busy)
@@ -163,3 +163,6 @@ multirun
 
 # abses 包正式发布之前挪动过来调用
 abses
+
+# 还是不上传数据了
+data

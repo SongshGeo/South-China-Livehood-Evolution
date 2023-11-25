@@ -16,6 +16,7 @@ class Model(MainModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, nature_class=Env, **kwargs)
+        self.nature.add_hunters()
         self.farmers_num = []
         self.new_farmers = []
         self.hunters_num = []
@@ -30,6 +31,13 @@ class Model(MainModel):
         """狩猎采集者列表"""
         return self.agents.select("Hunter")
 
+    def trigger(self, actors: ActorsList, func: str, *args, **kwargs) -> None:
+        """触发所有还活着的主体的行动"""
+        for actor in actors:
+            if not actor.on_earth:
+                continue
+            getattr(actor, func)(*args, **kwargs)
+
     def step(self):
         """每一时间步都按照以下顺序执行一次：
         1. 更新农民数量
@@ -37,10 +45,10 @@ class Model(MainModel):
         3. 更新狩猎采集者可以移动（这可能触发竞争）
         """
         farmers = self.nature.add_farmers()
-        self.farmers.trigger("convert")
-        self.hunters.trigger("convert")
-        self.agents.trigger("diffuse")
-        self.hunters.trigger("move")
+        self.trigger(self.actors, "population_growth")
+        self.trigger(self.actors, "convert")
+        self.trigger(self.actors, "diffuse")
+        self.trigger(self.hunters, "move")
         # 更新农民和狩猎采集者数量
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
@@ -59,3 +67,14 @@ class Model(MainModel):
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
+
+    def heatmap(self):
+        """绘制狩猎采集者和农民的空间分布"""
+        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
+        mask = self.nature.dem.get_xarray("elevation") >= 0
+        farmers = self.nature.dem.get_xarray("farmers").where(mask)
+        hunters = self.nature.dem.get_xarray("hunters").where(mask)
+        farmers.plot.contourf(ax=ax1, cmap="Reds")
+        hunters.plot.contourf(ax=ax2, cmap="Greens")
+        ax1.set_xlabel("Farmers")
+        ax2.set_xlabel("Hunters")

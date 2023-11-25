@@ -8,10 +8,14 @@ env:
   lim_h: 31.93  # 如果不输入空间数据，就用这个默认值
   init_hunters: 0.05  # 初始设置5%的地块有狩猎采集者
   lam: 1  # 添加农民数量的期望
-  lim_g: 30  # 一般格子的上限
+  lim_g: 31.93  # 一般格子的上限
 
 time:
   end: 100
+
+sitegroup:
+  min_size: 5.5
+  max_size: 30.5
 
 farmer:
   area: 2
@@ -32,7 +36,7 @@ hunter:
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   max_travel_distance: 5
-  is_complex: 100  # 超过多少之后狩猎采集者不再移动
+  is_complex: 100  # 狩猎采集者复杂化的阈值
 
 
 db:
@@ -40,4 +44,4 @@ db:
   slo: data/hn_slo_10km1.tif
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
-  lim_h: data/hg_popu.tif  # 修改最大的上限数据路径
+  lim: data/hg_popu.tif
