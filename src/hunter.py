@@ -128,10 +128,13 @@ class Hunter(SiteGroup):
         if loser.breed == "Farmer":
             loser.die()
         elif loser.breed == "Hunter":
-            loser.size *= loss
-            # 如果损失人口之后还在世界上，就溜了
-            if loser.on_earth:
-                loser.move()
+            if loser.is_complex:
+                loser.die()
+            else:
+                loser.size *= loss
+                # 如果损失人口之后还在世界上，就溜了
+                if loser.on_earth:
+                    loser.move()
         else:
             raise TypeError("Agent must be Farmer or Hunter.")
 

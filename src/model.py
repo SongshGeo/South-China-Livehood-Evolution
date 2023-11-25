@@ -22,18 +22,21 @@ class Model(MainModel):
         self.hunters_num = []
 
     @property
-    def actors(self) -> ActorsList:
-        return super().actors.select({"on_earth": True})
-
-    @property
     def farmers(self) -> ActorsList:
         """农民列表"""
-        return self.agents.select("Farmer").select({"on_earth": True})
+        return self.agents.select("Farmer")
 
     @property
     def hunters(self) -> ActorsList:
         """狩猎采集者列表"""
-        return self.agents.select("Hunter").select({"on_earth": True})
+        return self.agents.select("Hunter")
+
+    def trigger(self, actors: ActorsList, func: str, *args, **kwargs) -> None:
+        """触发所有还活着的主体的行动"""
+        for actor in actors:
+            if not actor.on_earth:
+                continue
+            getattr(actor, func)(*args, **kwargs)
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：
@@ -42,10 +45,10 @@ class Model(MainModel):
         3. 更新狩猎采集者可以移动（这可能触发竞争）
         """
         farmers = self.nature.add_farmers()
-        self.actors.trigger("population_growth")
-        self.actors.trigger("convert")
-        self.actors.trigger("diffuse")
-        self.hunters.trigger("move")
+        self.trigger(self.actors, "population_growth")
+        self.trigger(self.actors, "convert")
+        self.trigger(self.actors, "diffuse")
+        self.trigger(self.hunters, "move")
         # 更新农民和狩猎采集者数量
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
