@@ -43,7 +43,7 @@ class Hunter(SiteGroup):
         """
         if not self.on_earth:
             return False
-        return self.size > self.loc("lim_g")
+        return self.size > self.params.is_complex
 
     def put_on(self, cell: PatchCell | None = None) -> None:
         """将狩猎采集者放到某个格子。狩猎采集者放到的格子如果已经有了一个主体，就会与他竞争（触发竞争方法）。

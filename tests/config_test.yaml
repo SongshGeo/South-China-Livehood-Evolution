@@ -36,6 +36,7 @@ hunter:
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   max_travel_distance: 5
+  is_complex: 100  # 狩猎采集者复杂化的阈值
 
 
 db:

@@ -46,7 +46,7 @@ class TestHunters:
         # arrange
         assert hunter.size == 50
         assert hunter.min_size == 6
-        assert hunter.is_complex
+        assert not hunter.is_complex
         assert hunter.max_size == np.ceil(cfg.sitegroup.max_size) == 31
 
     @pytest.mark.parametrize(
@@ -54,8 +54,8 @@ class TestHunters:
         [
             (20, 20, False),
             (0, None, False),
-            (31, 31, True),
-            (70, 70, True),
+            (100, 100, False),
+            (101, 101, True),
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
@@ -138,7 +138,7 @@ class TestHunters:
 
     @pytest.mark.parametrize(
         "size, expected_move",
-        [(20, True), (6, True), (31, False), (60, False)],
+        [(20, True), (6, True), (131, False), (160, False)],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
     def test_move(self, hunter, size, expected_move):

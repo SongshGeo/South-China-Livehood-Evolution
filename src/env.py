@@ -63,7 +63,7 @@ class CompetingCell(PatchCell):
     @raster_attribute
     def is_water(self) -> bool:
         """是否是水体"""
-        return self._is_water
+        return self._is_water or self.elevation <= 0
 
     @is_water.setter
     def is_water(self, value: bool) -> None:
@@ -185,16 +185,14 @@ class Env(BaseNature):
         self.dem.apply_raster(arr, attr_name="aspect")
         arr = self._open_rasterio(cfg.db.farmland)
         self.dem.apply_raster(arr, attr_name="arable_level")
-        # arr = self._open_rasterio(cfg.db.lim_h)
-        # self.dem.apply_raster(arr, attr_name='lim_h')
-        # arr = self._open_rasterio(cfg.db.lim_g)
-        # self.dem.apply_raster(arr, attr_name='lim_g')
+        arr = self._open_rasterio(cfg.db.lim_h)
+        self.dem.apply_raster(arr, attr_name="lim_h")
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:
             arr = dataset.read(1)
             arr = np.where(arr < 0, np.nan, arr)
-            return arr.reshape((1, arr.shape[0], arr.shape[1]))
+        return arr.reshape((1, arr.shape[0], arr.shape[1]))
 
     def add_hunters(self, ratio: float | None = 0.05):
         """

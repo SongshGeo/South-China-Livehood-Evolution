@@ -32,6 +32,7 @@ hunter:
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   max_travel_distance: 5
+  is_complex: 100  # 超过多少之后狩猎采集者不再移动
 
 
 db:
@@ -40,4 +41,3 @@ db:
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
   lim_h: data/hg_popu.tif  # 修改最大的上限数据路径
-  lim_g: data/xxxxxx.tif  # 修改一般的上限数据路径
