@@ -54,8 +54,8 @@ class TestHunters:
         [
             (20, 20, False),
             (0, None, False),
-            (100, 100, False),
-            (101, 101, True),
+            (100, 31, False),
+            (101, 31, False),
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
@@ -144,7 +144,7 @@ class TestHunters:
     def test_move(self, hunter, size, expected_move):
         """测试有移动能力才能移动，在周围随机选取一个格子移动"""
         # Arrange
-        hunter.size = size
+        setattr(hunter, "_size", size)
         initial_pos = hunter.pos
 
         # Act

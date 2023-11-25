@@ -14,6 +14,7 @@ import os
 
 import numpy as np
 import rasterio
+from abses import ActorsList
 from abses.cells import raster_attribute
 from abses.nature import BaseNature, PatchCell
 from hydra import compose, initialize
@@ -222,8 +223,12 @@ class Env(BaseNature):
         for farmer in farmers:
             min_size, max_size = farmer.params.new_group_size
             farmer.size = farmer.random.randint(min_size, max_size)
-        arable_cells = np.random.choice(arable_cells, size=farmers_num, replace=False)
-        for farmer, cell in zip(farmers, arable_cells):
+        # 从可耕地、没有主体的里面选
+        arable_cells = ActorsList(self.model, arable_cells)
+        valid_cells = arable_cells.select(
+            ~arable_cells.trigger("has_agent")
+        ).random_choose(size=farmers_num, replace=False, as_list=True)
+        for farmer, cell in zip(farmers, valid_cells):
             if not cell:
                 raise ValueError(f"arable_cells {cell} is None")
             farmer.put_on(cell)
