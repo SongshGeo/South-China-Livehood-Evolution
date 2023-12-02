@@ -5,10 +5,13 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+# from pathlib import Path
+
+import pandas as pd
 from abses import ActorsList, MainModel
 from matplotlib import pyplot as plt
 
-from src.env import Env
+from abses_sce.env import Env
 
 
 class Model(MainModel):
@@ -53,6 +56,25 @@ class Model(MainModel):
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
         self.hunters_num.append(self.hunters.array("size").sum())
+
+    @property
+    def dataset(self) -> pd.DataFrame:
+        """数据"""
+        data = {
+            "new_farmers": self.new_farmers,
+            "farmers_num": self.farmers_num,
+            "hunters_num": self.hunters_num,
+        }
+        return pd.DataFrame(data=data, index=range(self.time.tick))
+
+    def export_data(self, path: str | None = None) -> None:
+        """导出实验数据"""
+        if path is None:
+            path = self.settings.dir
+        # path_obj = Path(path)
+        # if not path_obj.is_dir():
+        #     raise FileExistsError(f'{path} not exist.')
+        self.dataset.to_csv(f"repeat_{self.run_id}.csv")
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
