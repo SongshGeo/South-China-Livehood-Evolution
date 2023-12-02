@@ -26,6 +26,7 @@ farmer:
   max_travel_distance: 5
 
 hunter:
+  init_size: [0, 35]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
   convert_prob: 0.05
   new_group_size: [6, 31]
   growth_rate: 0.04

@@ -205,9 +205,10 @@ class Env(BaseNature):
         num = int(self.params.get("init_hunters", ratio) * not_water.sum())
         hunters = self.model.agents.create(Hunter, num=num)
         cells = np.random.choice(not_water_cells, size=num, replace=False)
+        init_min, init_max = cfg.hunter.init_size
         for hunter, cell in zip(hunters, cells):
             hunter.put_on(cell)
-            hunter.random_size()
+            hunter.random_size(init_min, init_max)
 
     def add_farmers(self):
         """
