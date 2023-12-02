@@ -37,7 +37,8 @@ farmer:
   diffuse_prob: 0.05
   complexity: 0.1  # 复杂化后人口增加速率下降多少
   convert_prob: 0.08
-  max_travel_distance: 5
+  max_travel_distance: 5  # 最远移动距离
+  no_convert: 100  # 超过100人之后就不再转化成狩猎采集
 
 hunter:
   init_size: [0, 35]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。

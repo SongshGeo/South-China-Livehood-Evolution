@@ -11,10 +11,10 @@ import numpy as np
 import pytest
 from abses import MainModel, PatchModule
 
-from src.env import CompetingCell
-from src.farmer import Farmer
-from src.hunter import Hunter
-from src.people import SiteGroup
+from abses_sce.env import CompetingCell
+from abses_sce.farmer import Farmer
+from abses_sce.hunter import Hunter
+from abses_sce.people import SiteGroup
 
 from .conftest import cfg
 
@@ -175,7 +175,7 @@ class TestHunters:
         assert farmer.on_earth
 
         # Act
-        with patch("src.hunter.Hunter._compete_with_farmer") as mock:
+        with patch("abses_sce.hunter.Hunter._compete_with_farmer") as mock:
             hunter.compete(farmer)
             assert mock.called
 
