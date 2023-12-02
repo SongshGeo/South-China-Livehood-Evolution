@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 from abses import MainModel, PatchModule
 
-from src.farmer import Farmer
+from abses_sce.farmer import Farmer
 
 from .conftest import cfg
 
@@ -155,3 +155,24 @@ class TestFarmer:
         # Assert
         assert round(result_growth_rate, 2) == expected_growth_rate
         assert result_area == expected_area
+
+    @pytest.mark.parametrize(
+        "size, no_convert, expected_converted",
+        [
+            (99, 100, True),
+            (100, 100, True),
+            (101, 100, False),
+        ],
+    )
+    def test_convert(self, farmer: Farmer, size, expected_converted, no_convert):
+        """测试是否存在转化的上限"""
+        # arrange
+        farmer.size = size
+        farmer.params.convert_prob = 1
+
+        # act
+        farmer.params.no_convert = no_convert
+        converted = farmer.convert()
+
+        # assert
+        assert isinstance(converted, Farmer) != expected_converted
