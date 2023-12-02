@@ -1,5 +1,19 @@
 root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
 
+hydra:
+  job:
+    name: try_new  # 实验的名字
+  run:
+    dir: 'out/${hydra:job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}'  # 不要修改这个
+  sweep:
+    dir: out/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 不要修改这个
+    subdir: ${hydra:job.name}_${hydra.job.num}  # 不要修改这个
+
+exp:
+  run_id: ${hydra:job.id}  # 不要修改这个
+  repeats: 1  # 每组参数的运行重复次数
+  note: 运行一次，看看能不能跑出数据了。  # 实验笔记
+
 model:
   loss_rate: 0.5  # 竞争失败者的人口损失系数
 
@@ -11,7 +25,7 @@ env:
   lim_g: 30  # 一般格子的上限
 
 time:
-  end: 100
+  end: 10
 
 farmer:
   area: 2

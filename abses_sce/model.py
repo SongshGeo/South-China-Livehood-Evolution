@@ -5,11 +5,13 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-# from pathlib import Path
+from pathlib import Path
 
 import pandas as pd
 from abses import ActorsList, MainModel
+from loguru import logger
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 
 from abses_sce.env import Env
 
@@ -23,6 +25,21 @@ class Model(MainModel):
         self.farmers_num = []
         self.new_farmers = []
         self.hunters_num = []
+        self.outpath = kwargs.get("outpath")
+
+    @property
+    def outpath(self) -> str:
+        """输出文件夹"""
+        return self._path
+
+    @outpath.setter
+    def outpath(self, path: str) -> None:
+        """设置输出文件夹"""
+        logger.warning(f"Out path is {path}.")
+        path_obj = Path(path)
+        if not path_obj.is_dir():
+            raise FileExistsError(f"{path} not exist.")
+        self._path = path_obj
 
     @property
     def farmers(self) -> ActorsList:
@@ -67,21 +84,17 @@ class Model(MainModel):
         }
         return pd.DataFrame(data=data, index=range(self.time.tick))
 
-    def export_data(self, path: str | None = None) -> None:
+    def export_data(self) -> None:
         """导出实验数据"""
-        if path is None:
-            path = self.settings.dir
-        # path_obj = Path(path)
-        # if not path_obj.is_dir():
-        #     raise FileExistsError(f'{path} not exist.')
-        self.dataset.to_csv(f"repeat_{self.run_id}.csv")
+        self.dataset.to_csv(self.outpath / f"repeat_{self.run_id}.csv")
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
-        self.plot()
+        self.plot(save=True)
         plt.show()
+        self.export_data()
 
-    def plot(self):
+    def plot(self, save: bool = False) -> Axes:
         """绘制狩猎采集者和农民的数量变化"""
         _, ax = plt.subplots()
         ax.plot(self.farmers_num, label="farmers")
@@ -89,6 +102,10 @@ class Model(MainModel):
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
+        if save:
+            plt.savefig(self.outpath / f"repeat_{self.run_id}_plot.jpg")
+            plt.close()
+        return ax
 
     def heatmap(self):
         """绘制狩猎采集者和农民的空间分布"""
