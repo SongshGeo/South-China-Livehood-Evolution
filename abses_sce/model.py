@@ -8,8 +8,8 @@
 from pathlib import Path
 
 import pandas as pd
+import seaborn as sns
 from abses import ActorsList, MainModel
-from loguru import logger
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
@@ -35,7 +35,6 @@ class Model(MainModel):
     @outpath.setter
     def outpath(self, path: str) -> None:
         """设置输出文件夹"""
-        logger.warning(f"Out path is {path}.")
         path_obj = Path(path)
         if not path_obj.is_dir():
             raise FileExistsError(f"{path} not exist.")
@@ -90,8 +89,10 @@ class Model(MainModel):
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
-        self.plot(save=True)
-        plt.show()
+        save_fig = self.params.get("save_plots")
+        self.plot(save=save_fig)
+        self.heatmap(save=save_fig)
+        self.plot_histplots(save=save_fig)
         self.export_data()
 
     def plot(self, save: bool = False) -> Axes:
@@ -107,7 +108,7 @@ class Model(MainModel):
             plt.close()
         return ax
 
-    def heatmap(self):
+    def heatmap(self, save: bool = False):
         """绘制狩猎采集者和农民的空间分布"""
         _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
         mask = self.nature.dem.get_xarray("elevation") >= 0
@@ -117,3 +118,18 @@ class Model(MainModel):
         hunters.plot.contourf(ax=ax2, cmap="Greens")
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
+        if save:
+            plt.savefig(self.outpath / f"repeat_{self.run_id}_heatmap.jpg")
+            plt.close()
+        return ax1, ax2
+
+    def plot_histplots(self, save: bool = False):
+        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
+        sns.histplot(self.farmers.array("size"), ax=ax1)
+        sns.histplot(self.hunters.array("size"), ax=ax2)
+        ax1.set_xlabel("Farmers")
+        ax2.set_xlabel("Hunters")
+        if save:
+            plt.savefig(self.outpath / f"repeat_{self.run_id}_histplot.jpg")
+            plt.close()
+        return ax1, ax2
