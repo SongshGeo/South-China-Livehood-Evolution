@@ -1,4 +1,13 @@
 
+<a id='changelog-0.2.0'></a>
+# 0.2.0 — 2023-12-03
+
+## New Features
+
+- [x] #feat✨ 初始添加狩猎采集者，单个agent人数范围设置在【0,35】的区间内，即仍不存在复杂狩猎采集者
+- [x] #feat✨ 农民人数超过100后就不会convert为狩猎采集者
+- [x] #feat✨ 批量测试（1）init_hunters （2）convert_prob （3）loss_rate （4）intensified_coefficient
+
 <a id='changelog-0.1.0'></a>
 # 0.1.0 — 2023-11-25
 

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "sc-20230710-sce"
-version = "0.1.0"
+name = "abses_sce"
+version = "0.2.0"
 description = ""
 authors = ["SongshGeo <songshgeo@gmail.com>"]
 readme = "README.md"
-packages = [{include = "sc_20230710_sce"}]
+packages = [{include = "abses_sce"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"

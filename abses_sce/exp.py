@@ -9,8 +9,9 @@ import warnings
 
 import hydra
 from hydra.core.hydra_config import HydraConfig
-from model import Model
 from omegaconf import DictConfig
+
+from abses_sce.model import Model
 
 warnings.filterwarnings("ignore", module="abses")
 

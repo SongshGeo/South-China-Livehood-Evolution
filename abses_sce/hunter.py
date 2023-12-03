@@ -14,8 +14,8 @@ from typing import Self, Tuple
 import numpy as np
 from abses import PatchCell
 
-from abses_sce.farmer import Farmer
-from abses_sce.people import SiteGroup, search_a_new_place
+from .farmer import Farmer
+from .people import SiteGroup, search_a_new_place
 
 
 class Hunter(SiteGroup):

@@ -13,7 +13,7 @@ from abses import ActorsList, MainModel
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
-from abses_sce.env import Env
+from .env import Env
 
 
 class Model(MainModel):

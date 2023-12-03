@@ -14,7 +14,7 @@ from typing import Self, Tuple
 
 import numpy as np
 
-from abses_sce.people import SiteGroup
+from .people import SiteGroup
 
 
 class Farmer(SiteGroup):
