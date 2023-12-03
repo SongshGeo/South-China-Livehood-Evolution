@@ -11,7 +11,7 @@ env:
   lim_g: 31.93  # 一般格子的上限
 
 time:
-  end: 100
+  end: 10
 
 sitegroup:
   min_size: 5.5
@@ -28,6 +28,7 @@ farmer:
   complexity: 0.1  # 复杂化后人口增加速率下降多少
   convert_prob: 0.08
   max_travel_distance: 5
+  no_convert: 100
 
 hunter:
   convert_prob: 0.05

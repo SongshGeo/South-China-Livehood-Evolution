@@ -1,6 +1,21 @@
 root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
 
+hydra:
+  job:
+    name: try_new  # 实验的名字
+  run:
+    dir: 'out/${hydra:job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}'  # 不要修改这个
+  sweep:
+    dir: out/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 不要修改这个
+    subdir: ${hydra:job.name}_${hydra.job.num}  # 不要修改这个
+
+exp:
+  run_id: ${hydra:job.id}  # 不要修改这个
+  repeats: 1  # 每组参数的运行重复次数
+  note: 运行一次，看看能不能跑出数据了。  # 实验笔记
+
 model:
+  save_plots: True  # 保存绘图
   loss_rate: 0.5  # 竞争失败者的人口损失系数
 
 env:
@@ -11,7 +26,7 @@ env:
   lim_g: 30  # 一般格子的上限
 
 time:
-  end: 100
+  end: 10
 
 farmer:
   area: 2
@@ -23,9 +38,11 @@ farmer:
   diffuse_prob: 0.05
   complexity: 0.1  # 复杂化后人口增加速率下降多少
   convert_prob: 0.08
-  max_travel_distance: 5
+  max_travel_distance: 5  # 最远移动距离
+  no_convert: 100  # 超过100人之后就不再转化成狩猎采集
 
 hunter:
+  init_size: [0, 35]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
   convert_prob: 0.05
   new_group_size: [6, 31]
   growth_rate: 0.04

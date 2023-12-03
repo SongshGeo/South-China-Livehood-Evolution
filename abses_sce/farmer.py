@@ -14,7 +14,7 @@ from typing import Self, Tuple
 
 import numpy as np
 
-from src.people import SiteGroup
+from abses_sce.people import SiteGroup
 
 
 class Farmer(SiteGroup):
@@ -73,6 +73,11 @@ class Farmer(SiteGroup):
         """
         max_size = np.pi * self.area**2 / 0.004
         return np.ceil(max_size)
+
+    def convert(self, convert_prob: float | None = None) -> Self:
+        if self.size > self.params.no_convert:
+            return self
+        return super().convert(convert_prob)
 
     def diffuse(
         self, group_range: Tuple[Number] | None = None, diffuse_prob: Number = None
