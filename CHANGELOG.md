@@ -1,4 +1,15 @@
 
+<a id='changelog-0.2.1'></a>
+# 0.2.1 — 2023-12-09
+
+## New Features
+
+- [x] #feat✨ 两个新的折线图，表示农民和狩猎采集者群体的数量，而不是人数
+
+## Refactoring
+
+- [x] #refactor♻️ 将所有的画图功能转移到 `ModelViz` 类
+
 <a id='changelog-0.2.0'></a>
 # 0.2.0 — 2023-12-03
 
