@@ -165,7 +165,7 @@ def search_a_new_place(
     if any(accessibility):
         selected_cells = cells.select(accessibility)
         prob = [cell.suitable_level(agent) for cell in selected_cells]
-        return selected_cells.random_choose(prob=prob)
+        return selected_cells.random.choice(prob=prob)
     if radius < agent.params.max_travel_distance:
         return search_a_new_place(agent, cell, radius=radius + 1, **kwargs)
     return None

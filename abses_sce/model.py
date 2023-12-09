@@ -8,10 +8,9 @@
 from pathlib import Path
 
 import pandas as pd
-import seaborn as sns
 from abses import ActorsList, MainModel
-from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
+
+from abses_sce.plot import ModelViz
 
 from .env import Env
 
@@ -25,7 +24,9 @@ class Model(MainModel):
         self.farmers_num = []
         self.new_farmers = []
         self.hunters_num = []
-        self.outpath = kwargs.get("outpath")
+        self.len_farmers = []
+        self.len_hunters = []
+        self.outpath = kwargs.get("outpath", "")
 
     @property
     def outpath(self) -> str:
@@ -72,6 +73,8 @@ class Model(MainModel):
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
         self.hunters_num.append(self.hunters.array("size").sum())
+        self.len_hunters.append(len(self.hunters))
+        self.len_farmers.append(len(self.farmers))
 
     @property
     def dataset(self) -> pd.DataFrame:
@@ -80,6 +83,8 @@ class Model(MainModel):
             "new_farmers": self.new_farmers,
             "farmers_num": self.farmers_num,
             "hunters_num": self.hunters_num,
+            "len_hunters": self.len_hunters,
+            "len_farmers": self.len_farmers,
         }
         return pd.DataFrame(data=data, index=range(self.time.tick))
 
@@ -89,47 +94,14 @@ class Model(MainModel):
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
-        save_fig = self.params.get("save_plots")
-        self.plot(save=save_fig)
-        self.heatmap(save=save_fig)
-        self.plot_histplots(save=save_fig)
+        self.plot.dynamic()
+        self.plot.heatmap()
+        self.plot.histplot()
         self.export_data()
 
-    def plot(self, save: bool = False) -> Axes:
+    @property
+    def plot(self) -> ModelViz:
         """绘制狩猎采集者和农民的数量变化"""
-        _, ax = plt.subplots()
-        ax.plot(self.farmers_num, label="farmers")
-        ax.plot(self.hunters_num, label="hunters")
-        ax.set_xlabel("time")
-        ax.set_ylabel("population")
-        ax.legend()
-        if save:
-            plt.savefig(self.outpath / f"repeat_{self.run_id}_plot.jpg")
-            plt.close()
-        return ax
-
-    def heatmap(self, save: bool = False):
-        """绘制狩猎采集者和农民的空间分布"""
-        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
-        mask = self.nature.dem.get_xarray("elevation") >= 0
-        farmers = self.nature.dem.get_xarray("farmers").where(mask)
-        hunters = self.nature.dem.get_xarray("hunters").where(mask)
-        farmers.plot.contourf(ax=ax1, cmap="Reds")
-        hunters.plot.contourf(ax=ax2, cmap="Greens")
-        ax1.set_xlabel("Farmers")
-        ax2.set_xlabel("Hunters")
-        if save:
-            plt.savefig(self.outpath / f"repeat_{self.run_id}_heatmap.jpg")
-            plt.close()
-        return ax1, ax2
-
-    def plot_histplots(self, save: bool = False):
-        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
-        sns.histplot(self.farmers.array("size"), ax=ax1)
-        sns.histplot(self.hunters.array("size"), ax=ax2)
-        ax1.set_xlabel("Farmers")
-        ax2.set_xlabel("Hunters")
-        if save:
-            plt.savefig(self.outpath / f"repeat_{self.run_id}_histplot.jpg")
-            plt.close()
-        return ax1, ax2
+        save_fig = self.params.get("save_plots", False)
+        path = self.outpath if save_fig else None
+        return ModelViz(model=self, save_path=path)

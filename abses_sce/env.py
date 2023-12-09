@@ -48,18 +48,14 @@ class CompetingCell(PatchCell):
         """这里的农民有多少（size）"""
         if len(self.agents) > 1:
             raise ValueError("More than one agent locates here.")
-        if self.has_agent("Farmer"):
-            return self.linked_attr("size")
-        return 0
+        return self.linked_attr("size") if self.has_agent("Farmer") else 0
 
     @raster_attribute
     def hunters(self) -> int:
         """这里的农民有多少（size）"""
         if len(self.agents) > 1:
             raise ValueError("More than one agent locates here.")
-        if self.has_agent("Hunter"):
-            return self.linked_attr("size")
-        return 0
+        return self.linked_attr("size") if self.has_agent("Hunter") else 0
 
     @raster_attribute
     def is_water(self) -> bool:
@@ -228,7 +224,7 @@ class Env(BaseNature):
         arable_cells = ActorsList(self.model, arable_cells)
         valid_cells = arable_cells.select(
             ~arable_cells.trigger("has_agent")
-        ).random_choose(size=farmers_num, replace=False, as_list=True)
+        ).random.choice(size=farmers_num, replace=False, as_list=True)
         for farmer, cell in zip(farmers, valid_cells):
             if not cell:
                 raise ValueError(f"arable_cells {cell} is None")
