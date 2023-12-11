@@ -5,7 +5,8 @@
         "agents",
         "nature",
         "docs",
-        "exp"
+        "exp",
+        "analysis"
     ],
     "todo-tree.tree.scanMode": "workspace only",
     "cSpell.words": [

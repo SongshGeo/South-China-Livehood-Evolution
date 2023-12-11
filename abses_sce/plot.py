@@ -34,8 +34,8 @@ class ModelViz:
     def histplot(self) -> Axes:
         """绘制主体人数的分布直方图"""
         _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
-        sns.histplot(self.data["farmers_num"], ax=ax1)
-        sns.histplot(self.data["hunters_num"], ax=ax2)
+        sns.histplot(self.model.farmers.array("size"), ax=ax1)
+        sns.histplot(self.model.farmers.array("size"), ax=ax2)
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
         if self.save:
