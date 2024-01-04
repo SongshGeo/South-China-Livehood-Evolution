@@ -10,19 +10,27 @@ from unittest.mock import MagicMock
 import pytest
 from abses import MainModel, PatchModule
 
+from abses_sce.env import CompetingCell
 from abses_sce.farmer import Farmer
+from abses_sce.hunter import Hunter
+from abses_sce.rice_farmer import RiceFarmer
 
-from .conftest import cfg
+from .conftest import cfg, set_cell_arable_condition
 
 
 class TestFarmer:
     """用于测试的农民主体"""
 
+    @pytest.fixture(name="cell")
+    def mock_cell(self, layer: PatchModule) -> CompetingCell:
+        """用于测试的，农民应该站在的地方"""
+        return layer.cells[2][2]
+
     @pytest.fixture(name="farmer")
-    def mock_farmer(self, model: MainModel, layer: PatchModule) -> Farmer:
+    def mock_farmer(self, model: MainModel, cell: CompetingCell) -> Farmer:
         """一个虚假的农民"""
         farmer = model.agents.create(Farmer, singleton=True)
-        farmer.put_on(layer.cells[2][2])
+        farmer.put_on(cell=cell)
         return farmer
 
     def test_init(self, farmer: Farmer):
@@ -164,15 +172,52 @@ class TestFarmer:
             (101, 100, False),
         ],
     )
-    def test_convert(self, farmer: Farmer, size, expected_converted, no_convert):
+    def test_convert_to_hunter(
+        self, farmer: Farmer, size, expected_converted, no_convert
+    ):
         """测试是否存在转化的上限"""
         # arrange
         farmer.size = size
-        farmer.params.convert_prob = 1
+        farmer.params.convert_prob.to_hunter = 1
+        farmer.params.convert_prob.to_rice = 0
 
         # act
-        farmer.params.no_convert = no_convert
+        farmer.params.convert_threshold.to_hunter = no_convert
         converted = farmer.convert()
 
         # assert
-        assert isinstance(converted, Farmer) != expected_converted
+        assert isinstance(converted, Hunter) == expected_converted
+
+    @pytest.mark.parametrize(
+        "size, threshold, is_rice_arable, expected_converted",
+        [
+            (199, 200, True, False),
+            (200, 200, True, True),
+            (201, 200, True, True),
+            (199, 200, False, False),
+            (200, 200, False, False),
+            (201, 200, False, False),
+        ],
+    )
+    def test_convert_to_rice(
+        self,
+        farmer: Farmer,
+        cell: CompetingCell,
+        size,
+        expected_converted,
+        threshold,
+        is_rice_arable,
+    ):
+        """测试农民可以转化成水稻农民"""
+        # arrange
+        farmer.size = size
+        farmer.params.convert_prob.to_hunter = 0
+        farmer.params.convert_prob.to_rice = 1
+        set_cell_arable_condition(cell, arable=True, rice_arable=is_rice_arable)
+
+        # act
+        farmer.params.convert_threshold.to_rice = threshold
+        converted = farmer.convert()
+
+        # assert
+        assert isinstance(converted, RiceFarmer) == expected_converted

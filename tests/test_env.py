@@ -232,7 +232,7 @@ class TestCompetingCell:
         - Verify that the original Farmer instance is dead.
         - Verify that the returned Hunter instance is on the CompetingCell instance.
         """
-        converted = cell.convert(farmer)
+        converted = cell.convert(farmer, "Hunter")
 
         assert isinstance(converted, Hunter)
         assert converted.size == farmer.size
@@ -254,7 +254,7 @@ class TestCompetingCell:
         - Verify that the returned Farmer instance is on the CompetingCell instance.
         """
 
-        converted = cell.convert(hunter)
+        converted = cell.convert(hunter, "Farmer")
 
         assert isinstance(converted, Farmer)
         assert converted.size == hunter.size

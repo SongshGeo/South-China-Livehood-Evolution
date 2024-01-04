@@ -9,12 +9,18 @@
 1. 新属性：人口增长率，是可变的，会因为复杂化而下降。
 """
 
+from __future__ import annotations
+
 from numbers import Number
-from typing import Self, Tuple
+from typing import TYPE_CHECKING, Self, Tuple
 
 import numpy as np
 
 from .people import SiteGroup
+
+if TYPE_CHECKING:
+    from abses_sce.hunter import Hunter
+    from abses_sce.rice_farmer import RiceFarmer
 
 
 class Farmer(SiteGroup):
@@ -74,10 +80,30 @@ class Farmer(SiteGroup):
         max_size = np.pi * self.area**2 / 0.004
         return np.ceil(max_size)
 
-    def convert(self, convert_prob: float | None = None) -> Self:
-        if self.size > self.params.no_convert:
-            return self
-        return super().convert(convert_prob)
+    def _convert_to_hunter(self) -> Hunter | Self:
+        # 如果人数大于不能转化的阈值，就直接返回自身
+        cond1 = self.size <= self.params.convert_threshold.get("to_hunter")
+        # 概率小于转化概率
+        cond2 = self.random.random() < self.params.convert_prob.get("to_hunter", 0.0)
+        # 满足上述两个条件就转化
+        return self._cell.convert(self, to="Hunter") if cond1 & cond2 else self
+
+    def _convert_to_rice(self) -> RiceFarmer | Self:
+        """转化成"""
+        # 人数大于水稻所需最小人数
+        cond1 = self.size >= self.params.convert_threshold.get("to_rice", 0)
+        # 概率小于转化概率
+        cond2 = self.random.random() < self.params.convert_prob.get("to_rice", 0.0)
+        # 所处地块适宜水稻生存
+        cond3 = self._cell.is_rice_arable
+        return (
+            self._cell.convert(self, to="RiceFarmer") if cond1 & cond2 & cond3 else self
+        )
+
+    def convert(self) -> Self | Hunter | RiceFarmer:
+        """转换，先判断是否转化成狩猎采集，如果不是，再看看是否转换成水稻农民"""
+        agent = self._convert_to_hunter()
+        return agent if agent is not self else self._convert_to_rice()
 
     def diffuse(
         self, group_range: Tuple[Number] | None = None, diffuse_prob: Number = None

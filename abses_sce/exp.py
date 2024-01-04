@@ -41,7 +41,7 @@ class Experiment:
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
-def main(cfg: DictConfig) -> None:
+def main(cfg: DictConfig | None = None) -> None:
     """批量运行一次实验"""
     hydra_config = HydraConfig.get()
     name = hydra_config.job.name  # 实验的名称

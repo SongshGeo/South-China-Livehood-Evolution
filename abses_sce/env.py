@@ -19,6 +19,8 @@ from abses.cells import raster_attribute
 from abses.nature import BaseNature, PatchCell
 from hydra import compose, initialize
 
+from abses_sce.rice_farmer import RiceFarmer
+
 from .farmer import Farmer
 from .hunter import Hunter
 from .people import SiteGroup
@@ -91,9 +93,21 @@ class CompetingCell(PatchCell):
         cond2 = self.aspect < 315 and self.aspect > 45
         # 海拔高度小于200m
         cond3 = (self.elevation < 200) and (self.elevation > 0)
-        # 三个条件都满足才是可耕地
+        # 不是水体
         cond4 = not self.is_water
+        # 四个条件都满足才是可耕地
         return cond1 and cond2 and cond3 and cond4
+
+    @raster_attribute
+    def is_rice_arable(self) -> bool:
+        """是否是水稻的可耕地"""
+        # 坡度小于等于0.5
+        cond1 = self.slope <= 0.5
+        # 海拔高度小于200m
+        cond2 = (self.elevation < 200) and (self.elevation > 0)
+        # 不是水体
+        cond3 = not self.is_water
+        return cond1 and cond2 and cond3
 
     def able_to_live(self, agent: SiteGroup) -> None:
         """检查该主体能否能到特定的地方:
@@ -108,12 +122,14 @@ class CompetingCell(PatchCell):
         """
         if isinstance(agent, Hunter):
             return not self.is_water
+        no_agent_here = not self.has_agent()
         if isinstance(agent, Farmer):
-            cond1 = not self.has_agent()
-            return self.is_arable & cond1
+            return self.is_arable & no_agent_here
+        if isinstance(agent, RiceFarmer):
+            return self.is_rice_arable & no_agent_here
         if isinstance(agent, SiteGroup):
             return True
-        raise TypeError("Agent must be People, Farmer or Hunter.")
+        raise TypeError("Agent must be a valid People.")
 
     def suitable_level(self, agent: Farmer | Hunter) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
@@ -135,29 +151,29 @@ class CompetingCell(PatchCell):
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
-    def convert(self, agent: Farmer | Hunter):
+    def convert(self, agent: Farmer | Hunter, to: str) -> SiteGroup:
         """让此处的农民与狩猎采集者之间互相转化。
 
         Args:
             agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
+            convert_to (Farmer | Hunter): 转化成什么类型。
 
         Returns:
             被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
 
         Raises:
-            TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
+            TypeError: 如果输入的主体不是狩猎采集者或者农民，
+            或者想转化成的类型不从基础主体继承而来，
+            则会抛出TypeError异常。
         """
-        if isinstance(agent, Farmer):
-            convert_to = Hunter
-        elif isinstance(agent, Hunter):
-            convert_to = Farmer
-        else:
-            raise TypeError("Agent must be Farmer or Hunter.")
+        to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
+        if not isinstance(agent, SiteGroup):
+            raise TypeError("Agent must be inherited from SiteGroup.")
+        if not issubclass(to, SiteGroup):
+            raise TypeError("Agent must be inherited from SiteGroup.")
         # 创建一个新的主体
         # print(f"Going to create size {agent.size} {convert_to}")
-        converted = self.layer.model.agents.create(
-            convert_to, size=agent.size, singleton=True
-        )
+        converted = self.layer.model.agents.create(to, size=agent.size, singleton=True)
         agent.die()  # 旧的主体死亡
         converted.put_on(self)
         return converted
