@@ -26,6 +26,8 @@ class Model(MainModel):
         self.hunters_num = []
         self.len_farmers = []
         self.len_hunters = []
+        self.len_rice = []
+        self.rice_num = []
         self.outpath = kwargs.get("outpath", "")
 
     @property
@@ -51,6 +53,11 @@ class Model(MainModel):
         """狩猎采集者列表"""
         return self.agents.select("Hunter")
 
+    @property
+    def rice(self) -> ActorsList:
+        """种水稻的农民列表"""
+        return self.agents.select("RiceFarmer")
+
     def trigger(self, actors: ActorsList, func: str, *args, **kwargs) -> None:
         """触发所有还活着的主体的行动"""
         for actor in actors:
@@ -73,8 +80,10 @@ class Model(MainModel):
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
         self.hunters_num.append(self.hunters.array("size").sum())
+        self.rice_num.append(self.rice.array("size").sum())
         self.len_hunters.append(len(self.hunters))
         self.len_farmers.append(len(self.farmers))
+        self.len_rice.append(len(self.rice))
 
     @property
     def dataset(self) -> pd.DataFrame:
@@ -83,8 +92,10 @@ class Model(MainModel):
             "new_farmers": self.new_farmers,
             "farmers_num": self.farmers_num,
             "hunters_num": self.hunters_num,
+            "rice_num": self.rice_num,
             "len_hunters": self.len_hunters,
             "len_farmers": self.len_farmers,
+            "len_rice": self.len_rice,
         }
         return pd.DataFrame(data=data, index=range(self.time.tick))
 

@@ -17,6 +17,7 @@ sitegroup:
   min_size: 5.5
   max_size: 30.5
 
+
 farmer:
   area: 2
   # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
@@ -26,18 +27,42 @@ farmer:
   new_group_size: [30, 60]
   diffuse_prob: 0.05
   complexity: 0.1  # 复杂化后人口增加速率下降多少
-  convert_prob: 0.08
-  max_travel_distance: 5
-  no_convert: 100
+  convert_prob:
+    to_hunter: 0.08
+    to_rice: 0.05  # TODO: 这个是多少
+  convert_threshold:
+    to_hunter: 100  # 超过100人之后就不再转化成狩猎采集
+    to_rice: 200  # 超过200人才可以转化成水稻农民
+  max_travel_distance: 5  # 最远移动距离
+  capital_area: 0.004
 
 hunter:
-  convert_prob: 0.05
+  init_size: [0, 35]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
+  convert_prob:
+    to_farmer: 0.05
+    to_rice: 0.05
   new_group_size: [6, 31]
   growth_rate: 0.04
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
   intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
   max_travel_distance: 5
-  is_complex: 100  # 狩猎采集者复杂化的阈值
+  is_complex: 100  # 超过多少之后狩猎采集者不再移动
+
+ricefarmer:
+  area: 2
+  # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
+  growth_rate: 0.1  # 0.1~0.25
+  min_size: 6  # 最小为6，意味着小于这个会直接死掉，不影响小于200会转换成普通农民的逻辑
+  # 在满足一定人口数量后，每时间单位有x几率向外扩散200-300人的农业殖民队
+  new_group_size: [200, 300]
+  diffuse_prob: 0.05
+  complexity: 0.1  # 复杂化后人口增加速率下降多少
+  convert_prob:
+    to_farmer: 1  # 满足 threshold 就一定会转换
+  convert_threshold:
+    to_farmer: 200
+  max_travel_distance: 5  # 最远移动距离
+  capital_area: 0.002
 
 
 db:

@@ -19,6 +19,8 @@ from abses.cells import raster_attribute
 from abses.nature import BaseNature, PatchCell
 from hydra import compose, initialize
 
+from abses_sce.rice_farmer import RiceFarmer
+
 from .farmer import Farmer
 from .hunter import Hunter
 from .people import SiteGroup
@@ -37,11 +39,8 @@ class CompetingCell(PatchCell):
         self.lim_h: float = cfg.env.lim_h
         self.lim_g: float = cfg.env.lim_g
         self.slope: float = np.random.uniform(0, 30)
-        self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
-        # arable level for farmers.
-        self.arable_level: float = np.random.uniform(0.0, 3.0)
 
     @raster_attribute
     def farmers(self) -> int:
@@ -73,9 +72,8 @@ class CompetingCell(PatchCell):
     def is_arable(self) -> bool:
         """是否是可耕地，只有同时满足以下条件，才能成为一个可耕地:
         1. 坡度小于10度。
-        2. 坡向不是朝北的（如果是0-45度或315-360度，意味着朝北的，不利于种植）。
-        3. 海拔高度小于200m。
-        4. 不是水体。
+        2. 海拔高度小于200m。
+        3. 不是水体。
 
         >  1. 考古遗址分布推演出的分布特征（Wu et al. 2023 中农业相关遗址数据）
         > 2 发展农业所需的一般条件：坡度小于20，海拔、坡向……（Shelach, 1999; Qiao, 2010）；
@@ -87,13 +85,53 @@ class CompetingCell(PatchCell):
 
         # 坡度小于10度
         cond1 = self.slope <= 10
-        # 如果是0-45度或315-360度，意味着朝北的，不利于种植
-        cond2 = self.aspect < 315 and self.aspect > 45
         # 海拔高度小于200m
-        cond3 = (self.elevation < 200) and (self.elevation > 0)
-        # 三个条件都满足才是可耕地
-        cond4 = not self.is_water
-        return cond1 and cond2 and cond3 and cond4
+        cond2 = (self.elevation < 200) and (self.elevation > 0)
+        # 不是水体
+        cond3 = not self.is_water
+        # 四个条件都满足才是可耕地
+        return cond1 and cond2 and cond3
+
+    @raster_attribute
+    def dem_suitable(self) -> int:
+        """海拔高度的适宜程度"""
+        # 0-100: 2
+        # 100-200: 1
+        # 200+: 0
+        dem = self.elevation
+        if dem < 100:
+            return 2
+        return 1 if dem < 200 else 0
+
+    @raster_attribute
+    def slope_suitable(self) -> int:
+        """坡度的适宜程度"""
+        # 0-2: 5
+        # 2-4: 4
+        # 4-6: 3
+        # 6-8: 2
+        # 8-10: 1
+        # 10+: 0
+        if self.slope < 2:
+            return 5
+        if self.slope < 4:
+            return 4
+        if self.slope < 6:
+            return 3
+        if self.slope < 8:
+            return 2
+        return 1 if self.slope < 10 else 0
+
+    @raster_attribute
+    def is_rice_arable(self) -> bool:
+        """是否是水稻的可耕地"""
+        # 坡度小于等于0.5
+        cond1 = self.slope <= 0.5
+        # 海拔高度小于200m
+        cond2 = (self.elevation < 200) and (self.elevation > 0)
+        # 不是水体
+        cond3 = not self.is_water
+        return cond1 and cond2 and cond3
 
     def able_to_live(self, agent: SiteGroup) -> None:
         """检查该主体能否能到特定的地方:
@@ -106,16 +144,18 @@ class CompetingCell(PatchCell):
         Returns:
             如果被检查的主体能够在此处存活，返回True；否则返回False。
         """
-        if isinstance(agent, Hunter):
+        if agent.breed == "Hunter":
             return not self.is_water
-        if isinstance(agent, Farmer):
-            cond1 = not self.has_agent()
-            return self.is_arable & cond1
-        if isinstance(agent, SiteGroup):
+        no_agent_here = not self.has_agent()
+        if agent.breed == "RiceFarmer":
+            return self.is_rice_arable & no_agent_here
+        if agent.breed == "Farmer":
+            return self.is_arable & no_agent_here
+        if agent.breed == "SiteGroup":
             return True
-        raise TypeError("Agent must be People, Farmer or Hunter.")
+        raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, agent: Farmer | Hunter) -> float:
+    def suitable_level(self, agent: SiteGroup) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
@@ -127,37 +167,39 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if isinstance(agent, Hunter):
+        if agent.breed == "Hunter":
             return 1.0
-        if isinstance(agent, Farmer):
-            return self.arable_level
-        if isinstance(agent, SiteGroup):
+        if agent.breed == "RiceFarmer":
+            return self.dem_suitable
+        if agent.breed == "Farmer":
+            return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
+        if agent.breed == "SiteGroup":
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
-    def convert(self, agent: Farmer | Hunter):
+    def convert(self, agent: Farmer | Hunter, to: str) -> SiteGroup:
         """让此处的农民与狩猎采集者之间互相转化。
 
         Args:
             agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
+            convert_to (Farmer | Hunter): 转化成什么类型。
 
         Returns:
             被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
 
         Raises:
-            TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
+            TypeError: 如果输入的主体不是狩猎采集者或者农民，
+            或者想转化成的类型不从基础主体继承而来，
+            则会抛出TypeError异常。
         """
-        if isinstance(agent, Farmer):
-            convert_to = Hunter
-        elif isinstance(agent, Hunter):
-            convert_to = Farmer
-        else:
-            raise TypeError("Agent must be Farmer or Hunter.")
+        to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
+        if not isinstance(agent, SiteGroup):
+            raise TypeError("Agent must be inherited from SiteGroup.")
+        if not issubclass(to, SiteGroup):
+            raise TypeError("Agent must be inherited from SiteGroup.")
         # 创建一个新的主体
         # print(f"Going to create size {agent.size} {convert_to}")
-        converted = self.layer.model.agents.create(
-            convert_to, size=agent.size, singleton=True
-        )
+        converted = self.layer.model.agents.create(to, size=agent.size, singleton=True)
         agent.die()  # 旧的主体死亡
         converted.put_on(self)
         return converted
@@ -178,10 +220,6 @@ class Env(BaseNature):
         )
         arr = self._open_rasterio(cfg.db.slo)
         self.dem.apply_raster(arr, attr_name="slope")
-        arr = self._open_rasterio(cfg.db.asp)
-        self.dem.apply_raster(arr, attr_name="aspect")
-        arr = self._open_rasterio(cfg.db.farmland)
-        self.dem.apply_raster(arr, attr_name="arable_level")
         arr = self._open_rasterio(cfg.db.lim_h)
         self.dem.apply_raster(arr, attr_name="lim_h")
 

@@ -10,7 +10,7 @@
 """
 
 from numbers import Number
-from typing import Optional, Self, Tuple
+from typing import Optional, Self, Tuple, Type
 
 import numpy as np
 import pandas as pd
@@ -124,14 +124,6 @@ class SiteGroup(Actor):
         # 如果走了很远，没有符合要求的格子，主体就会死亡
         new.die()
         return "Died"
-
-    def convert(self, convert_prob: float | None = None) -> Self:
-        """当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
-        if convert_prob is None:
-            convert_prob = self.params.get("convert_prob", 0.0)
-        if self.random.random() < convert_prob:
-            return self._cell.convert(self)
-        return self
 
     def report(self) -> pd.Series:
         """汇报主体的属性。

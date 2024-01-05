@@ -1,4 +1,17 @@
 
+<a id='changelog-0.3.0'></a>
+# 0.3.0 — 2024-01-05
+
+## New Features
+
+- [x] #feat✨ 增加种植水稻的农民
+
+## Refactoring
+
+- [x] #refactor♻️ 删除坡向的影响
+- [x] #refactor♻️ 把适宜度改成内部代码而不是数据
+- [x] #refactor♻️ 水稻和普通农民的人口上限改成参数
+
 <a id='changelog-0.2.3'></a>
 # 0.2.3 — 2023-12-11
 

@@ -15,8 +15,9 @@ from abses_sce.env import CompetingCell
 from abses_sce.farmer import Farmer
 from abses_sce.hunter import Hunter
 from abses_sce.people import SiteGroup
+from abses_sce.rice_farmer import RiceFarmer
 
-from .conftest import cfg
+from .conftest import cfg, set_cell_arable_condition
 
 INTENSITY = cfg.hunter.intensified_coefficient
 
@@ -24,11 +25,16 @@ INTENSITY = cfg.hunter.intensified_coefficient
 class TestHunters:
     """用于测试狩猎采集者主体"""
 
+    @pytest.fixture(name="cell")
+    def mock_cell(self, layer) -> CompetingCell:
+        """狩猎采集者存在的斑块"""
+        return layer.array_cells[3][2]
+
     @pytest.fixture(name="hunter")
-    def mock_hunter(self, model, layer) -> Hunter:
+    def mock_hunter(self, model, cell: CompetingCell) -> Hunter:
         """一个虚假的狩猎采集者"""
         hunter = model.agents.create(Hunter, size=50, singleton=True)
-        hunter.put_on(layer.array_cells[3][2])
+        hunter.put_on(cell=cell)
         return hunter
 
     @pytest.fixture(name="other_group")
@@ -108,26 +114,60 @@ class TestHunters:
         ],
         ids=["convert", "no_convert", "convert_low_prob", "no_convert_high_prob"],
     )
-    def test_convert(
-        self, model, layer, hunter, convert_prob, random_value, changed, arable
+    def test_convert_to_farmer(
+        self, model, layer, cell, hunter, convert_prob, random_value, changed, arable
     ):
         """测试当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
         # Arrange
-        hunter.params.convert_prob = convert_prob
+        hunter.params.convert_prob.to_farmer = convert_prob
+        hunter.params.convert_prob.to_rice = 0
         hunter.random.random = MagicMock(return_value=random_value)
-        cell = layer.array_cells[3][2]
 
         # 配置，转化需要旁边有农民
         farmer = model.agents.create(Farmer, singleton=1)
         farmer.put_on(layer.array_cells[2][2])
-
         # 配置是否是可耕地的条件
-        cell.slope = 5
-        cell.aspect = 100
-        cell.elevation = 100 if arable else 300
+        set_cell_arable_condition(cell, arable=arable, rice_arable=False)
 
         size = hunter.size  # 转化之前hunter的人数
         print(size, "origin")
+
+        # Act
+        convert = hunter.convert()
+
+        # Assert
+        assert isinstance(convert, SiteGroup)
+        assert (isinstance(convert, Hunter)) != changed
+        assert convert.size == size
+
+    @pytest.mark.parametrize(
+        "convert_prob, random_value, arable, changed",
+        [
+            (0.5, 0.4, True, True),
+            (0.5, 0.6, True, False),
+            (0.1, 0.05, False, False),
+            (0.1, 0.2, False, False),
+        ],
+        ids=["convert", "no_convert", "convert_low_prob", "no_convert_high_prob"],
+    )
+    def test_convert_to_rice(
+        self, model, layer, cell, hunter, convert_prob, random_value, changed, arable
+    ):
+        """测试当小于一定概率时，农民与狩猎采集者可能发生相互转化"""
+        # Arrange
+        hunter.params.convert_prob.to_farmer = 0
+        hunter.params.convert_prob.to_rice = convert_prob
+        hunter.random.random = MagicMock(return_value=random_value)
+
+        # 配置，转化需要旁边有农民
+        farmer = model.agents.create(RiceFarmer, singleton=1)
+        farmer.put_on(layer.array_cells[2][2])
+        # 配置是否是可耕地的条件
+        set_cell_arable_condition(cell, arable=True, rice_arable=arable)
+
+        size = hunter.size  # 转化之前hunter的人数
+        print(size, "origin")
+
         # Act
         convert = hunter.convert()
 

@@ -7,15 +7,20 @@
 
 """狩猎采集者的。
 """
+from __future__ import annotations
 
 from numbers import Number
-from typing import Self, Tuple
+from typing import TYPE_CHECKING, Self, Tuple
 
 import numpy as np
 from abses import PatchCell
 
-from .farmer import Farmer
+from abses_sce.rice_farmer import RiceFarmer
+
 from .people import SiteGroup, search_a_new_place
+
+if TYPE_CHECKING:
+    from .farmer import Farmer
 
 
 class Hunter(SiteGroup):
@@ -69,12 +74,23 @@ class Hunter(SiteGroup):
         if self.size >= self.max_size:
             return super().diffuse(group_range=group_range)
 
-    def convert(
-        self, convert_prob: float | None = None, radius: int = 1, moore: bool = False
-    ) -> Self:
+    def convert(self, radius: int = 1, moore: bool = False) -> Self:
+        """狩猎采集者向农民转化：
+        1. 优先转化成普通农民
+        2. 其次考虑转化为水稻农民
+        """
+        agent = self._convert_to_farmer(radius=radius, moore=moore)
+        # agent 不是自己说明转化成功
+        if agent is not self:
+            return agent
+        # 没成功再看转化水稻农民的结果
+        return self._convert_to_rice(radius=radius, moore=moore)
+
+    def _convert_to_farmer(self, radius: int = 1, moore: bool = False) -> Self | Farmer:
         """狩猎采集者可能转化为农民，需要满足以下条件：
         1. 周围有农民
         2. 目前的土地是可耕地
+        3. 转化概率小于阈值
 
         Args:
             radius (int): 搜索的半径范围，默认为周围一格。
@@ -91,8 +107,44 @@ class Hunter(SiteGroup):
         cond1 = any(cells.trigger("has_agent", breed="Farmer"))
         # 且目前的土地是可耕地
         cond2 = self._cell.is_arable
+        # 转化概率小于阈值
+        convert_prob = self.params.convert_prob.get("to_farmer", 0.0)
+        cond3 = self.random.random() < convert_prob
         # 同时满足上述条件，狩猎采集者转化为农民
-        return super().convert(convert_prob) if cond1 and cond2 else self
+        return self._cell.convert(self, "Farmer") if cond1 and cond2 and cond3 else self
+
+    def _convert_to_rice(
+        self, radius: int = 1, moore: bool = False
+    ) -> Self | RiceFarmer:
+        """狩猎采集者可能转化为水稻农民，需要满足以下条件：
+        1. 周围有水稻农民
+        2. 目前的土地是满足水稻生长条件的可耕地
+        3. 转化概率小于阈值
+
+        Args:
+            radius (int): 搜索的半径范围，默认为周围一格。
+            moore (bool): 是否使用Moore邻域进行搜索，
+            即搜索8临域，包括对角线的四个格子。
+            默认不启用（即仅计算上下左右四个格子）。
+
+        returns:
+            如果没有转化，返回自身。
+            如果成功转化，返回转化后的主体。
+        """
+        # 周围有水稻农民
+        cells = self._cell.get_neighboring_cells(radius=radius, moore=moore)
+        cond1 = any(cells.trigger("has_agent", breed="RiceFarmer"))
+        # 且目前的土地是可耕地
+        cond2 = self._cell.is_rice_arable
+        # 转化概率小于阈值
+        convert_prob = self.params.convert_prob.get("to_rice", 0.0)
+        cond3 = self.random.random() < convert_prob
+        # 同时满足上述条件，狩猎采集者转化为农民
+        return (
+            self._cell.convert(self, "RiceFarmer")
+            if cond1 and cond2 and cond3
+            else self
+        )
 
     def move(self, radius: int = 1) -> None:
         """有移动能力才能移动，在周围随机选取一个格子移动。
