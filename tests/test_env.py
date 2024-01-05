@@ -41,109 +41,50 @@ class TestCompetingCell:
 
     @pytest.fixture(name="farmer")
     def mock_farmer(self, model):
+        """一个虚假的用于测试的农民"""
         _, _, farmer, _ = model
         return farmer
 
     @pytest.fixture(name="hunter")
     def mock_hunter(self, model):
+        """用于测试的狩猎采集"""
         _, _, _, hunter = model
         return hunter
 
     @pytest.fixture(name="the_model")
     def the_mocked_model(self, model):
+        """用于测试环境的这个模型"""
         model, _, _, _ = model
         return model
 
-    # Happy path tests
-    def test_is_arable_true(self, cell):
-        """
-        ID: TC001
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the slope, aspect, elevation, and is_water properties to valid values.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is True.
-        """
-        cell.slope = 5
-        cell.aspect = 67
-        cell.elevation = 100
-        cell.is_water = False
+    @pytest.mark.parametrize(
+        "slope, elevation, is_water, expected",
+        [
+            (5, 100, False, True),
+            (15, 100, False, False),
+            (5, 400, False, False),
+            (5, 100, True, False),
+            (0, 1, False, True),
+            (30, 300, True, False),
+        ],
+        ids=[
+            "Arable",
+            "False slope",
+            "False elevation",
+            "False is water",
+            "True edge case",
+            "False edge case",
+        ],
+    )
+    def test_is_arable(self, cell, slope, elevation, is_water, expected):
+        """测试普通的农用地能否耕种"""
+        # arrange / act
+        cell.slope = slope
+        cell.elevation = elevation
+        cell.is_water = is_water
 
-        assert cell.is_arable is True
-
-    def test_is_arable_false_slope(self, cell):
-        """
-        ID: TC002
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the slope property to an invalid value.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is False.
-        """
-        cell.slope = 15
-        cell.aspect = 60
-        cell.elevation = 100
-        cell.is_water = False
-
-        assert cell.is_arable is False
-
-    def test_is_arable_false_aspect(self, cell):
-        """
-        ID: TC003
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the aspect property to an invalid value.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is False.
-        """
-        cell.slope = 5
-        cell.aspect = 35
-        cell.elevation = 100
-        cell.is_water = False
-
-        assert cell.is_arable is False
-
-    def test_is_arable_false_elevation(self, cell):
-        """
-        ID: TC004
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the elevation property to an invalid value.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is False.
-        """
-        cell.slope = 5
-        cell.aspect = 60
-        cell.elevation = 400
-        cell.is_water = False
-
-        assert cell.is_arable is False
-
-    def test_is_arable_false_water(self, cell):
-        """
-        ID: TC005
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the is_water property to True.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is False.
-        """
-        cell.slope = 5
-        cell.aspect = 50
-        cell.elevation = 100
-        cell.is_water = True
-
-        assert cell.is_arable is False
+        # assert
+        assert cell.is_arable == expected
 
     def test_able_to_live_hunter(self, cell, hunter):
         """
@@ -172,90 +113,28 @@ class TestCompetingCell:
         - Verify that the result is True.
         """
         cell.slope = 5
-        cell.aspect = 50
         cell.elevation = 100
         cell.is_water = False
         assert cell.has_agent() is False
         assert cell.able_to_live(farmer) is True
 
-    # Edge cases
-
-    def test_is_arable_true_edge(self, cell):
-        """
-        ID: TC008
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the slope, aspect, elevation, and is_water properties to the minimum valid values.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is True.
-        """
-        cell.slope = 0
-        cell.aspect = 60
-        cell.elevation = 1
-        cell.is_water = False
-
-        assert cell.is_arable is True
-
-    def test_is_arable_false_edge(self, cell):
-        """
-        ID: TC009
-        Arrange:
-        - Create a CompetingCell instance.
-        - Set the slope, aspect, elevation, and is_water properties to the maximum invalid values.
-        Act:
-        - Call the is_arable property.
-        Assert:
-        - Verify that the result is False.
-        """
-        cell.slope = 30
-        cell.aspect = 315
-        cell.elevation = 300
-        cell.is_water = True
-
-        assert cell.is_arable is False
-
-    # Error cases
-
     def test_convert_farmer(self, cell, farmer, the_model):
-        """
-        ID: TC011
-        Arrange:
-        - Create a CompetingCell instance.
-        - Create a Farmer instance.
-        Act:
-        - Call the convert method with the Farmer instance.
-        Assert:
-        - Verify that a Hunter instance is returned.
-        - Verify that the size of the returned instance is the same as the original Farmer instance.
-        - Verify that the original Farmer instance is dead.
-        - Verify that the returned Hunter instance is on the CompetingCell instance.
-        """
+        """测试能够转换农民成为狩猎采集者"""
+        # arrange / act
         converted = cell.convert(farmer, "Hunter")
 
+        # assert
         assert isinstance(converted, Hunter)
         assert converted.size == farmer.size
         assert farmer not in the_model.agents
         assert converted.pos == cell.pos
 
     def test_convert_hunter(self, cell, hunter, the_model):
-        """
-        ID: TC012
-        Arrange:
-        - Create a CompetingCell instance.
-        - Create a Hunter instance.
-        Act:
-        - Call the convert method with the Hunter instance.
-        Assert:
-        - Verify that a Farmer instance is returned.
-        - Verify that the size of the returned instance is the same as the original Hunter instance.
-        - Verify that the original Hunter instance is dead.
-        - Verify that the returned Farmer instance is on the CompetingCell instance.
-        """
-
+        """测试能够转化狩猎采集者为农民"""
+        # arrange / act
         converted = cell.convert(hunter, "Farmer")
 
+        # assert
         assert isinstance(converted, Farmer)
         assert converted.size == hunter.size
         assert hunter not in the_model.agents

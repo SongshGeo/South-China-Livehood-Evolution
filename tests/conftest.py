@@ -54,7 +54,6 @@ def mock_layer(model_and_layer) -> PatchModule:
 def set_cell_arable_condition(cell: CompetingCell, arable: bool, rice_arable: bool):
     """将一个斑块的值设置成指定的情况，用于测试"""
     cell.is_water = False
-    cell.aspect = 60
     cell.elevation = 1
     if not arable and not rice_arable:
         cell.slope = 20

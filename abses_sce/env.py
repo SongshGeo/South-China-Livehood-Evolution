@@ -39,7 +39,6 @@ class CompetingCell(PatchCell):
         self.lim_h: float = cfg.env.lim_h
         self.lim_g: float = cfg.env.lim_g
         self.slope: float = np.random.uniform(0, 30)
-        self.aspect: float = np.random.uniform(0, 360)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
         # arable level for farmers.
@@ -75,9 +74,8 @@ class CompetingCell(PatchCell):
     def is_arable(self) -> bool:
         """是否是可耕地，只有同时满足以下条件，才能成为一个可耕地:
         1. 坡度小于10度。
-        2. 坡向不是朝北的（如果是0-45度或315-360度，意味着朝北的，不利于种植）。
-        3. 海拔高度小于200m。
-        4. 不是水体。
+        2. 海拔高度小于200m。
+        3. 不是水体。
 
         >  1. 考古遗址分布推演出的分布特征（Wu et al. 2023 中农业相关遗址数据）
         > 2 发展农业所需的一般条件：坡度小于20，海拔、坡向……（Shelach, 1999; Qiao, 2010）；
@@ -89,14 +87,12 @@ class CompetingCell(PatchCell):
 
         # 坡度小于10度
         cond1 = self.slope <= 10
-        # 如果是0-45度或315-360度，意味着朝北的，不利于种植
-        cond2 = self.aspect < 315 and self.aspect > 45
         # 海拔高度小于200m
-        cond3 = (self.elevation < 200) and (self.elevation > 0)
+        cond2 = (self.elevation < 200) and (self.elevation > 0)
         # 不是水体
-        cond4 = not self.is_water
+        cond3 = not self.is_water
         # 四个条件都满足才是可耕地
-        return cond1 and cond2 and cond3 and cond4
+        return cond1 and cond2 and cond3
 
     @raster_attribute
     def is_rice_arable(self) -> bool:
@@ -194,8 +190,6 @@ class Env(BaseNature):
         )
         arr = self._open_rasterio(cfg.db.slo)
         self.dem.apply_raster(arr, attr_name="slope")
-        arr = self._open_rasterio(cfg.db.asp)
-        self.dem.apply_raster(arr, attr_name="aspect")
         arr = self._open_rasterio(cfg.db.farmland)
         self.dem.apply_raster(arr, attr_name="arable_level")
         arr = self._open_rasterio(cfg.db.lim_h)
