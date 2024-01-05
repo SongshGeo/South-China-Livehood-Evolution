@@ -41,8 +41,6 @@ class CompetingCell(PatchCell):
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
-        # arable level for farmers.
-        self.arable_level: float = np.random.uniform(0.0, 3.0)
 
     @raster_attribute
     def farmers(self) -> int:
@@ -95,6 +93,36 @@ class CompetingCell(PatchCell):
         return cond1 and cond2 and cond3
 
     @raster_attribute
+    def dem_suitable(self) -> int:
+        """海拔高度的适宜程度"""
+        # 0-100: 2
+        # 100-200: 1
+        # 200+: 0
+        dem = self.elevation
+        if dem < 100:
+            return 2
+        return 1 if dem < 200 else 0
+
+    @raster_attribute
+    def slope_suitable(self) -> int:
+        """坡度的适宜程度"""
+        # 0-2: 5
+        # 2-4: 4
+        # 4-6: 3
+        # 6-8: 2
+        # 8-10: 1
+        # 10+: 0
+        if self.slope < 2:
+            return 5
+        if self.slope < 4:
+            return 4
+        if self.slope < 6:
+            return 3
+        if self.slope < 8:
+            return 2
+        return 1 if self.slope < 10 else 0
+
+    @raster_attribute
     def is_rice_arable(self) -> bool:
         """是否是水稻的可耕地"""
         # 坡度小于等于0.5
@@ -116,18 +144,18 @@ class CompetingCell(PatchCell):
         Returns:
             如果被检查的主体能够在此处存活，返回True；否则返回False。
         """
-        if isinstance(agent, Hunter):
+        if agent.breed == "Hunter":
             return not self.is_water
         no_agent_here = not self.has_agent()
-        if isinstance(agent, Farmer):
-            return self.is_arable & no_agent_here
-        if isinstance(agent, RiceFarmer):
+        if agent.breed == "RiceFarmer":
             return self.is_rice_arable & no_agent_here
-        if isinstance(agent, SiteGroup):
+        if agent.breed == "Farmer":
+            return self.is_arable & no_agent_here
+        if agent.breed == "SiteGroup":
             return True
         raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, agent: Farmer | Hunter) -> float:
+    def suitable_level(self, agent: SiteGroup) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
@@ -139,11 +167,13 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if isinstance(agent, Hunter):
+        if agent.breed == "Hunter":
             return 1.0
-        if isinstance(agent, Farmer):
-            return self.arable_level
-        if isinstance(agent, SiteGroup):
+        if agent.breed == "RiceFarmer":
+            return self.dem_suitable
+        if agent.breed == "Farmer":
+            return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
+        if agent.breed == "SiteGroup":
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
@@ -190,8 +220,6 @@ class Env(BaseNature):
         )
         arr = self._open_rasterio(cfg.db.slo)
         self.dem.apply_raster(arr, attr_name="slope")
-        arr = self._open_rasterio(cfg.db.farmland)
-        self.dem.apply_raster(arr, attr_name="arable_level")
         arr = self._open_rasterio(cfg.db.lim_h)
         self.dem.apply_raster(arr, attr_name="lim_h")
 
