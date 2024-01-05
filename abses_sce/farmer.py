@@ -77,7 +77,10 @@ class Farmer(SiteGroup):
             结合华南气候条件下较高的生产力和更充沛的自然资源，将所需人均耕地设置为0.004平方公里，
             那么该单位人口上限即π * 2 * 2 / 0.004=3142人。
         """
-        max_size = np.pi * self.area**2 / 0.004
+        capital_area = self.params.get("capital_area")
+        if not capital_area:
+            raise ValueError("Capital area is not set in params.")
+        max_size = np.pi * self.area**2 / capital_area
         return np.ceil(max_size)
 
     def _convert_to_hunter(self) -> Hunter | Self:
