@@ -36,14 +36,14 @@ class ModelViz:
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
         sns.histplot(self.model.farmers.array("size"), ax=ax1)
         sns.histplot(self.model.hunters.array("size"), ax=ax2)
-        sns.histplot(self.model.rice.array("size"), ax=ax2)
+        sns.histplot(self.model.rice.array("size"), ax=ax3)
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
         ax3.set_xlabel("Rice Farmers")
         if self.save:
             plt.savefig(self.save / f"repeat_{self.repeats}_histplot.jpg")
             plt.close()
-        return ax1, ax2
+        return ax1, ax2, ax3
 
     def dynamic(self) -> Axes:
         """绘制动态变化趋势"""
@@ -65,14 +65,17 @@ class ModelViz:
 
     def heatmap(self) -> Axes:
         """绘制狩猎采集者和农民的空间分布"""
-        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
+        _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
         mask = self.model.nature.dem.get_xarray("elevation") >= 0
         farmers = self.model.nature.dem.get_xarray("farmers").where(mask)
         hunters = self.model.nature.dem.get_xarray("hunters").where(mask)
+        hunters = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
         farmers.plot.contourf(ax=ax1, cmap="Reds")
         hunters.plot.contourf(ax=ax2, cmap="Greens")
+        hunters.plot.contourf(ax=ax3, cmap="Oranges")
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
+        ax3.set_xlabel("Rice Farmers")
         if self.save:
             plt.savefig(self.save / f"repeat_{self.repeats}_heatmap.jpg")
             plt.close()
