@@ -1,3 +1,3 @@
 # 狩猎采集者
 
-:::src.hunter.Hunter
+:::abses_sce.hunter.Hunter
