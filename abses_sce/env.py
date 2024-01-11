@@ -57,6 +57,13 @@ class CompetingCell(PatchCell):
         return self.linked_attr("size") if self.has_agent("Hunter") else 0
 
     @raster_attribute
+    def rice_farmers(self) -> int:
+        """这里的农民有多少（size）"""
+        if len(self.agents) > 1:
+            raise ValueError("More than one agent locates here.")
+        return self.linked_attr("size") if self.has_agent("RiceFarmer") else 0
+
+    @raster_attribute
     def is_water(self) -> bool:
         """是否是水体"""
         return self._is_water or self.elevation <= 0
@@ -244,15 +251,16 @@ class Env(BaseNature):
             hunter.put_on(cell)
             hunter.random_size(init_min, init_max)
 
-    def add_farmers(self):
+    def add_farmers(self, farmer_cls: type = Farmer):
         """
         添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
 
         Returns:
             本次新添加的农民列表。
         """
-        farmers_num = np.random.poisson(self.params.lam)
-        farmers = self.model.agents.create(Farmer, num=farmers_num)
+        lam_key = f"lam_{farmer_cls.breed}".lower()
+        farmers_num = np.random.poisson(self.params.get(lam_key, 0))
+        farmers = self.model.agents.create(farmer_cls, num=farmers_num)
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = self.dem.array_cells[arable.astype(bool)]
         for farmer in farmers:

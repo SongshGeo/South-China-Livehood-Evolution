@@ -2,4 +2,4 @@
 
 ![Oajz5C](https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/Oajz5C.jpg)
 
-:::src.model.Model
+:::abses_sce.model.Model

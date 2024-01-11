@@ -10,7 +10,9 @@ from pathlib import Path
 import pandas as pd
 from abses import ActorsList, MainModel
 
+from abses_sce.farmer import Farmer
 from abses_sce.plot import ModelViz
+from abses_sce.rice_farmer import RiceFarmer
 
 from .env import Env
 
@@ -71,7 +73,8 @@ class Model(MainModel):
         2. 所有主体互相转化
         3. 更新狩猎采集者可以移动（这可能触发竞争）
         """
-        farmers = self.nature.add_farmers()
+        farmers = self.nature.add_farmers(Farmer)
+        farmers = self.nature.add_farmers(RiceFarmer)
         self.trigger(self.actors, "population_growth")
         self.trigger(self.actors, "convert")
         self.trigger(self.actors, "diffuse")

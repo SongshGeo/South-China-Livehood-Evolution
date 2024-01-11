@@ -1,3 +1,3 @@
 # 农民
 
-:::src.farmer.Farmer
+:::abses_sce.farmer.Farmer

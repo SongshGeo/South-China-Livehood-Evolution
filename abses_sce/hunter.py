@@ -213,7 +213,7 @@ class Hunter(SiteGroup):
         returns:
             竞争成功则返回 `True`，否则返回 `False`。
         """
-        if other.breed == "Farmer":
+        if other.breed in ("Farmer", "RiceFarmer"):
             return self._compete_with_farmer(other)
         if other.breed == "Hunter":
             return self._compete_with_hunter(other)

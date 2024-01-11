@@ -1,4 +1,23 @@
 
+<a id='changelog-0.3.1'></a>
+# 0.3.1 — 2024-01-11
+
+## Performance improvements
+
+- [x]  #zap⚡️ upgrade `seaborn` to mute the future warnings from `pandas`
+
+## Fixed bugs
+
+- [x]  #bug🐛 Fixing plotting for rice farmer
+
+## New Features
+
+- [x]  #feat✨ Add rice farmers in each step
+
+## Documentation changes
+
+- [x] #docs📄 update paths for `mkdocs-strings`
+
 <a id='changelog-0.3.0'></a>
 # 0.3.0 — 2024-01-05
 
