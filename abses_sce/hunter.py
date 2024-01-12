@@ -170,7 +170,7 @@ class Hunter(SiteGroup):
     def _loss_competition(self, loser: SiteGroup):
         """失败者"""
         loss = self.model.params.loss_rate
-        if loser.breed == "Farmer":
+        if loser.breed in ("Farmer", "RiceFarmer"):
             loser.die()
         elif loser.breed == "Hunter":
             if loser.is_complex:
