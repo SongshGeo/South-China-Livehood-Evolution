@@ -69,10 +69,10 @@ class ModelViz:
         mask = self.model.nature.dem.get_xarray("elevation") >= 0
         farmers = self.model.nature.dem.get_xarray("farmers").where(mask)
         hunters = self.model.nature.dem.get_xarray("hunters").where(mask)
-        hunters = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
+        rice = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
         farmers.plot.contourf(ax=ax1, cmap="Reds")
         hunters.plot.contourf(ax=ax2, cmap="Greens")
-        hunters.plot.contourf(ax=ax3, cmap="Oranges")
+        rice.plot.contourf(ax=ax3, cmap="Oranges")
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
         ax3.set_xlabel("Rice Farmers")
