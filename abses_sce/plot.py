@@ -31,7 +31,7 @@ class ModelViz:
     def _wrap_ax(self):
         """包装一个 ax"""
 
-    def histplot(self) -> Axes:
+    def histplot(self) -> Axes:  # sourcery skip: class-extract-method
         """绘制主体人数的分布直方图"""
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
         sns.histplot(self.model.farmers.array("size"), ax=ax1)
