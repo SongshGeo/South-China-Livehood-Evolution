@@ -207,6 +207,7 @@ class CompetingCell(PatchCell):
         # 创建一个新的主体
         # print(f"Going to create size {agent.size} {convert_to}")
         converted = self.layer.model.agents.create(to, size=agent.size, singleton=True)
+        converted.source = agent.source  # 记录原来是什么主体
         agent.die()  # 旧的主体死亡
         converted.put_on(self)
         return converted

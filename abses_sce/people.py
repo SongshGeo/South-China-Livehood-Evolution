@@ -10,7 +10,7 @@
 """
 
 from numbers import Number
-from typing import Optional, Self, Tuple, Type
+from typing import Optional, Self, Tuple
 
 import numpy as np
 import pandas as pd
@@ -26,6 +26,7 @@ class SiteGroup(Actor):
         self._min_size = self.params.get("min_size", 0.0)
         self._max_size = self.params.get("max_size", 0.0)
         self.size = kwargs.get("size", self.min_size)
+        self.source = self.breed
 
     @property
     def size(self) -> int:
@@ -39,9 +40,7 @@ class SiteGroup(Actor):
             # 如果小于能够生存的最小情况，就死去
             self.die()
             return
-        if size > self.max_size:
-            # 相当于超出承载力的人口死去
-            size = self.max_size
+        size = min(size, self.max_size)
         self._size = size
 
     @property

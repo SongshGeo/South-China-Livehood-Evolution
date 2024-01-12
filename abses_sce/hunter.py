@@ -28,9 +28,7 @@ class Hunter(SiteGroup):
 
     @property
     def max_size(self) -> int:
-        if not self.on_earth:
-            return 100_000_000
-        return np.ceil(self.loc("lim_h"))
+        return np.ceil(self.loc("lim_h")) if self.on_earth else 100_000_000
 
     @property
     def is_complex(self) -> bool:
@@ -39,9 +37,7 @@ class Hunter(SiteGroup):
         returns:
             是否是复杂狩猎采集者
         """
-        if not self.on_earth:
-            return False
-        return self.size > self.params.is_complex
+        return self.size > self.params.is_complex if self.on_earth else False
 
     def put_on(self, cell: PatchCell | None = None) -> None:
         """将狩猎采集者放到某个格子。狩猎采集者放到的格子如果已经有了一个主体，就会与他竞争（触发竞争方法）。
@@ -170,7 +166,7 @@ class Hunter(SiteGroup):
     def _loss_competition(self, loser: SiteGroup):
         """失败者"""
         loss = self.model.params.loss_rate
-        if loser.breed == "Farmer":
+        if loser.breed in ("Farmer", "RiceFarmer"):
             loser.die()
         elif loser.breed == "Hunter":
             if loser.is_complex:

@@ -1,4 +1,20 @@
 
+<a id='changelog-0.3.2'></a>
+# 0.3.2 — 2024-01-12
+
+## New Features
+
+- [x] #feat✨ inspect conversions between different breeds
+
+## Fixed bugs
+
+- [x] #bug🐛 fixed competing without rice farmer bug
+- [x] #bug🐛 plot rice farmers' heatmap correctly
+
+## Refactoring
+
+- [x]  #refactor♻️ improve code format by sourcery
+
 <a id='changelog-0.3.1'></a>
 # 0.3.1 — 2024-01-11
 
