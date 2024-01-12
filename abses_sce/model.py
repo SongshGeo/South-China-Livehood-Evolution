@@ -6,6 +6,7 @@
 # Website: https://cv.songshgeo.com/
 
 from pathlib import Path
+from typing import Dict
 
 import pandas as pd
 from abses import ActorsList, MainModel
@@ -106,12 +107,38 @@ class Model(MainModel):
         """导出实验数据"""
         self.dataset.to_csv(self.outpath / f"repeat_{self.run_id}.csv")
 
+    def _inspect_sources(self, breed: str) -> Dict[str, int]:
+        """获取来源于某种人的转换结果"""
+        if breed not in {"Farmer", "RiceFarmer", "Hunter"}:
+            raise TypeError(f"Invalid breed {breed}.")
+        total = self.agents.select({"source": breed})
+        farmers = total.select("Farmer")
+        hunters = total.select("Hunter")
+        rice = total.select("RiceFarmer")
+        return {
+            "farmers_end": len(farmers),
+            "hunters_end": len(hunters),
+            "rice_end": len(rice),
+            "total_end": len(total),
+        }
+
+    def export_conversion_data(self) -> None:
+        """导出转换过程"""
+        return pd.DataFrame(
+            {
+                "farmer_init": self._inspect_sources("Farmer"),
+                "hunter_init": self._inspect_sources("Hunter"),
+                "rice_init": self._inspect_sources("RiceFarmer"),
+            }
+        ).to_csv(self.outpath / f"repeat_{self.run_id}_conversion.csv")
+
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
         self.plot.dynamic()
         self.plot.heatmap()
         self.plot.histplot()
         self.export_data()
+        self.export_conversion_data()
 
     @property
     def plot(self) -> ModelViz:

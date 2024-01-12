@@ -128,6 +128,7 @@ class TestCompetingCell:
         assert converted.size == farmer.size
         assert farmer not in the_model.agents
         assert converted.pos == cell.pos
+        assert converted.source == "Farmer"
 
     def test_convert_hunter(self, cell, hunter, the_model):
         """测试能够转化狩猎采集者为农民"""
@@ -139,6 +140,7 @@ class TestCompetingCell:
         assert converted.size == hunter.size
         assert hunter not in the_model.agents
         assert converted.pos == cell.pos
+        assert converted.source == "Hunter"
 
 
 class TestEnvironmentSettings:

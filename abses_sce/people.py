@@ -26,6 +26,7 @@ class SiteGroup(Actor):
         self._min_size = self.params.get("min_size", 0.0)
         self._max_size = self.params.get("max_size", 0.0)
         self.size = kwargs.get("size", self.min_size)
+        self.source = self.breed
 
     @property
     def size(self) -> int:
