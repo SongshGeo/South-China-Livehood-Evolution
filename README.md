@@ -1,4 +1,6 @@
 # 华南生计演变模型
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSongshGeo%2FSouth-China-Livehood-Evolution.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FSongshGeo%2FSouth-China-Livehood-Evolution?ref=badge_shield)
+
 
 ## 开始使用
 
@@ -47,3 +49,7 @@ make report
 - [农民主体方法](docs/api/farmer.md)
 - [狩猎采集者主体方法](docs/api/hunter.md)
 - [斑块与环境](docs/api/env.md)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSongshGeo%2FSouth-China-Livehood-Evolution.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FSongshGeo%2FSouth-China-Livehood-Evolution?ref=badge_large)
