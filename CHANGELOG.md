@@ -1,4 +1,17 @@
 
+<a id='changelog-0.4.0'></a>
+# 0.4.0 — 2024-02-04
+
+## Fixed bugs
+
+- [x] #bug🐛 fix(project): :rotating_light: fixing random int deprecation warning
+- [x] #bug🐛 修改 mkdocs vercel 部署文档的 CI
+
+## New Features
+
+- [x] #feat✨ 绘制展示人口和族群数量随时间变化的堆积图
+- [x] #feat✨ feat(analysis): :sparkles: 绘制聚合多个实验结果的分析图
+
 <a id='changelog-0.3.2'></a>
 # 0.3.2 — 2024-01-12
 
