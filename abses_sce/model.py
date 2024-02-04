@@ -34,7 +34,7 @@ class Model(MainModel):
         self.outpath = kwargs.get("outpath", "")
 
     @property
-    def outpath(self) -> str:
+    def outpath(self) -> Path:
         """输出文件夹"""
         return self._path
 

@@ -28,15 +28,15 @@ class Experiment:
         """The name of the experiment."""
         return self._name
 
-    def run(self, cfg: DictConfig, unique_run_id: int, outpath) -> bool:
+    def run(self, cfg: DictConfig, repeat_id: int, outpath) -> bool:
         """运行模型一次"""
-        model = Model(parameters=cfg, run_id=unique_run_id, outpath=outpath)
+        model = Model(parameters=cfg, run_id=repeat_id, outpath=outpath)
         model.run_model()
 
     def batch_run(self, cfg: DictConfig, repeats: int, outpath: str) -> None:
         """Run the experiment multiple times."""
         for repeat_id in range(1, repeats + 1):
-            self.run(cfg, unique_run_id=repeat_id, outpath=outpath)
+            self.run(cfg, repeat_id=repeat_id, outpath=outpath)
             self._n_runs += 1
 
 
