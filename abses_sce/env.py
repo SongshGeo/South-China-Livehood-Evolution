@@ -266,7 +266,7 @@ class Env(BaseNature):
         arable_cells = self.dem.array_cells[arable.astype(bool)]
         for farmer in farmers:
             min_size, max_size = farmer.params.new_group_size
-            farmer.size = farmer.random.randint(min_size, max_size)
+            farmer.size = farmer.random.randint(int(min_size), int(max_size))
         # 从可耕地、没有主体的里面选
         arable_cells = ActorsList(self.model, arable_cells)
         valid_cells = arable_cells.select(

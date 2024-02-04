@@ -76,7 +76,7 @@ class SiteGroup(Actor):
         min_size = max(min_size, self.min_size)
         if max_size is None:
             max_size = self.max_size
-        self.size = self.random.randint(min_size, max_size)
+        self.size = self.random.randint(int(min_size), int(max_size))
 
     def population_growth(self, growth_rate: Optional[float] = None) -> None:
         """人口增长"""
@@ -106,7 +106,7 @@ class SiteGroup(Actor):
         if self.size < s_min:
             return None
         # 随机大小的一个规模，用于创建新的小队
-        random_size = self.random.randint(s_min, s_max)
+        random_size = self.random.randint(int(s_min), int(s_max))
         # 如果这个随机来的大小比原来主体拥有的人数还多，则将大小设置为之前主体的全部人口
         size = min(random_size, self.size)
         # 创建一个新的小队伍
