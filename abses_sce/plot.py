@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -60,6 +60,43 @@ class ModelViz:
         ax2.plot(self.data["len_rice"], ls=":", label="rice farmers")
         if self.save:
             plt.savefig(self.save / f"repeat_{self.repeats}_dynamic.jpg")
+            plt.close()
+        return ax
+
+    def stack_dynamic(
+        self, flag: List[str] | None = None, ax: Axes | None = None
+    ) -> Axes:
+        """绘制堆积图。
+        Parameters:
+            flag:
+                绘制哪种统计数据？
+                如果 flag='num'，则绘制人口数量。
+                如果 flag='len'，则绘制群体数量。
+                如果 flag is None，则两个都绘制。
+            ax:
+                画布，如果没有则创建一个。
+
+        Returns:
+            返回画布。
+        """
+        if ax is None and flag is not None:
+            _, ax = plt.subplots()
+        if flag == "num":
+            cols = ["farmers_num", "hunters_num", "rice_num"]
+        elif flag == "len":
+            cols = ["len_farmers", "len_hunters", "len_rice"]
+        else:
+            _, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3))
+            ax1 = self.stack_dynamic("num", ax1)
+            ax2 = self.stack_dynamic("len", ax2)
+            return ax1, ax2
+        labels = ["Rainfed", "Hunting", "Paddy"]
+        ratios = self.data[cols].div(self.data[cols].sum(axis=1), axis=0)
+        ax.stackplot(self.data.index, [ratios[col] for col in cols], labels=labels)
+        ax.legend()
+        ax.set_xlabel("Population" if flag == "num" else "Groups")
+        if self.save:
+            plt.savefig(self.save / f"repeat_{self.repeats}_stackplots.jpg")
             plt.close()
         return ax
 
