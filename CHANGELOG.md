@@ -1,4 +1,17 @@
 
+<a id='changelog-0.4.1'></a>
+# 0.4.1 — 2024-03-10
+
+## New Features
+
+- [x] #feat✨ 现在可以检测人数哪一年发生了变化
+- [x] #feat✨ 水稻农民可以设定为某个时间之前不出现（参数 `farmer.tick`）
+- [x] #feat✨ 农民现在每个时间步会以一定概率按比例损失人数 （参数 `farmer.loss`）
+
+## Documentation changes
+
+- [x] #docs📄 在`demo.ipynb`里展示有多少适合的斑块
+
 <a id='changelog-0.4.0'></a>
 # 0.4.0 — 2024-02-04
 
