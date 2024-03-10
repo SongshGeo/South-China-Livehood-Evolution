@@ -80,6 +80,7 @@ class Model(MainModel):
         self.trigger(self.actors, "convert")
         self.trigger(self.actors, "diffuse")
         self.trigger(self.hunters, "move")
+        self.trigger(self.farmers, "loss")
         # 更新农民和狩猎采集者数量
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())
