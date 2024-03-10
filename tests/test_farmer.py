@@ -221,3 +221,27 @@ class TestFarmer:
 
         # assert
         assert isinstance(converted, RiceFarmer) == expected_converted
+
+    @pytest.mark.parametrize(
+        "prob, return_value, rate, expected",
+        [
+            (0.1, 0.05, 0.1, 90),
+            (0.1, 0.1, 0.1, 100),
+            (0.1, 0.05, 0.5, 50),
+            (0.1, 0.05, 0.9, 10),
+            (0.1, 0.2, 0.1, 100),
+        ],
+    )
+    def test_pop_loss(self, farmer: Farmer, prob, return_value, rate, expected):
+        """测试人口损失"""
+        # arrange
+        farmer.random.random = MagicMock(return_value=return_value)
+        farmer.size = 100
+        farmer.params.loss.prob = prob
+        farmer.params.loss.rate = rate
+
+        # act
+        farmer.loss()
+
+        # assert
+        assert farmer.size == expected

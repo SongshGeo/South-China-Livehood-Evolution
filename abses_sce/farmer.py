@@ -128,3 +128,8 @@ class Farmer(SiteGroup):
             complexity = self.params.get("complexity", 0.0)
         self.growth_rate *= 1 - complexity
         self.area += self.params.area * (1 - complexity)
+
+    def loss(self) -> None:
+        """农民的损失，人口增长率下降。"""
+        if self.random.random() < self.params.loss.prob:
+            self.size *= 1 - self.params.loss.rate
