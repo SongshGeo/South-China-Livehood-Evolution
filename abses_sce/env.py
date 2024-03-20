@@ -201,8 +201,8 @@ class CompetingCell(PatchCell):
         """
         to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
         if not isinstance(agent, SiteGroup):
-            raise TypeError("Agent must be inherited from SiteGroup.")
-        if not issubclass(to, SiteGroup):
+            raise TypeError(f"Agent must be inherited from SiteGroup, not {agent}.")
+        if to is None:
             raise TypeError("Agent must be inherited from SiteGroup.")
         # 创建一个新的主体
         # print(f"Going to create size {agent.size} {convert_to}")
@@ -260,7 +260,12 @@ class Env(BaseNature):
             本次新添加的农民列表。
         """
         lam_key = f"lam_{farmer_cls.breed}".lower()
-        farmers_num = np.random.poisson(self.params.get(lam_key, 0))
+        tick_key = f"tick_{farmer_cls.breed}".lower()
+        if self.time.tick < self.params.get(tick_key, 0):
+            farmers_num = 0
+        else:
+            farmers_num = np.random.poisson(self.params.get(lam_key, 0))
+        # create farmers
         farmers = self.model.agents.create(farmer_cls, num=farmers_num)
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = self.dem.array_cells[arable.astype(bool)]

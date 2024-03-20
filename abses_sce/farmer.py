@@ -93,8 +93,6 @@ class Farmer(SiteGroup):
 
     def _convert_to_rice(self) -> RiceFarmer | Self:
         """转化成"""
-        if self.time.tick < self.params.converting_tick:
-            return self
         # 人数大于水稻所需最小人数
         cond1 = self.size >= self.params.convert_threshold.get("to_rice", 0)
         # 概率小于转化概率
