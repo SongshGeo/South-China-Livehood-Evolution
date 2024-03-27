@@ -79,6 +79,9 @@ ricefarmer:
     to_farmer: 200
   max_travel_distance: 5  # 最远移动距离
   capital_area: 0.002
+  loss:
+    prob: 0.05
+    rate: 0.1
 
 
 db:
