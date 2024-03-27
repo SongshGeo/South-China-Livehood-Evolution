@@ -1,4 +1,15 @@
 
+<a id='changelog-0.5.0'></a>
+# 0.5.0 — 2024-03-27
+
+## Fixed bugs
+
+- [x] #bug🐛 修复了竞争中失败者可能意外损失的 bug
+
+## Refactoring
+
+- [x] #refactor♻️ 适配到最近的 ABSESpy 版本 0.5.x
+
 <a id='changelog-0.4.2'></a>
 # 0.4.2 — 2024-03-20
 
