@@ -15,6 +15,7 @@ from numbers import Number
 from typing import TYPE_CHECKING, Self, Tuple
 
 import numpy as np
+from abses import alive_required
 
 from .people import SiteGroup
 
@@ -103,11 +104,13 @@ class Farmer(SiteGroup):
             self._cell.convert(self, to="RiceFarmer") if cond1 & cond2 & cond3 else self
         )
 
+    @alive_required
     def convert(self) -> Self | Hunter | RiceFarmer:
         """转换，先判断是否转化成狩猎采集，如果不是，再看看是否转换成水稻农民"""
         agent = self._convert_to_hunter()
         return agent if agent is not self else self._convert_to_rice()
 
+    @alive_required
     def diffuse(
         self, group_range: Tuple[Number] | None = None, diffuse_prob: Number = None
     ) -> Self:
@@ -122,6 +125,7 @@ class Farmer(SiteGroup):
             return super().diffuse(group_range=group_range)
         return None
 
+    @alive_required
     def complicate(self, complexity: float | None = None) -> Self:
         """农民的复杂化，耕地上限再增加耕地密度增加、人口增长率下降。人口增长率的下降比例也为复杂化系数的值。"""
         if complexity is None:
@@ -133,3 +137,7 @@ class Farmer(SiteGroup):
         """农民的损失，人口增长率下降。"""
         if self.random.random() < self.params.loss.prob:
             self.size *= 1 - self.params.loss.rate
+
+    def step(self):
+        super().step()
+        self.loss()

@@ -14,7 +14,7 @@ from typing import Optional, Self, Tuple
 
 import numpy as np
 import pandas as pd
-from abses import Actor
+from abses import Actor, alive_required
 from abses.nature import PatchCell
 
 
@@ -78,12 +78,14 @@ class SiteGroup(Actor):
             max_size = self.max_size
         self.size = self.random.randint(int(min_size), int(max_size))
 
+    @alive_required
     def population_growth(self, growth_rate: Optional[float] = None) -> None:
         """人口增长"""
         if growth_rate is None:
             growth_rate = self.params.growth_rate
         self.size = self._size + self._size * growth_rate
 
+    @alive_required
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self | None:
         """人口分散，采用均匀分布随机选择一个最小和最大的规模，分裂出去。
         如果分裂出新的小队之后，原有的主体数量小于最小阈值，则原有主体会死掉。
@@ -111,14 +113,14 @@ class SiteGroup(Actor):
         size = min(random_size, self.size)
         # 创建一个新的小队伍
         cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
-        new = self.model.agents.create(cls, singleton=True, size=size)
+        new = self.model.agents.new(cls, singleton=True, size=size)
         # 记录当前的位置
-        cell = self._cell
+        cell = self.at
         # 原有人口减少，这里会触发减少到人数不足最小值时，死去
         self.size -= size
         # 新的人在周围寻找一个可以去的格子，并试图移动到那里
-        if new_cell := search_a_new_place(new, cell=cell):
-            new.put_on(new_cell)
+        if new_cell := search_cell(new, cell=cell):
+            new.move.to(new_cell)
             return new
         # 如果走了很远，没有符合要求的格子，主体就会死亡
         new.die()
@@ -139,15 +141,29 @@ class SiteGroup(Actor):
             }
         )
 
+    def convert(self):
+        """转化的行为。"""
 
-def search_a_new_place(
+    def step(self):
+        """每一步的行为。"""
+        self.population_growth()
+        self.convert()
+        self.diffuse()
+
+    def loss_in_competition(self, at: Optional[PatchCell] = None) -> None:
+        """在竞争中失败"""
+        self.die()
+        return at
+
+
+def search_cell(
     agent: SiteGroup, cell: PatchCell, radius: int = 1, **kwargs
 ) -> PatchCell:
     """在周围寻找一个新的地方，能够让迁徙的人过去"""
     if cell is None:
         raise TypeError(f"Expect PatchCell, got {type(cell)}, r={radius}.")
     # 先找到周围的格子
-    cells = cell.get_neighboring_cells(
+    cells = cell.neighboring(
         radius=radius, moore=False, include_center=False, annular=True
     )
     # 检查周围的格子是否符合当前主体的停留要求
@@ -158,5 +174,5 @@ def search_a_new_place(
         prob = [cell.suitable_level(agent) for cell in selected_cells]
         return selected_cells.random.choice(prob=prob)
     if radius < agent.params.max_travel_distance:
-        return search_a_new_place(agent, cell, radius=radius + 1, **kwargs)
+        return search_cell(agent, cell, radius=radius + 1, **kwargs)
     return None

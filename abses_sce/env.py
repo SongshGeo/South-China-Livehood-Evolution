@@ -34,6 +34,8 @@ os.chdir(cfg.root)
 class CompetingCell(PatchCell):
     """狩猎采集者和农民竞争的舞台"""
 
+    max_agents = 1
+
     def __init__(self, pos=None, indices=None):
         super().__init__(pos, indices)
         self.lim_h: float = cfg.env.lim_h
@@ -42,26 +44,24 @@ class CompetingCell(PatchCell):
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
 
+    def _count(self, breed: str) -> int:
+        """统计此处的农民或者狩猎采集者的数量"""
+        return self.agents(breed).get("size", how="item", default=0)
+
     @raster_attribute
     def farmers(self) -> int:
         """这里的农民有多少（size）"""
-        if len(self.agents) > 1:
-            raise ValueError("More than one agent locates here.")
-        return self.linked_attr("size") if self.has_agent("Farmer") else 0
+        return self._count("Farmer")
 
     @raster_attribute
     def hunters(self) -> int:
         """这里的农民有多少（size）"""
-        if len(self.agents) > 1:
-            raise ValueError("More than one agent locates here.")
-        return self.linked_attr("size") if self.has_agent("Hunter") else 0
+        return self._count("Hunter")
 
     @raster_attribute
     def rice_farmers(self) -> int:
         """这里的农民有多少（size）"""
-        if len(self.agents) > 1:
-            raise ValueError("More than one agent locates here.")
-        return self.linked_attr("size") if self.has_agent("RiceFarmer") else 0
+        return self._count("RiceFarmer")
 
     @raster_attribute
     def is_water(self) -> bool:
@@ -153,7 +153,7 @@ class CompetingCell(PatchCell):
         """
         if agent.breed == "Hunter":
             return not self.is_water
-        no_agent_here = not self.has_agent()
+        no_agent_here = self.agents.has() == 0
         if agent.breed == "RiceFarmer":
             return self.is_rice_arable & no_agent_here
         if agent.breed == "Farmer":
@@ -206,10 +206,10 @@ class CompetingCell(PatchCell):
             raise TypeError("Agent must be inherited from SiteGroup.")
         # 创建一个新的主体
         # print(f"Going to create size {agent.size} {convert_to}")
-        converted = self.layer.model.agents.create(to, size=agent.size, singleton=True)
+        converted = self.layer.model.agents.new(to, size=agent.size, singleton=True)
         converted.source = agent.source  # 记录原来是什么主体
         agent.die()  # 旧的主体死亡
-        converted.put_on(self)
+        converted.move.to(self)
         return converted
 
 
@@ -245,11 +245,11 @@ class Env(BaseNature):
         not_water = not_water.reshape(self.dem.shape2d)
         not_water_cells = self.dem.array_cells[not_water]
         num = int(self.params.get("init_hunters", ratio) * not_water.sum())
-        hunters = self.model.agents.create(Hunter, num=num)
+        hunters = self.model.agents.new(Hunter, num=num)
         cells = np.random.choice(not_water_cells, size=num, replace=False)
         init_min, init_max = cfg.hunter.init_size
         for hunter, cell in zip(hunters, cells):
-            hunter.put_on(cell)
+            hunter.move.to(cell)
             hunter.random_size(init_min, init_max)
 
     def add_farmers(self, farmer_cls: type = Farmer):
@@ -266,7 +266,7 @@ class Env(BaseNature):
         else:
             farmers_num = np.random.poisson(self.params.get(lam_key, 0))
         # create farmers
-        farmers = self.model.agents.create(farmer_cls, num=farmers_num)
+        farmers = self.model.agents.new(farmer_cls, num=farmers_num)
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = self.dem.array_cells[arable.astype(bool)]
         for farmer in farmers:
@@ -274,11 +274,13 @@ class Env(BaseNature):
             farmer.size = farmer.random.randint(int(min_size), int(max_size))
         # 从可耕地、没有主体的里面选
         arable_cells = ActorsList(self.model, arable_cells)
-        valid_cells = arable_cells.select(
-            ~arable_cells.trigger("has_agent")
-        ).random.choice(size=farmers_num, replace=False, as_list=True)
-        for farmer, cell in zip(farmers, valid_cells):
+        agents_num = arable_cells.apply(lambda c: c.agents.has())
+        valid_cells = arable_cells.select(agents_num == 0)
+        chosen_cells = valid_cells.random.choice(
+            size=farmers_num, replace=False, as_list=True
+        )
+        for farmer, cell in zip(farmers, chosen_cells):
             if not cell:
                 raise ValueError(f"arable_cells {cell} is None")
-            farmer.put_on(cell)
+            farmer.move.to(cell)
         return farmers

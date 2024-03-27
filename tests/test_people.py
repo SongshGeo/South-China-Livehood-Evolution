@@ -22,9 +22,9 @@ class TestGroup:
     @pytest.fixture(name="people")
     def mock_people(self, model, layer) -> SiteGroup:
         """一个虚假的主体"""
-        people: SiteGroup = model.agents.create(SiteGroup, singleton=True)
+        people: SiteGroup = model.agents.new(SiteGroup, singleton=True)
         cell = layer.array_cells[3][3]
-        people.put_on(cell=cell)
+        people.move.to(cell)
         return people
 
     def test_size_setup(self, people: SiteGroup):
@@ -82,7 +82,7 @@ class TestGroup:
         """测试人口分散，随机选择一个最小和最大的规模，分裂出去"""
         # Arrange
         cell = people.model.nature.layer.cells[3][3]
-        people.put_on(cell)
+        people.move.to(cell)
         people.size = initial_size
         people.min_size = 6
 

@@ -9,7 +9,6 @@ import pytest
 from abses import MainModel, PatchModule
 
 from abses_sce.env import CompetingCell
-from abses_sce.farmer import Farmer
 from abses_sce.rice_farmer import RiceFarmer
 
 from .conftest import cfg, set_cell_arable_condition
@@ -26,8 +25,8 @@ class TestRiceFarmer:
     @pytest.fixture(name="rice")
     def mock_rice(self, model: MainModel, cell: CompetingCell):
         """返回一个种水稻的农民"""
-        rice = model.agents.create(RiceFarmer, singleton=True)
-        rice.put_on(cell=cell)
+        rice = model.agents.new(RiceFarmer, singleton=True)
+        rice.move.to(cell)
         return rice
 
     def test_init(self, rice: RiceFarmer):

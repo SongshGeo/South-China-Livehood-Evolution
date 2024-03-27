@@ -26,8 +26,8 @@ class TestCompetingCell:
     def mock_model(self):
         """一个虚假的模型"""
         model = MainModel(parameters=cfg)
-        farmer = model.agents.create(Farmer, singleton=True)
-        hunter = model.agents.create(Hunter, singleton=True)
+        farmer = model.agents.new(Farmer, singleton=True)
+        hunter = model.agents.new(Hunter, singleton=True)
         module = model.nature.create_module(
             how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
         )
@@ -115,8 +115,28 @@ class TestCompetingCell:
         cell.slope = 5
         cell.elevation = 100
         cell.is_water = False
-        assert cell.has_agent() is False
+        assert not cell.agents.has()
         assert cell.able_to_live(farmer) is True
+
+    def test_able_to_live_when_has_agent(self, cell, farmer, hunter):
+        """
+        ID: TC008
+        Arrange:
+        - Create a CompetingCell instance.
+        - Set the is_arable property to True.
+        - Add a Farmer instance to the agents list.
+        Act:
+        - Call the able_to_live method with a Farmer instance.
+        Assert:
+        - Verify that the result is False.
+        """
+        cell.slope = 5
+        cell.elevation = 100
+        cell.is_water = False
+        cell.agents.add(farmer)
+        assert cell.agents.has()
+        assert cell.able_to_live(hunter) is True
+        assert cell.able_to_live(farmer) is False
 
     def test_convert_farmer(self, cell, farmer, the_model):
         """测试能够转换农民成为狩猎采集者"""
@@ -127,7 +147,7 @@ class TestCompetingCell:
         assert isinstance(converted, Hunter)
         assert converted.size == farmer.size
         assert farmer not in the_model.agents
-        assert converted.pos == cell.pos
+        assert converted.at is cell
         assert converted.source == "Farmer"
 
     def test_convert_hunter(self, cell, hunter, the_model):
@@ -139,7 +159,7 @@ class TestCompetingCell:
         assert isinstance(converted, Farmer)
         assert converted.size == hunter.size
         assert hunter not in the_model.agents
-        assert converted.pos == cell.pos
+        assert converted.at is cell
         assert converted.source == "Hunter"
 
 
@@ -194,7 +214,7 @@ class TestEnvironmentSettings:
         model.nature.add_hunters(1)
         assert len(model.agents) == 1
         left_cell: CompetingCell = model.nature.dem.cells[0][0]
-        assert model.agents.to_list()[0] in left_cell.agents
+        assert model.agents.item() in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):
         """测试能否随机设置主体"""
