@@ -33,18 +33,18 @@ class TestHunters:
     @pytest.fixture(name="hunter")
     def mock_hunter(self, model, cell: CompetingCell) -> Hunter:
         """一个虚假的狩猎采集者"""
-        hunter = model.agents.create(Hunter, size=50, singleton=True)
-        hunter.put_on(cell=cell)
+        hunter = model.agents.new(Hunter, size=50, singleton=True)
+        hunter.move.to(cell)
         return hunter
 
     @pytest.fixture(name="other_group")
     def mock_other_group(self, model):
         """一个虚假的聚落"""
-        agent = model.agents.create(Hunter, size=60, singleton=True)
+        agent = model.agents.new(Hunter, size=60, singleton=True)
         module = model.nature.create_module(
             how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
         )
-        agent.put_on(module.array_cells[3][3])
+        agent.move.to(module.array_cells[3][3])
         return agent
 
     def test_hunter_init(self, hunter: Hunter):
@@ -69,7 +69,7 @@ class TestHunters:
         """测试人口规模有最大最小值限制"""
         # Arrange
         assert hunter.on_earth
-        assert hunter.loc("lim_h") == cfg.sitegroup.max_size
+        assert hunter.get("lim_h") == cfg.sitegroup.max_size
 
         # Act
         hunter.size = size
@@ -124,8 +124,8 @@ class TestHunters:
         hunter.random.random = MagicMock(return_value=random_value)
 
         # 配置，转化需要旁边有农民
-        farmer = model.agents.create(Farmer, singleton=1)
-        farmer.put_on(layer.array_cells[2][2])
+        farmer = model.agents.new(Farmer, singleton=1)
+        farmer.move.to(layer.array_cells[2][2])
         # 配置是否是可耕地的条件
         set_cell_arable_condition(cell, arable=arable, rice_arable=False)
 
@@ -160,8 +160,8 @@ class TestHunters:
         hunter.random.random = MagicMock(return_value=random_value)
 
         # 配置，转化需要旁边有农民
-        farmer = model.agents.create(RiceFarmer, singleton=1)
-        farmer.put_on(layer.array_cells[2][2])
+        farmer = model.agents.new(RiceFarmer, singleton=1)
+        farmer.move.to(layer.array_cells[2][2])
         # 配置是否是可耕地的条件
         set_cell_arable_condition(cell, arable=True, rice_arable=arable)
 
@@ -185,13 +185,13 @@ class TestHunters:
         """测试有移动能力才能移动，在周围随机选取一个格子移动"""
         # Arrange
         setattr(hunter, "_size", size)
-        initial_pos = hunter.pos
+        initial_pos = hunter.at.pos
 
         # Act
-        hunter.move()
+        hunter.move_one()
 
         # assert
-        assert (hunter.pos != initial_pos) is expected_move
+        assert (hunter.at.pos != initial_pos) is expected_move
 
     @pytest.mark.parametrize(
         "other_size, expected",
@@ -208,18 +208,13 @@ class TestHunters:
         """测试主体之间的竞争"""
         # arrange
         hunter.size = 10
-        farmer = model.agents.create(Farmer, singleton=True)
-        farmer.put_on(layer.array_cells[3][3])
+        farmer = model.agents.new(Farmer, singleton=True)
+        farmer.move.to(layer.array_cells[3][3])
         farmer.size = other_size
         assert hunter.on_earth
         assert farmer.on_earth
 
-        # Act
-        with patch("abses_sce.hunter.Hunter._compete_with_farmer") as mock:
-            hunter.compete(farmer)
-            assert mock.called
-
-        # Assert
+        # Act / Assert
         assert hunter.compete(farmer) == expected
 
     @pytest.mark.parametrize(

@@ -9,7 +9,7 @@ packages = [{include = "abses_sce"}]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"
 hydra-core = "^1.3.2"
-abses = "0.3.5rc"
+abses = "0.5.x"
 mesa-geo = ">=0.5.0"
 fiona = "^1.9.4.post1"
 rasterio = "^1.3.8"

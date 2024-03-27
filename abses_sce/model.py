@@ -49,24 +49,17 @@ class Model(MainModel):
     @property
     def farmers(self) -> ActorsList:
         """农民列表"""
-        return self.agents.select("Farmer")
+        return self.agents("Farmer")
 
     @property
     def hunters(self) -> ActorsList:
         """狩猎采集者列表"""
-        return self.agents.select("Hunter")
+        return self.agents("Hunter")
 
     @property
     def rice(self) -> ActorsList:
         """种水稻的农民列表"""
-        return self.agents.select("RiceFarmer")
-
-    def trigger(self, actors: ActorsList, func: str, *args, **kwargs) -> None:
-        """触发所有还活着的主体的行动"""
-        for actor in actors:
-            if not actor.on_earth:
-                continue
-            getattr(actor, func)(*args, **kwargs)
+        return self.agents("RiceFarmer")
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：
@@ -76,11 +69,6 @@ class Model(MainModel):
         """
         farmers = self.nature.add_farmers(Farmer)
         farmers = self.nature.add_farmers(RiceFarmer)
-        self.trigger(self.actors, "population_growth")
-        self.trigger(self.actors, "convert")
-        self.trigger(self.actors, "diffuse")
-        self.trigger(self.hunters, "move")
-        self.trigger(self.farmers, "loss")
         # 更新农民和狩猎采集者数量
         self.new_farmers.append(len(farmers))
         self.farmers_num.append(self.farmers.array("size").sum())

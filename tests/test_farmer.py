@@ -29,8 +29,8 @@ class TestFarmer:
     @pytest.fixture(name="farmer")
     def mock_farmer(self, model: MainModel, cell: CompetingCell) -> Farmer:
         """一个虚假的农民"""
-        farmer = model.agents.create(Farmer, singleton=True)
-        farmer.put_on(cell=cell)
+        farmer = model.agents.new(Farmer, singleton=True)
+        farmer.move.to(cell)
         return farmer
 
     def test_init(self, farmer: Farmer):
