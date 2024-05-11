@@ -42,7 +42,6 @@ class CompetingCell(PatchCell):
         self.lim_g: float = cfg.env.lim_g
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
-        self._is_water: bool = np.random.choice([True, False], p=[0.05, 0.95])
 
     def _count(self, breed: str) -> int:
         """统计此处的农民或者狩猎采集者的数量"""
@@ -66,14 +65,7 @@ class CompetingCell(PatchCell):
     @raster_attribute
     def is_water(self) -> bool:
         """是否是水体"""
-        return self._is_water or self.elevation <= 0
-
-    @is_water.setter
-    def is_water(self, value: bool) -> None:
-        """设置是否水体"""
-        if not isinstance(value, bool):
-            raise TypeError(f"Should be bool, got {type(value)} instead.")
-        self._is_water = value
+        return self.elevation <= 0 or np.isnan(self.elevation)
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -96,7 +88,7 @@ class CompetingCell(PatchCell):
         cond2 = (self.elevation < 200) and (self.elevation > 0)
         # 不是水体
         cond3 = not self.is_water
-        # 四个条件都满足才是可耕地
+        # 条件都满足才是可耕地
         return cond1 and cond2 and cond3
 
     @raster_attribute
@@ -225,6 +217,7 @@ class Env(BaseNature):
             raster_file=cfg.db.dem,
             cell_cls=CompetingCell,
             attr_name="elevation",
+            apply_raster=True,
         )
         arr = self._open_rasterio(cfg.db.slo)
         self.dem.apply_raster(arr, attr_name="slope")
@@ -241,16 +234,10 @@ class Env(BaseNature):
         """
         添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去
         """
-        not_water = ~self.dem.get_raster(attr_name="is_water").astype(bool)
-        not_water = not_water.reshape(self.dem.shape2d)
-        not_water_cells = self.dem.array_cells[not_water]
-        num = int(self.params.get("init_hunters", ratio) * not_water.sum())
-        hunters = self.model.agents.new(Hunter, num=num)
-        cells = np.random.choice(not_water_cells, size=num, replace=False)
+        num = int(self.params.get("init_hunters", ratio) * self.mask.sum())
+        hunters = self.random.new(Hunter, num=num)
         init_min, init_max = cfg.hunter.init_size
-        for hunter, cell in zip(hunters, cells):
-            hunter.move.to(cell)
-            hunter.random_size(init_min, init_max)
+        hunters.apply(lambda h: h.random_size(init_min, init_max))
 
     def add_farmers(self, farmer_cls: type = Farmer):
         """

@@ -1,18 +1,17 @@
+defaults:
+  - default
+  - _self_
+
 root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
 
 hydra:
-  job:
-    name: try_new  # 实验的名字
-  run:
-    dir: 'out/${hydra:job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}'  # 不要修改这个
-  sweep:
-    dir: out/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 不要修改这个
-    subdir: ${hydra:job.name}_${hydra.job.num}  # 不要修改这个
+  searchpath:
+    - pkg://abses.conf
 
 exp:
-  run_id: ${hydra:job.id}  # 不要修改这个
-  repeats: 1  # 每组参数的运行重复次数
-  note: 运行一次，看看能不能跑出数据了。  # 实验笔记
+  name: south_china_evolution
+  repeats: 5  # 每组参数的运行重复次数
+  num_process: 5
 
 model:
   save_plots: True  # 保存绘图

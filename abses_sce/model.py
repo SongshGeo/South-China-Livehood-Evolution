@@ -5,7 +5,6 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from pathlib import Path
 from typing import Dict
 
 import pandas as pd
@@ -31,20 +30,6 @@ class Model(MainModel):
         self.len_hunters = []
         self.len_rice = []
         self.rice_num = []
-        self.outpath = kwargs.get("outpath", "")
-
-    @property
-    def outpath(self) -> Path:
-        """输出文件夹"""
-        return self._path
-
-    @outpath.setter
-    def outpath(self, path: str) -> None:
-        """设置输出文件夹"""
-        path_obj = Path(path)
-        if not path_obj.is_dir():
-            raise FileExistsError(f"{path} not exist.")
-        self._path = path_obj
 
     @property
     def farmers(self) -> ActorsList:
