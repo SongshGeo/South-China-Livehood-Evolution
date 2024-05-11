@@ -181,17 +181,17 @@ class TestHunters:
         [(20, True), (6, True), (131, False), (160, False)],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
-    def test_move(self, hunter, size, expected_move):
+    def test_move(self, hunter: Hunter, size, expected_move):
         """测试有移动能力才能移动，在周围随机选取一个格子移动"""
         # Arrange
         setattr(hunter, "_size", size)
-        initial_pos = hunter.at.pos
+        initial_pos = hunter.at.indices
 
         # Act
         hunter.move_one()
 
         # assert
-        assert (hunter.at.pos != initial_pos) is expected_move
+        assert (hunter.at.indices != initial_pos) is expected_move
 
     @pytest.mark.parametrize(
         "other_size, expected",

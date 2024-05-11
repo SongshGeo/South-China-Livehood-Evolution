@@ -24,7 +24,7 @@ class TestFarmer:
     @pytest.fixture(name="cell")
     def mock_cell(self, layer: PatchModule) -> CompetingCell:
         """用于测试的，农民应该站在的地方"""
-        return layer.cells[2][2]
+        return layer.array_cells[2, 2]
 
     @pytest.fixture(name="farmer")
     def mock_farmer(self, model: MainModel, cell: CompetingCell) -> Farmer:
