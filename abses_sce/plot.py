@@ -28,9 +28,6 @@ class ModelViz:
         self.data = model.dataset
         self.repeats = model.run_id
 
-    def _wrap_ax(self):
-        """包装一个 ax"""
-
     def histplot(self) -> Axes:  # sourcery skip: class-extract-method
         """绘制主体人数的分布直方图"""
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
@@ -103,10 +100,10 @@ class ModelViz:
     def heatmap(self) -> Axes:
         """绘制狩猎采集者和农民的空间分布"""
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
-        mask = self.model.nature.dem.get_xarray("elevation") >= 0
-        farmers = self.model.nature.dem.get_xarray("farmers").where(mask)
-        hunters = self.model.nature.dem.get_xarray("hunters").where(mask)
-        rice = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
+        mask = self.model.nature.get_xarray("elevation") >= 0
+        farmers = self.model.nature.get_xarray("farmers").where(mask)
+        hunters = self.model.nature.get_xarray("hunters").where(mask)
+        rice = self.model.nature.get_xarray("rice_farmers").where(mask)
         farmers.plot.contourf(ax=ax1, cmap="Reds")
         hunters.plot.contourf(ax=ax2, cmap="Greens")
         rice.plot.contourf(ax=ax3, cmap="Oranges")

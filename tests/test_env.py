@@ -204,8 +204,8 @@ class TestEnvironmentSettings:
 
     def test_setup_is_correct(self, model: MainModel):
         """测试环境的设置如预期"""
-        assert model.nature.dem.shape2d == (1, 2)
-        is_water = model.nature.dem.get_raster("is_water").reshape((1, 2))
+        assert model.nature.shape2d == (1, 2)
+        is_water = model.nature.get_raster("is_water").reshape((1, 2))
         assert is_water.sum() == 1
         assert (~is_water.astype(bool)).any()
 
@@ -213,7 +213,7 @@ class TestEnvironmentSettings:
         """测试能设置主体"""
         model.nature.add_hunters(1)
         assert len(model.agents) == 1
-        left_cell: CompetingCell = model.nature.dem.array_cells[0, 0]
+        left_cell: CompetingCell = model.nature.array_cells[0, 0]
         assert model.agents.item() in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):
