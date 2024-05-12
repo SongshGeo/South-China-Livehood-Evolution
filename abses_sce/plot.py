@@ -26,15 +26,15 @@ class ModelViz:
         self.model = model
         self.save = save_path
         self.outpath = ""
-        self.data = model.dataset
+        self.data = model.datacollector.get_model_vars_dataframe()
         self.repeats = model.run_id
 
     def dynamic(self) -> Axes:
         """绘制动态变化趋势"""
         _, ax = plt.subplots()
-        ax.plot(self.data["farmers_num"], label="farmers size")
-        ax.plot(self.data["hunters_num"], label="hunters size")
-        ax.plot(self.data["rice_num"], label="rice farmers")
+        ax.plot(self.data["num_farmers"], label="farmers size")
+        ax.plot(self.data["num_hunters"], label="hunters size")
+        ax.plot(self.data["num_rice"], label="rice farmers")
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
@@ -66,7 +66,7 @@ class ModelViz:
         if ax is None and flag is not None:
             _, ax = plt.subplots()
         if flag == "num":
-            cols = ["farmers_num", "hunters_num", "rice_num"]
+            cols = ["num_farmers", "num_hunters", "num_rice"]
         elif flag == "len":
             cols = ["len_farmers", "len_hunters", "len_rice"]
         else:

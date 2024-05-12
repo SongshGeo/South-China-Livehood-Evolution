@@ -5,6 +5,8 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+"""Main model for South China Livelihood
+"""
 from typing import Dict
 
 import pandas as pd
@@ -23,13 +25,6 @@ class Model(MainModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, nature_class=Env, **kwargs)
         self.nature.add_hunters()
-        self.farmers_num = []
-        self.new_farmers = []
-        self.hunters_num = []
-        self.len_farmers = []
-        self.len_hunters = []
-        self.len_rice = []
-        self.rice_num = []
 
     @property
     def farmers(self) -> ActorsList:
@@ -52,34 +47,8 @@ class Model(MainModel):
         2. 所有主体互相转化
         3. 更新狩猎采集者可以移动（这可能触发竞争）
         """
-        farmers = self.nature.add_farmers(Farmer)
-        farmers = self.nature.add_farmers(RiceFarmer)
-        # 更新农民和狩猎采集者数量
-        self.new_farmers.append(len(farmers))
-        self.farmers_num.append(self.farmers.array("size").sum())
-        self.hunters_num.append(self.hunters.array("size").sum())
-        self.rice_num.append(self.rice.array("size").sum())
-        self.len_hunters.append(len(self.hunters))
-        self.len_farmers.append(len(self.farmers))
-        self.len_rice.append(len(self.rice))
-
-    @property
-    def dataset(self) -> pd.DataFrame:
-        """数据"""
-        data = {
-            "new_farmers": self.new_farmers,
-            "farmers_num": self.farmers_num,
-            "hunters_num": self.hunters_num,
-            "rice_num": self.rice_num,
-            "len_hunters": self.len_hunters,
-            "len_farmers": self.len_farmers,
-            "len_rice": self.len_rice,
-        }
-        return pd.DataFrame(data=data, index=range(self.time.tick))
-
-    def export_data(self) -> None:
-        """导出实验数据"""
-        self.dataset.to_csv(self.outpath / f"repeat_{self.run_id}.csv")
+        self.nature.add_farmers(Farmer)
+        self.nature.add_farmers(RiceFarmer)
 
     def _inspect_sources(self, breed: str) -> Dict[str, int]:
         """获取来源于某种人的转换结果"""
@@ -113,7 +82,7 @@ class Model(MainModel):
         self.actors.plot.hist(
             attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
         )
-        self.export_data()
+        # self.export_data()
         self.export_conversion_data()
 
     @property
