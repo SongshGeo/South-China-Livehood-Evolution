@@ -199,7 +199,6 @@ class TestEnvironmentSettings:
                     self.dem.array_cells[0, 1].is_water = False
 
         model = MainModel(parameters=cfg, nature_class=MockNature)
-        model.nature.params["init_hunters"] = 0.5
         return model
 
     def test_setup_is_correct(self, model: MainModel):
@@ -211,7 +210,8 @@ class TestEnvironmentSettings:
 
     def test_setup_hunters(self, model: MainModel):
         """测试能设置主体"""
-        model.nature.add_hunters(1)
+        model.nature.add_hunters(1)  # using 0.5 ratio by default
+        assert model.nature.get_xarray("is_water").sum() == 1
         assert len(model.agents) == 1
         left_cell: CompetingCell = model.nature.array_cells[0, 0]
         assert model.agents.item() in left_cell.agents

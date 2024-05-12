@@ -110,7 +110,9 @@ class Model(MainModel):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
         self.plot.dynamic()
         self.plot.heatmap()
-        self.plot.histplot()
+        self.actors.plot.hist(
+            attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
+        )
         self.export_data()
         self.export_conversion_data()
 
