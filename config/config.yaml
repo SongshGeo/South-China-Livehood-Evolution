@@ -1,22 +1,34 @@
+defaults:
+  - default
+  - _self_
+
 root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
 
 hydra:
-  job:
-    name: try_new  # 实验的名字
-  run:
-    dir: 'out/${hydra:job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}'  # 不要修改这个
-  sweep:
-    dir: out/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}  # 不要修改这个
-    subdir: ${hydra:job.name}_${hydra.job.num}  # 不要修改这个
+  searchpath:
+    - pkg://abses.conf
 
 exp:
-  run_id: ${hydra:job.id}  # 不要修改这个
-  repeats: 1  # 每组参数的运行重复次数
-  note: 运行一次，看看能不能跑出数据了。  # 实验笔记
+  name: south_china_evolution
+  repeats: 5  # 每组参数的运行重复次数
+  num_process: 5
 
 model:
   save_plots: True  # 保存绘图
   loss_rate: 0.5  # 竞争失败者的人口损失系数
+
+reports:
+  model:
+    len_farmers: ":lambda m: len(m.farmers) / len(m.actors)"
+    len_hunters: ":lambda m: len(m.hunters) / len(m.actors)"
+    len_rice: ":lambda m: len(m.rice) / len(m.actors)"
+    num_farmers: ":lambda m: m.farmers.array('size').sum() / m.actors.array('size').sum()"
+    num_hunters: ":lambda m: m.hunters.array('size').sum() / m.actors.array('size').sum()"
+    num_rice: ":lambda m: m.rice.array('size').sum() / m.actors.array('size').sum()"
+  final:
+    bkp_farmer: ":lambda m: m.detect_breakpoints('farmers')"
+    bkp_rice: ":lambda m: m.detect_breakpoints('rice')"
+    bkp_hunters: ":lambda m: m.detect_breakpoints('hunters')"
 
 env:
 # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
@@ -79,6 +91,9 @@ ricefarmer:
     to_farmer: 200
   max_travel_distance: 5  # 最远移动距离
   capital_area: 0.002
+  loss:
+    prob: 0.05
+    rate: 0.1
 
 
 db:

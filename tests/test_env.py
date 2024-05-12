@@ -189,31 +189,31 @@ class TestEnvironmentSettings:
             def setup_is_water(self, how: str = "right"):
                 """设置测试斑块为水体"""
                 if how == "right":
-                    self.dem.cells[0][0].is_water = False
-                    self.dem.cells[1][0].is_water = True
+                    self.dem.array_cells[0, 0].is_water = False
+                    self.dem.array_cells[0, 1].is_water = True
                 elif how == "left":
-                    self.dem.cells[0][0].is_water = True
-                    self.dem.cells[1][0].is_water = False
+                    self.dem.array_cells[0, 0].is_water = True
+                    self.dem.array_cells[0, 1].is_water = False
                 elif how == "all":
-                    self.dem.cells[0][0].is_water = False
-                    self.dem.cells[1][0].is_water = False
+                    self.dem.array_cells[0, 0].is_water = False
+                    self.dem.array_cells[0, 1].is_water = False
 
         model = MainModel(parameters=cfg, nature_class=MockNature)
-        model.nature.params["init_hunters"] = 0.5
         return model
 
     def test_setup_is_correct(self, model: MainModel):
         """测试环境的设置如预期"""
-        assert model.nature.dem.shape2d == (1, 2)
-        is_water = model.nature.dem.get_raster("is_water").reshape((1, 2))
+        assert model.nature.shape2d == (1, 2)
+        is_water = model.nature.get_raster("is_water").reshape((1, 2))
         assert is_water.sum() == 1
         assert (~is_water.astype(bool)).any()
 
     def test_setup_hunters(self, model: MainModel):
         """测试能设置主体"""
-        model.nature.add_hunters(1)
+        model.nature.add_hunters(1)  # using 0.5 ratio by default
+        assert model.nature.get_xarray("is_water").sum() == 1
         assert len(model.agents) == 1
-        left_cell: CompetingCell = model.nature.dem.cells[0][0]
+        left_cell: CompetingCell = model.nature.array_cells[0, 0]
         assert model.agents.item() in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):

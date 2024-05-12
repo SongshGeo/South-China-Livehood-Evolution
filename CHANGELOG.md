@@ -1,4 +1,26 @@
 
+<a id='changelog-0.6.0'></a>
+# 0.6.0 — 2024-05-12
+
+## Performance improvements
+
+- [x] #zap⚡️ 可以并行运算，所以重复实验的速度提升了很多
+
+## New Features
+
+- [x] #feat✨ 现在可以根据多组实验结果画出带误差范围的变化曲线
+- [x] #feat✨ 现在可以绘制不同重复实验后，各类主体数量的断点分布
+- [x] #feat✨ 绘制对数变化后的主体数量分布热力图
+
+## Fixed bugs
+
+- [x] #bug🐛 修复了水体范围不正确的 bug
+
+## Refactoring
+
+- [x] #refactor♻️ 适配0.6.x版本的`ABSESpy`框架
+- [x] #refactor♻️ 删除了新版本下过去多余的代码
+
 <a id='changelog-0.5.0'></a>
 # 0.5.0 — 2024-03-27
 

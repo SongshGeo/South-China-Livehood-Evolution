@@ -20,7 +20,7 @@ class TestRiceFarmer:
     @pytest.fixture(name="cell")
     def mock_cell(self, layer: PatchModule) -> CompetingCell:
         """用于测试的，农民应该站在的地方"""
-        return layer.cells[2][2]
+        return layer.array_cells[2, 2]
 
     @pytest.fixture(name="rice")
     def mock_rice(self, model: MainModel, cell: CompetingCell):
@@ -72,10 +72,12 @@ class TestRiceFarmer:
             (False, False, False),
         ],
     )
-    def test_viable(self, rice: RiceFarmer, layer, arable, rice_arable, expected_live):
+    def test_viable(
+        self, rice: RiceFarmer, layer: PatchModule, arable, rice_arable, expected_live
+    ):
         """测试调整斑块属性后，是否能存活"""
         # arrange
-        cell: CompetingCell = layer.cells[0][0]
+        cell: CompetingCell = layer.array_cells[0, 0]
         set_cell_arable_condition(cell, arable=arable, rice_arable=rice_arable)
 
         # act / assert

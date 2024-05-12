@@ -10,7 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, List
 
-import seaborn as sns
+import numpy as np
+import xarray as xr
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
@@ -25,32 +26,15 @@ class ModelViz:
         self.model = model
         self.save = save_path
         self.outpath = ""
-        self.data = model.dataset
+        self.data = model.datacollector.get_model_vars_dataframe()
         self.repeats = model.run_id
-
-    def _wrap_ax(self):
-        """包装一个 ax"""
-
-    def histplot(self) -> Axes:  # sourcery skip: class-extract-method
-        """绘制主体人数的分布直方图"""
-        _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
-        sns.histplot(self.model.farmers.array("size"), ax=ax1)
-        sns.histplot(self.model.hunters.array("size"), ax=ax2)
-        sns.histplot(self.model.rice.array("size"), ax=ax3)
-        ax1.set_xlabel("Farmers")
-        ax2.set_xlabel("Hunters")
-        ax3.set_xlabel("Rice Farmers")
-        if self.save:
-            plt.savefig(self.save / f"repeat_{self.repeats}_histplot.jpg")
-            plt.close()
-        return ax1, ax2, ax3
 
     def dynamic(self) -> Axes:
         """绘制动态变化趋势"""
         _, ax = plt.subplots()
-        ax.plot(self.data["farmers_num"], label="farmers size")
-        ax.plot(self.data["hunters_num"], label="hunters size")
-        ax.plot(self.data["rice_num"], label="rice farmers")
+        ax.plot(self.data["num_farmers"], label="farmers size")
+        ax.plot(self.data["num_hunters"], label="hunters size")
+        ax.plot(self.data["num_rice"], label="rice farmers")
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
@@ -82,7 +66,7 @@ class ModelViz:
         if ax is None and flag is not None:
             _, ax = plt.subplots()
         if flag == "num":
-            cols = ["farmers_num", "hunters_num", "rice_num"]
+            cols = ["num_farmers", "num_hunters", "num_rice"]
         elif flag == "len":
             cols = ["len_farmers", "len_hunters", "len_rice"]
         else:
@@ -102,14 +86,20 @@ class ModelViz:
 
     def heatmap(self) -> Axes:
         """绘制狩猎采集者和农民的空间分布"""
+
+        def log(xda_: xr.DataArray):
+            return xr.apply_ufunc(np.log, xda_.where(xda_ != 0))
+
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
-        mask = self.model.nature.dem.get_xarray("elevation") >= 0
-        farmers = self.model.nature.dem.get_xarray("farmers").where(mask)
-        hunters = self.model.nature.dem.get_xarray("hunters").where(mask)
-        rice = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
-        farmers.plot.contourf(ax=ax1, cmap="Reds")
-        hunters.plot.contourf(ax=ax2, cmap="Greens")
-        rice.plot.contourf(ax=ax3, cmap="Oranges")
+        mask = self.model.nature.get_xarray("elevation") >= 0
+        farmers = self.model.nature.get_xarray("farmers").where(mask)
+        hunters = self.model.nature.get_xarray("hunters").where(mask)
+        rice = self.model.nature.get_xarray("rice_farmers").where(mask)
+        # Calculate logarithmically, without warnings
+        log(farmers).plot.contourf(ax=ax1, cmap="Reds")
+        log(hunters).plot.contourf(ax=ax2, cmap="Greens")
+        log(rice).plot.contourf(ax=ax3, cmap="Oranges")
+
         ax1.set_xlabel("Farmers")
         ax2.set_xlabel("Hunters")
         ax3.set_xlabel("Rice Farmers")

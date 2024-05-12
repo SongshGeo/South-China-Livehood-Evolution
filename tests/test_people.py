@@ -81,7 +81,7 @@ class TestGroup:
     ):
         """测试人口分散，随机选择一个最小和最大的规模，分裂出去"""
         # Arrange
-        cell = people.model.nature.layer.cells[3][3]
+        cell = people.model.nature.layer.array_cells[3, 3]
         people.move.to(cell)
         people.size = initial_size
         people.min_size = 6
