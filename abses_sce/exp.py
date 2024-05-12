@@ -39,15 +39,43 @@ class MyExperiment(Experiment):
             plt.close()
         return ax
 
+    def plot_all_dynamic(self, save=False):
+        """绘制所有人数的变化比例"""
+        for col in ("farmers", "hunters", "rice"):
+            for j in ("num", "len"):
+                self.plot_agg_dynamic(col, j, save=save)
+
+    def plot_breakpoints(self, save=False):
+        """绘制拐点分布图"""
+        df_long = self.summary().melt(
+            id_vars=["job_id", "repeat_id"],
+            value_vars=["bkp_farmer", "bkp_hunters", "bkp_rice"],
+            var_name="cate",
+            value_name="bkp",
+        )
+        sns.displot(
+            df_long,
+            x="bkp",
+            col="job_id",
+            hue="cate",
+            binwidth=3,
+            height=3,
+            facet_kws=dict(margin_titles=True),
+            kde=True,
+            palette="viridis",
+        )
+        if save:
+            plt.savefig(self.folder / "breakpoints.jpg")
+            plt.close()
+
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def main(cfg: DictConfig | None = None) -> None:
     """批量运行一次实验"""
     exp = MyExperiment(Model)
     exp.batch_run(cfg=cfg)
-    for col in ("farmers", "hunters", "rice"):
-        for j in ("num", "len"):
-            exp.plot_agg_dynamic(col, j, save=True)
+    exp.plot_all_dynamic(save=True)
+    exp.plot_breakpoints(save=True)
 
 
 if __name__ == "__main__":

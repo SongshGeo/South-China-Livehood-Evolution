@@ -7,16 +7,21 @@
 
 """Main model for South China Livelihood
 """
-from typing import Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Dict
 
 import pandas as pd
 from abses import ActorsList, MainModel
 
+from abses_sce.analysis import detect_breakpoints
+from abses_sce.env import Env
 from abses_sce.farmer import Farmer
 from abses_sce.plot import ModelViz
 from abses_sce.rice_farmer import RiceFarmer
 
-from .env import Env
+if TYPE_CHECKING:
+    from abses_sce.exp import ActorType
 
 
 class Model(MainModel):
@@ -40,6 +45,12 @@ class Model(MainModel):
     def rice(self) -> ActorsList:
         """种水稻的农民列表"""
         return self.agents("RiceFarmer")
+
+    def detect_breakpoints(self, actor: ActorType) -> int:
+        """检测某个主体数量发展中的拐点"""
+        data = self.datacollector.get_model_vars_dataframe()
+        n_bkps = self.p.get("n_bkps", 1)
+        return detect_breakpoints(data[f"num_{actor}"], n_bkps=n_bkps)
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：
@@ -82,7 +93,6 @@ class Model(MainModel):
         self.actors.plot.hist(
             attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
         )
-        # self.export_data()
         self.export_conversion_data()
 
     @property

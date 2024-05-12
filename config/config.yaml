@@ -25,6 +25,10 @@ reports:
     num_farmers: ":lambda m: m.farmers.array('size').sum() / m.actors.array('size').sum()"
     num_hunters: ":lambda m: m.hunters.array('size').sum() / m.actors.array('size').sum()"
     num_rice: ":lambda m: m.rice.array('size').sum() / m.actors.array('size').sum()"
+  final:
+    bkp_farmer: ":lambda m: m.detect_breakpoints('farmers')"
+    bkp_rice: ":lambda m: m.detect_breakpoints('rice')"
+    bkp_hunters: ":lambda m: m.detect_breakpoints('hunters')"
 
 env:
 # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
