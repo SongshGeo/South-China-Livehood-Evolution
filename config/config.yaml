@@ -16,6 +16,7 @@ exp:
 model:
   save_plots: True  # 保存绘图
   loss_rate: 0.5  # 竞争失败者的人口损失系数
+  n_bkps: 1
 
 reports:
   model:
@@ -25,6 +26,12 @@ reports:
     num_farmers: ":lambda m: m.farmers.array('size').sum() / m.actors.array('size').sum()"
     num_hunters: ":lambda m: m.hunters.array('size').sum() / m.actors.array('size').sum()"
     num_rice: ":lambda m: m.rice.array('size').sum() / m.actors.array('size').sum()"
+    len_farmers_n: ":lambda m: len(m.farmers)"
+    len_hunters_n: ":lambda m: len(m.hunters)"
+    len_rice_n: ":lambda m: len(m.rice)"
+    num_farmers_n: ":lambda m: m.farmers.array('size').sum()"
+    num_hunters_n: ":lambda m: m.hunters.array('size').sum()"
+    num_rice_n: ":lambda m: m.rice.array('size').sum()"
   final:
     bkp_farmer: ":lambda m: m.detect_breakpoints('farmers')"
     bkp_rice: ":lambda m: m.detect_breakpoints('rice')"

@@ -32,16 +32,16 @@ class ModelViz:
     def dynamic(self) -> Axes:
         """绘制动态变化趋势"""
         _, ax = plt.subplots()
-        ax.plot(self.data["num_farmers"], label="farmers size")
-        ax.plot(self.data["num_hunters"], label="hunters size")
-        ax.plot(self.data["num_rice"], label="rice farmers")
+        ax.plot(self.data["num_farmers_n"], label="farmers size")
+        ax.plot(self.data["num_hunters_n"], label="hunters size")
+        ax.plot(self.data["num_rice_n"], label="rice farmers")
         ax.set_xlabel("time")
         ax.set_ylabel("population")
         ax.legend()
         ax2 = ax.twinx()
-        ax2.plot(self.data["len_farmers"], ls=":", label="farmers groups")
-        ax2.plot(self.data["len_hunters"], ls=":", label="hunters groups")
-        ax2.plot(self.data["len_rice"], ls=":", label="rice farmers")
+        ax2.plot(self.data["len_farmers_n"], ls=":", label="farmers groups")
+        ax2.plot(self.data["len_hunters_n"], ls=":", label="hunters groups")
+        ax2.plot(self.data["len_rice_n"], ls=":", label="rice farmers")
         if self.save:
             plt.savefig(self.save / f"repeat_{self.repeats}_dynamic.jpg")
             plt.close()
