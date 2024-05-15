@@ -61,7 +61,7 @@ class MyExperiment(Experiment):
             binwidth=3,
             height=3,
             facet_kws=dict(margin_titles=True),
-            kde=True,
+            kde=False,
             palette="viridis",
         )
         if save:
