@@ -51,3 +51,7 @@ report:
 
 update-dependencies:
 	poetry export --without-hashes --with docs --without dev -f requirements.txt -o requirements.txt
+
+clean:
+	rm repeat_*
+	rm docs/repeat_*
