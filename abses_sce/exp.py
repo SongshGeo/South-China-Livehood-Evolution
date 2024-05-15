@@ -58,10 +58,8 @@ class MyExperiment(Experiment):
             x="bkp",
             col="job_id",
             hue="cate",
-            binwidth=3,
             height=3,
             facet_kws=dict(margin_titles=True),
-            kde=False,
             palette="viridis",
         )
         if save:
