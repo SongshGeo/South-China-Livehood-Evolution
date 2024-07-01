@@ -14,7 +14,7 @@ from abses.tools.func import with_axes
 from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 
-from abses_sce.model import Model
+from src.model import Model
 
 try:
     from typing import TypeAlias

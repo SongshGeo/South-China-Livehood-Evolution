@@ -44,7 +44,7 @@ install-docs:
 	poetry add --group docs mkdocs-glightbox
 
 test:
-	poetry run pytest -vs --clean-alluredir --alluredir tmp/allure_results --cov=abses_sce  --no-cov-on-fail
+	poetry run pytest -vs --clean-alluredir --alluredir tmp/allure_results --cov=src  --no-cov-on-fail
 
 report:
 	poetry run allure serve tmp/allure_results

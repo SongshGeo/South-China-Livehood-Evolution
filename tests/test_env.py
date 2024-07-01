@@ -11,7 +11,7 @@ import pytest
 from abses import MainModel
 from hydra import compose, initialize
 
-from abses_sce.env import BaseNature, CompetingCell, Env, Farmer, Hunter
+from src.env import BaseNature, CompetingCell, Env, Farmer, Hunter
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):

@@ -10,10 +10,10 @@ from unittest.mock import MagicMock
 import pytest
 from abses import MainModel, PatchModule
 
-from abses_sce.env import CompetingCell
-from abses_sce.farmer import Farmer
-from abses_sce.hunter import Hunter
-from abses_sce.rice_farmer import RiceFarmer
+from src.env import CompetingCell
+from src.farmer import Farmer
+from src.hunter import Hunter
+from src.rice_farmer import RiceFarmer
 
 from .conftest import cfg, set_cell_arable_condition
 

@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from abses_sce.model import Model
+    from src.model import Model
 
 
 class ModelViz:

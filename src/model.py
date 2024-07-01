@@ -14,14 +14,14 @@ from typing import TYPE_CHECKING, Dict
 import pandas as pd
 from abses import ActorsList, MainModel
 
-from abses_sce.analysis import detect_breakpoints
-from abses_sce.env import Env
-from abses_sce.farmer import Farmer
-from abses_sce.plot import ModelViz
-from abses_sce.rice_farmer import RiceFarmer
+from src.analysis import detect_breakpoints
+from src.env import Env
+from src.farmer import Farmer
+from src.plot import ModelViz
+from src.rice_farmer import RiceFarmer
 
 if TYPE_CHECKING:
-    from abses_sce.exp import ActorType
+    from src.exp import ActorType
 
 
 class Model(MainModel):

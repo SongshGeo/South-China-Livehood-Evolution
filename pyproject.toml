@@ -4,7 +4,7 @@ version = "0.6.1"
 description = ""
 authors = ["SongshGeo <songshgeo@gmail.com>"]
 readme = "README.md"
-packages = [{include = "abses_sce"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"

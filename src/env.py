@@ -20,7 +20,7 @@ from abses.cells import raster_attribute
 from abses.nature import BaseNature, PatchCell
 from hydra import compose, initialize
 
-from abses_sce.rice_farmer import RiceFarmer
+from src.rice_farmer import RiceFarmer
 
 from .farmer import Farmer
 from .hunter import Hunter

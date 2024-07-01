@@ -13,7 +13,7 @@ from typing import Tuple
 
 import pytest
 
-from abses_sce.people import SiteGroup
+from src.people import SiteGroup
 
 
 class TestGroup:

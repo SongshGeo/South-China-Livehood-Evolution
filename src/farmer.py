@@ -20,8 +20,8 @@ from abses import alive_required
 from .people import SiteGroup
 
 if TYPE_CHECKING:
-    from abses_sce.hunter import Hunter
-    from abses_sce.rice_farmer import RiceFarmer
+    from src.hunter import Hunter
+    from src.rice_farmer import RiceFarmer
 
 
 class Farmer(SiteGroup):

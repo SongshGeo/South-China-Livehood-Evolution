@@ -15,9 +15,9 @@ from typing import Optional, Self, Tuple
 import numpy as np
 from abses import PatchCell, alive_required
 
-from abses_sce.farmer import Farmer
-from abses_sce.people import SiteGroup, search_cell
-from abses_sce.rice_farmer import RiceFarmer
+from src.farmer import Farmer
+from src.people import SiteGroup, search_cell
+from src.rice_farmer import RiceFarmer
 
 
 class Hunter(SiteGroup):
