@@ -188,18 +188,18 @@ class TestEnvironmentSettings:
 
             def setup_is_water(self, how: str = "right"):
                 """设置测试斑块为水体"""
-                if how == "right":
-                    self.dem.array_cells[0, 0].is_water = False
-                    self.dem.array_cells[0, 1].is_water = True
-                elif how == "left":
-                    self.dem.array_cells[0, 0].is_water = True
-                    self.dem.array_cells[0, 1].is_water = False
-                elif how == "all":
+                if how == "all":
                     self.dem.array_cells[0, 0].is_water = False
                     self.dem.array_cells[0, 1].is_water = False
 
-        model = MainModel(parameters=cfg, nature_class=MockNature)
-        return model
+                elif how == "left":
+                    self.dem.array_cells[0, 0].is_water = True
+                    self.dem.array_cells[0, 1].is_water = False
+                elif how == "right":
+                    self.dem.array_cells[0, 0].is_water = False
+                    self.dem.array_cells[0, 1].is_water = True
+
+        return MainModel(parameters=cfg, nature_class=MockNature)
 
     def test_setup_is_correct(self, model: MainModel):
         """测试环境的设置如预期"""

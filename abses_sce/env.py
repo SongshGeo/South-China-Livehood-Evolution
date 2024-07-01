@@ -244,9 +244,9 @@ class Env(BaseNature):
         """
         添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去
         """
-        n_cells = (~np.squeeze(self.get_raster("is_water"))).sum()
-        num = int(self.params.get("init_hunters", ratio) * n_cells)
-        hunters = self.random.new(Hunter, num=num)
+        available_cells = self.cells.select({"is_water": False})
+        num = int(len(available_cells) * ratio)
+        hunters = available_cells.random.new(Hunter, num=num)
         init_min, init_max = cfg.hunter.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
 
