@@ -13,7 +13,7 @@ from typing import Tuple
 
 import pytest
 
-from src.people import SiteGroup
+from src.api import SiteGroup
 
 
 class TestGroup:

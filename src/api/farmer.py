@@ -17,11 +17,10 @@ from typing import TYPE_CHECKING, Self, Tuple
 import numpy as np
 from abses import alive_required
 
-from .people import SiteGroup
+from src.api.people import SiteGroup
 
 if TYPE_CHECKING:
-    from src.hunter import Hunter
-    from src.rice_farmer import RiceFarmer
+    from src.api import Hunter, RiceFarmer
 
 
 class Farmer(SiteGroup):

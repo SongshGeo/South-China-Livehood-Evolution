@@ -7,14 +7,10 @@
 
 from typing import Literal
 
-import hydra
 import seaborn as sns
 from abses import Experiment
 from abses.tools.func import with_axes
 from matplotlib import pyplot as plt
-from omegaconf import DictConfig
-
-from src.model import Model
 
 try:
     from typing import TypeAlias
@@ -65,16 +61,3 @@ class MyExperiment(Experiment):
         if save:
             plt.savefig(self.folder / "breakpoints.jpg")
             plt.close()
-
-
-@hydra.main(version_base=None, config_path="../config", config_name="config")
-def main(cfg: DictConfig | None = None) -> None:
-    """批量运行一次实验"""
-    exp = MyExperiment(Model)
-    exp.batch_run(cfg=cfg)
-    exp.plot_all_dynamic(save=True)
-    exp.plot_breakpoints(save=True)
-
-
-if __name__ == "__main__":
-    main()

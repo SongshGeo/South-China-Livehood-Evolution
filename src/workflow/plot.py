@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from src.model import Model
+    from src.core.model import Model
 
 
 class ModelViz:

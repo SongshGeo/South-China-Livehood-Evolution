@@ -7,7 +7,7 @@
 
 from typing import Self
 
-from .farmer import Farmer
+from src.api.farmer import Farmer
 
 
 class RiceFarmer(Farmer):

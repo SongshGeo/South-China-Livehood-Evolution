@@ -5,17 +5,13 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 from abses import MainModel, PatchModule
 
-from src.env import CompetingCell
-from src.farmer import Farmer
-from src.hunter import Hunter
-from src.people import SiteGroup
-from src.rice_farmer import RiceFarmer
+from src.api import CompetingCell, Farmer, Hunter, RiceFarmer, SiteGroup
 
 from .conftest import cfg, set_cell_arable_condition
 

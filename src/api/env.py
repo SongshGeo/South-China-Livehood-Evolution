@@ -20,14 +20,13 @@ from abses.cells import raster_attribute
 from abses.nature import BaseNature, PatchCell
 from hydra import compose, initialize
 
-from src.rice_farmer import RiceFarmer
-
-from .farmer import Farmer
-from .hunter import Hunter
-from .people import SiteGroup
+from src.api.farmer import Farmer
+from src.api.hunter import Hunter
+from src.api.people import SiteGroup
+from src.api.rice_farmer import RiceFarmer
 
 # 加载项目层面的配置
-with initialize(version_base=None, config_path="../config"):
+with initialize(version_base=None, config_path="../../config"):
     cfg = compose(config_name="config")
 os.chdir(cfg.root)
 

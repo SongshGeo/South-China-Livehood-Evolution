@@ -8,8 +8,7 @@
 import pytest
 from abses import MainModel, PatchModule
 
-from src.env import CompetingCell
-from src.rice_farmer import RiceFarmer
+from src.api import CompetingCell, RiceFarmer
 
 from .conftest import cfg, set_cell_arable_condition
 

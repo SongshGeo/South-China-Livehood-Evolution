@@ -5,6 +5,10 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+"""运行试验的核心代码
 """
-分析华南农业生计演变的多主体模型。
-"""
+
+from .exp import MyExperiment
+from .model import Model
+
+__all__ = ["Model", "MyExperiment"]

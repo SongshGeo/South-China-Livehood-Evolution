@@ -15,7 +15,7 @@ import pytest
 from abses import MainModel, PatchModule
 from hydra import compose, initialize
 
-from src.env import CompetingCell
+from src.api.env import CompetingCell
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="."):
