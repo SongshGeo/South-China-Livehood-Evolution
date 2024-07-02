@@ -239,6 +239,18 @@ class Env(BaseNature):
             arr = np.where(arr < 0, np.nan, arr)
         return arr.reshape((1, arr.shape[0], arr.shape[1]))
 
+    def setup(self):
+        self.add_hunters()
+
+    def step(self):
+        """每一时间步都按照以下顺序执行一次：
+        1. 更新农民数量
+        2. 所有主体互相转化
+        3. 更新狩猎采集者可以移动（这可能触发竞争）
+        """
+        self.add_farmers(Farmer)
+        self.add_farmers(RiceFarmer)
+
     def add_hunters(self, ratio: Optional[float] = 0.05):
         """
         添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去

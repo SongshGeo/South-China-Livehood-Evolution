@@ -26,31 +26,31 @@ model:
 
 reports:
   model:
-    len_farmers: ":lambda m: len(m.farmers) / len(m.actors)"
-    len_hunters: ":lambda m: len(m.hunters) / len(m.actors)"
-    len_rice: ":lambda m: len(m.rice) / len(m.actors)"
-    num_farmers: ":lambda m: m.farmers.array('size').sum() / m.actors.array('size').sum()"
-    num_hunters: ":lambda m: m.hunters.array('size').sum() / m.actors.array('size').sum()"
-    num_rice: ":lambda m: m.rice.array('size').sum() / m.actors.array('size').sum()"
-    len_farmers_n: ":lambda m: len(m.farmers)"
-    len_hunters_n: ":lambda m: len(m.hunters)"
-    len_rice_n: ":lambda m: len(m.rice)"
-    num_farmers_n: ":lambda m: m.farmers.array('size').sum()"
-    num_hunters_n: ":lambda m: m.hunters.array('size').sum()"
-    num_rice_n: ":lambda m: m.rice.array('size').sum()"
+    len_farmers: "farmers group ratio"
+    len_hunters: "hunters group ratio"
+    len_rice: "rice group ratio"
+    num_farmers: "farmers size ratio"
+    num_hunters: "hunters size ratio"
+    num_rice: "rice size ratio"
+    len_farmers_n: "farmers group num"
+    len_hunters_n: "hunters group num"
+    len_rice_n: "rice group num"
+    num_farmers_n: "farmers size num"
+    num_hunters_n: "hunters size num"
+    num_rice_n: "rice size num"
   final:
     # 断点检测
-    bkp_farmer: ":lambda m: m.detect_breakpoints('farmers')"
-    bkp_rice: ":lambda m: m.detect_breakpoints('rice')"
-    bkp_hunters: ":lambda m: m.detect_breakpoints('hunters')"
+    bkp_farmer: "bkp_farmers"
+    bkp_rice: "bkp_rice"
+    bkp_hunters: "bkp_hunters"
     # 断点检测前的人口增长率
-    pre_farmer: ":lambda m: m.calc_rate('farmers')[0]"
-    pre_rice: ":lambda m: m.calc_rate('rice')[0]"
-    pre_hunters: ":lambda m: m.calc_rate('hunters')[0]"
+    pre_farmer: "pre_farmers"
+    pre_rice: "pre_rice"
+    pre_hunters: "pre_hunters"
     # 断点检测后的人口增长率
-    post_farmer: ":lambda m: m.calc_rate('farmers')[1]"
-    post_rice: ":lambda m: m.calc_rate('rice')[1]"
-    post_hunters: ":lambda m: m.calc_rate('hunters')[1]"
+    post_farmer: "post_farmers"
+    post_rice: "post_rice"
+    post_hunters: "post_hunters"
 
 env:
 # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；

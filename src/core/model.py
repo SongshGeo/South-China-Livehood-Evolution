@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from typing import TYPE_CHECKING, Dict, Tuple
 
@@ -16,10 +17,10 @@ import pandas as pd
 from abses import ActorsList, MainModel
 
 from src.api import Farmer, RiceFarmer
-from src.api.env import Env
 from src.workflow.analysis import detect_breakpoints
 from src.workflow.plot import ModelViz
 
+# 正则表达式
 if TYPE_CHECKING:
     from src.core.exp import ActorType
 
@@ -30,13 +31,59 @@ COL_NAMES = {
     "group_ratio": "len_breed",
 }
 
+PATTERN = r"^(farmers|hunters|rice) (group|size) (ratio|num)$"
+BKP = r"^bkp_(farmers|hunters|rice)"
+PRE = r"^pre_(farmers|hunters|rice)"
+POST = r"^post_(farmers|hunters|rice)"
+
+
+def clean_name(attribute: str) -> dict:
+    """清理属性名"""
+    if not re.match(PATTERN, attribute):
+        raise ValueError(f"Invalid attribute name {attribute}.")
+    breed, group_or_size, ratio_or_num = attribute.split()
+    return {
+        "breed": breed,
+        "group": group_or_size == "group",
+        "ratio": ratio_or_num == "ratio",
+    }
+
+
+def counting(
+    model: Model,
+    breed: ActorType,
+    ratio: bool = False,
+    group: bool = False,
+) -> int | float:
+    """统计某个主体的数量"""
+    actors: ActorsList = getattr(model, breed)
+    num = len(actors) if group else actors.array("size").sum()
+    if num == 0:
+        return 0.0
+    if not ratio:
+        return num
+    if group:
+        return num / len(model.agents)
+    return num / model.actors.array("size").sum()
+
 
 class Model(MainModel):
     """运行的模型"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, nature_class=Env, **kwargs)
-        self.nature.add_hunters()
+    def __getattr__(self, name: str):
+        # 断点识别
+        if re.match(BKP, name):
+            return self.detect_breakpoints(name.replace("bkp_", ""))
+        # 计算断点之前的增长率
+        if re.match(PRE, name):
+            return self.calc_rate(name.replace("pre_", ""))[0]
+        # 计算断点之后的增长率
+        if re.match(POST, name):
+            return self.calc_rate(name.replace("post_", ""))[1]
+        # 计数
+        if kwargs := clean_name(name):
+            return counting(model=self, **kwargs)
+        return super().__getattribute__(name)
 
     @property
     def farmers(self) -> ActorsList:
@@ -85,15 +132,6 @@ class Model(MainModel):
         bkp = self.detect_breakpoints(actor)
         rate = data.pct_change()
         return rate.iloc[:bkp].mean(), rate.iloc[bkp:].mean()
-
-    def step(self):
-        """每一时间步都按照以下顺序执行一次：
-        1. 更新农民数量
-        2. 所有主体互相转化
-        3. 更新狩猎采集者可以移动（这可能触发竞争）
-        """
-        self.nature.add_farmers(Farmer)
-        self.nature.add_farmers(RiceFarmer)
 
     def _inspect_sources(self, breed: str) -> Dict[str, int]:
         """获取来源于某种人的转换结果"""

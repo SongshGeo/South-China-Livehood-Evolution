@@ -11,13 +11,14 @@
 import hydra
 from omegaconf import DictConfig
 
+from src.api import Env
 from src.core import Model, MyExperiment
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def main(cfg: DictConfig | None = None) -> None:
     """批量运行一次实验"""
-    exp = MyExperiment(Model)
+    exp = MyExperiment(Model, nature_cls=Env)
     exp.batch_run(cfg=cfg)
     exp.plot_all_dynamic(save=True)
     exp.plot_breakpoints(save=True)
