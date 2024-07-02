@@ -5,12 +5,18 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+"""
+处理一组实验的结果。
+"""
+
+from itertools import product
 from typing import Literal
 
 import seaborn as sns
 from abses import Experiment
 from abses.tools.func import with_axes
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 
 try:
     from typing import TypeAlias
@@ -22,10 +28,12 @@ JobType: TypeAlias = Literal["len", "num"]
 
 
 class MyExperiment(Experiment):
-    """订制实验结果"""
+    """分析实验结果。"""
 
     @with_axes(figsize=(6, 4))
-    def plot_agg_dynamic(self, y: ActorType, job: JobType = "len", ax=None, save=False):
+    def plot_agg_dynamic(
+        self, y: ActorType, job: JobType = "len", ax=None, save=False
+    ) -> Axes:
         """绘制某种人数的变化比例"""
         data = self.get_model_vars_dataframe()
         sns.lineplot(data, x="tick", y=f"{job}_{y}", hue="job_id", ax=ax)
@@ -35,14 +43,18 @@ class MyExperiment(Experiment):
             plt.close()
         return ax
 
-    def plot_all_dynamic(self, save=False):
+    def plot_all_dynamic(self, save=False) -> None:
         """绘制所有人数的变化比例"""
-        for col in ("farmers", "hunters", "rice"):
-            for j in ("num", "len"):
-                self.plot_agg_dynamic(col, j, save=save)
+        breed = ("farmers", "hunters", "rice")
+        cate = ("num", "len")
+        for col, j in product(breed, cate):
+            self.plot_agg_dynamic(col, j, save=save)
 
     def plot_breakpoints(self, save=False):
-        """绘制拐点分布图"""
+        """绘制拐点分布图
+
+        对总结数据制作长格式，然后绘制每种的数量分布图。
+        """
         df_long = self.summary().melt(
             id_vars=["job_id", "repeat_id"],
             value_vars=["bkp_farmer", "bkp_hunters", "bkp_rice"],
@@ -56,7 +68,6 @@ class MyExperiment(Experiment):
             row="job_id",
             height=3,
             facet_kws=dict(margin_titles=True),
-            palette="viridis",
         )
         if save:
             plt.savefig(self.folder / "breakpoints.jpg")
