@@ -245,7 +245,7 @@ class Env(BaseNature):
         """
         available_cells = self.cells.select({"is_water": False})
         num = int(len(available_cells) * ratio)
-        hunters = available_cells.random.new(Hunter, num=num)
+        hunters = available_cells.random.new(Hunter, size=num)
         init_min, init_max = cfg.hunter.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
 
