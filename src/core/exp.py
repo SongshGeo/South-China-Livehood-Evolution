@@ -52,8 +52,8 @@ class MyExperiment(Experiment):
         sns.displot(
             df_long,
             x="bkp",
-            col="job_id",
-            hue="cate",
+            col="cate",
+            row="job_id",
             height=3,
             facet_kws=dict(margin_titles=True),
             palette="viridis",
