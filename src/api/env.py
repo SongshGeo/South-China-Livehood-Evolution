@@ -28,7 +28,6 @@ from src.api.rice_farmer import RiceFarmer
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../../config"):
     cfg = compose(config_name="config")
-os.chdir(cfg.root)
 
 
 class CompetingCell(PatchCell):
