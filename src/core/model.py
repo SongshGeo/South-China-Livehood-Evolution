@@ -22,6 +22,13 @@ from src.workflow.plot import ModelViz
 if TYPE_CHECKING:
     from src.core.exp import ActorType
 
+COL_NAMES = {
+    "size": "num_breed_n",
+    "ratio": "num_breed",
+    "group": "len_breed_n",
+    "group_ratio": "len_breed",
+}
+
 
 class Model(MainModel):
     """运行的模型"""
@@ -46,10 +53,22 @@ class Model(MainModel):
         return self.agents("RiceFarmer")
 
     def detect_breakpoints(self, actor: ActorType) -> int:
-        """检测某个主体数量发展中的拐点"""
+        """检测某个主体数量发展中的拐点。
+        Parameters:
+            actor: str
+                主体类型，可以是 "farmers", "hunters", "rice" 之一
+
+        Returns:
+            int
+                拐点的索引。
+        """
         data = self.datacollector.get_model_vars_dataframe()
         n_bkps = self.p.get("n_bkps", 1)
-        return detect_breakpoints(data[f"num_{actor}"], n_bkps=n_bkps)
+        if n_bkps != 1:
+            raise NotImplementedError("Only support one breakpoint detection so far.")
+        col_by = self.p.get("detect_bkp_by", "size")
+        col = COL_NAMES[col_by].replace("breed", actor)
+        return detect_breakpoints(data[col], n_bkps=n_bkps)
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：

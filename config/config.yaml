@@ -17,6 +17,12 @@ model:
   save_plots: True  # 保存绘图
   loss_rate: 0.5  # 竞争失败者的人口损失系数
   n_bkps: 1
+  # 识别断点的数据是依赖于：
+  # 1. 人口绝对数量：size
+  # 2. 人口相对比例：ratio
+  # 3. 人口群体数量：group
+  # 4. 人口群体比例：group_ratio
+  detect_bkp_by: 'size'
 
 reports:
   model:
