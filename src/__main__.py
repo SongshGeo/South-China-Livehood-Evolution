@@ -21,6 +21,7 @@ def main(cfg: DictConfig | None = None) -> None:
     exp.batch_run(cfg=cfg)
     exp.plot_all_dynamic(save=True)
     exp.plot_breakpoints(save=True)
+    exp.summary().to_csv(exp.folder / "summary.csv")
 
 
 if __name__ == "__main__":

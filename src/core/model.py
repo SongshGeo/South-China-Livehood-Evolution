@@ -9,7 +9,8 @@
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
+from functools import lru_cache
+from typing import TYPE_CHECKING, Dict, Tuple
 
 import pandas as pd
 from abses import ActorsList, MainModel
@@ -52,6 +53,15 @@ class Model(MainModel):
         """种水稻的农民列表"""
         return self.agents("RiceFarmer")
 
+    @lru_cache
+    def get_data_col(self, actor: ActorType) -> str:
+        """获取主体的数据列"""
+        data = self.datacollector.get_model_vars_dataframe()
+        col_by = self.p.get("detect_bkp_by", "size")
+        col = COL_NAMES[col_by].replace("breed", actor)
+        return data[col]
+
+    @lru_cache
     def detect_breakpoints(self, actor: ActorType) -> int:
         """检测某个主体数量发展中的拐点。
         Parameters:
@@ -62,13 +72,19 @@ class Model(MainModel):
             int
                 拐点的索引。
         """
-        data = self.datacollector.get_model_vars_dataframe()
         n_bkps = self.p.get("n_bkps", 1)
         if n_bkps != 1:
             raise NotImplementedError("Only support one breakpoint detection so far.")
-        col_by = self.p.get("detect_bkp_by", "size")
-        col = COL_NAMES[col_by].replace("breed", actor)
-        return detect_breakpoints(data[col], n_bkps=n_bkps)
+        data = self.get_data_col(actor)
+        return detect_breakpoints(data, n_bkps=n_bkps)
+
+    @lru_cache
+    def calc_rate(self, actor: ActorType) -> Tuple[float, float]:
+        """计算某个主体的增长率。"""
+        data = self.get_data_col(actor)
+        bkp = self.detect_breakpoints(actor)
+        rate = data.pct_change()
+        return rate.iloc[:bkp].mean(), rate.iloc[bkp:].mean()
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：
