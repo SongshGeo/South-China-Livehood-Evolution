@@ -13,10 +13,11 @@ import re
 from functools import lru_cache
 from typing import TYPE_CHECKING, Dict, Tuple
 
+import numpy as np
 import pandas as pd
 from abses import ActorsList, MainModel
+from scipy import stats
 
-from src.api import Farmer, RiceFarmer
 from src.workflow.analysis import detect_breakpoints
 from src.workflow.plot import ModelViz
 
@@ -101,7 +102,7 @@ class Model(MainModel):
         return self.agents("RiceFarmer")
 
     @lru_cache
-    def get_data_col(self, actor: ActorType) -> str:
+    def get_data_col(self, actor: ActorType) -> pd.Series:
         """获取主体的数据列"""
         data = self.datacollector.get_model_vars_dataframe()
         col_by = self.p.get("detect_bkp_by", "size")
@@ -127,11 +128,21 @@ class Model(MainModel):
 
     @lru_cache
     def calc_rate(self, actor: ActorType) -> Tuple[float, float]:
-        """计算某个主体的增长率。"""
+        """计算某个主体在断点前后的线性增长率（斜率）。"""
         data = self.get_data_col(actor)
         bkp = self.detect_breakpoints(actor)
-        rate = data.pct_change()
-        return rate.iloc[:bkp].mean(), rate.iloc[bkp:].mean()
+
+        def calculate_slope(series: pd.Series) -> float:
+            if len(series) <= 1:
+                return 0
+            x = np.arange(len(series))
+            slope, _, _, _, _ = stats.linregress(x, series)
+            return slope
+
+        before_rate = calculate_slope(data[: bkp + 1])
+        after_rate = calculate_slope(data[bkp:])
+
+        return before_rate, after_rate
 
     def _inspect_sources(self, breed: str) -> Dict[str, int]:
         """获取来源于某种人的转换结果"""
