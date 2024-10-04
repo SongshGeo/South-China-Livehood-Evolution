@@ -239,7 +239,7 @@ class Env(BaseNature):
         return arr.reshape((1, arr.shape[0], arr.shape[1]))
 
     def setup(self):
-        self.add_hunters()
+        self.add_hunters(self.p.init_hunters)
 
     def step(self):
         """每一时间步都按照以下顺序执行一次：

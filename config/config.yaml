@@ -63,7 +63,7 @@ env:
   tick_ricefarmer: 100
 
 time:
-  end: 10
+  end: 100
 
 farmer:
   area: 2
