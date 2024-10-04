@@ -72,3 +72,23 @@ class MyExperiment(Experiment):
         if save:
             plt.savefig(self.folder / "breakpoints.jpg")
             plt.close()
+
+    @with_axes(figsize=(6, 4))
+    def plot_heatmap(self, var: str, save=False, ax=None) -> Axes:
+        """绘制热力图"""
+        if not self.overrides:
+            raise AttributeError("overrides not found")
+        overrides = list(self.overrides.keys())
+        if len(overrides) != 2:
+            raise ValueError("overrides must be a dict with two keys")
+        v1, v2 = overrides
+        pivot = self.summary().pivot_table(
+            index=v1,
+            columns=v2,
+            values=var,
+        )
+        sns.heatmap(pivot, annot=True, fmt=".0f", ax=ax)
+        if save:
+            plt.savefig(self.folder / "heatmap.jpg")
+            plt.close()
+        return ax

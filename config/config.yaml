@@ -12,6 +12,7 @@ exp:
   name: south_china_evolution
   repeats: 5  # 每组参数的运行重复次数
   num_process: 5  # 并行运算的进程数
+  plot_heatmap: 'bkp_farmer'  # 绘制热图的变量
 
 model:
   save_plots: True  # 保存绘图
@@ -63,7 +64,7 @@ env:
   tick_ricefarmer: 100
 
 time:
-  end: 100
+  end: 10
 
 farmer:
   area: 2

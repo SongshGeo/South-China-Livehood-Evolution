@@ -9,6 +9,7 @@
 运行一次实验
 """
 import hydra
+from loguru import logger
 from omegaconf import DictConfig
 
 from src.api import Env
@@ -23,6 +24,11 @@ def main(cfg: DictConfig | None = None) -> None:
     exp.plot_all_dynamic(save=True)
     exp.plot_breakpoints(save=True)
     exp.summary().to_csv(exp.folder / "summary.csv")
+    if heatmap := cfg.exp.get("plot_heatmap"):
+        try:
+            exp.plot_heatmap(heatmap, save=True)
+        except (ValueError, AttributeError) as e:
+            logger.critical(f"Error: {e}")
 
 
 if __name__ == "__main__":
