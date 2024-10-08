@@ -13,7 +13,7 @@ import ruptures as rpt
 
 
 def detect_breakpoints(
-    series: pd.Series, n_bkps: int = 1, algorithm="Dynp", min_size: int = 5
+    series: pd.Series, n_bkps: int = 1, algorithm: str = "Dynp", min_size: int = 5
 ) -> List[int] | int:
     """检查序列数据的变化趋势间断点。
 

@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Optional
 
 import numpy as np
@@ -33,7 +32,7 @@ with initialize(version_base=None, config_path="../../config"):
 class CompetingCell(PatchCell):
     """狩猎采集者和农民竞争的舞台"""
 
-    max_agents = 1
+    max_agents = 1  # 一个斑块上最多有多少个主体
 
     def __init__(self, pos=None, indices=None):
         super().__init__(pos, indices)
@@ -189,15 +188,13 @@ class CompetingCell(PatchCell):
 
         Args:
             agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
-            convert_to (Farmer | Hunter): 转化成什么类型。
 
         Returns:
             被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
 
         Raises:
-            TypeError: 如果输入的主体不是狩猎采集者或者农民，
-            或者想转化成的类型不从基础主体继承而来，
-            则会抛出TypeError异常。
+            TypeError:
+                如果输入的主体不是狩猎采集者或者农民，或者想转化成的类型不从基础主体继承而来，则会抛出TypeError异常。
         """
         to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
         if not isinstance(agent, SiteGroup):
@@ -215,7 +212,21 @@ class CompetingCell(PatchCell):
 
 class Env(BaseNature):
     """
-    环境类
+    环境类，用于管理模型中的环境信息。
+
+    属性:
+        dem (BaseRaster): 数字高程模型。
+        slope (BaseRaster): 坡度。
+        lim_h (BaseRaster): 狩猎采集者的限制。
+
+    方法:
+        setup(): 初始化环境。
+        step(): 每一时间步都按照以下顺序执行一次：
+            1. 更新农民数量
+            2. 所有主体互相转化
+            3. 更新狩猎采集者可以移动（这可能触发竞争）
+        add_hunters(): 添加初始的狩猎采集者。
+        add_farmers(): 添加初始的农民。
     """
 
     def __init__(self, model, name="env"):
@@ -241,8 +252,9 @@ class Env(BaseNature):
     def setup(self):
         self.add_hunters(self.p.init_hunters)
 
-    def step(self):
-        """每一时间步都按照以下顺序执行一次：
+    def step(self) -> None:
+        """
+        每一时间步都按照以下顺序执行一次：
         1. 更新农民数量
         2. 所有主体互相转化
         3. 更新狩猎采集者可以移动（这可能触发竞争）
@@ -250,19 +262,29 @@ class Env(BaseNature):
         self.add_farmers(Farmer)
         self.add_farmers(RiceFarmer)
 
-    def add_hunters(self, ratio: Optional[float] = 0.05):
+    def add_hunters(self, ratio: Optional[float] = 0.05) -> ActorsList[Hunter]:
         """
-        添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去
+        添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去。
+
+        Args:
+            ratio (float | None): 狩猎采集者的比例。默认为0.05。
+
+        Returns:
+            本次新添加的狩猎采集者列表。
         """
         available_cells = self.cells.select({"is_water": False})
         num = int(len(available_cells) * ratio)
         hunters = available_cells.random.new(Hunter, size=num)
         init_min, init_max = cfg.hunter.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
+        return hunters
 
-    def add_farmers(self, farmer_cls: type = Farmer):
+    def add_farmers(self, farmer_cls: type = Farmer) -> ActorsList[Farmer | RiceFarmer]:
         """
         添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
+
+        Args:
+            farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
 
         Returns:
             本次新添加的农民列表。

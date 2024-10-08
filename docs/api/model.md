@@ -1,5 +1,6 @@
-模型按照以下工作流进行模拟。
+---
+title: 模型工作流
+author: Shuang Song
+---
 
-![Oajz5C](https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/Oajz5C.jpg)
-
-:::abses_sce.model.Model
+:::src.core.model.Model

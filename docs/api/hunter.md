@@ -1,3 +1,6 @@
-# 狩猎采集者
+---
+title: 狩猎采集者
+author: Shuang Song
+---
 
-:::abses_sce.hunter.Hunter
+:::src.api.hunter.Hunter

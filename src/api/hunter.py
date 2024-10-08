@@ -74,7 +74,8 @@ class Hunter(SiteGroup):
         """如果人口大于一定规模，狩猎采集者分散出去
 
         Args:
-            force (bool): 是否强制触发该方法
+            group_range (Tuple[Number, Number] | None):
+                新主体的规模范围（最小值，最大值），默认为当前主体的规模参数。
 
         returns:
             分散后的结果。

@@ -2,7 +2,11 @@ site_name: sc-20230710-sce
 
 nav:
   - Home: index.md
-  - Quick Start: quick_start.md
+  - Usage:
+    - 快速开始: usage/quick_start.md
+    - 参数配置: usage/config.md
+    - 模拟流程: usage/workflow.md
+    - 结果分析: usage/plots.md
   - API References:
     - index: api/model.md
     - hunter: api/hunter.md
