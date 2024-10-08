@@ -1,4 +1,37 @@
 
+<a id='changelog-0.6.2'></a>
+# 0.6.2 — 2024-10-08
+
+## New Features
+
+- [x] #feat✨ 绘制两组参数对应结果的热力图
+
+## Documentation changes
+
+- [x] #docs📄 根据最新的模型重写文档架构
+
+## Fixed bugs
+
+- [x] #bug🐛 修复了不能改变初始狩猎采集者数量的问题
+- [x] #bug🐛 折线图改回主体人数
+
+## Refactoring
+
+- [x] #refactor♻ 采用ABSESpy 0.6.9 版本的框架
+- [x] 将源代码分组以便于管理
+
+## New Features
+
+- [x] #feat✨ 记录断点前后的增长率
+- [x] #feat✨ 放宽了依赖的版本要求
+
+<a id='changelog-0.6.1'></a>
+# 0.6.1 — 2024-07-02
+
+## Fixed bugs
+
+- [x] #bug🐛 修复了在服务器上不能切换root的bug
+
 <a id='changelog-0.6.0'></a>
 # 0.6.0 — 2024-05-12
 

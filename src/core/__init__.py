@@ -5,9 +5,10 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from .env import CompetingCell, Env
-from .farmer import Farmer
-from .hunter import Hunter
+"""运行试验的核心代码
+"""
+
+from .exp import MyExperiment
 from .model import Model
 
-__all__ = ["Model", "Farmer", "Hunter", "CompetingCell", "Env"]
+__all__ = ["Model", "MyExperiment"]

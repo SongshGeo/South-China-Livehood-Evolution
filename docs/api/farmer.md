@@ -1,3 +1,12 @@
-# 农民
+---
+title: 农民
+author: Shuang Song
+---
 
-:::abses_sce.farmer.Farmer
+## 农民
+
+:::src.api.farmer.Farmer
+
+## 水稻农民
+
+:::src.api.farmer.RiceFarmer

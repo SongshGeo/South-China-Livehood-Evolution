@@ -15,9 +15,9 @@ from typing import Optional, Self, Tuple
 import numpy as np
 from abses import PatchCell, alive_required
 
-from abses_sce.farmer import Farmer
-from abses_sce.people import SiteGroup, search_cell
-from abses_sce.rice_farmer import RiceFarmer
+from src.api.farmer import Farmer
+from src.api.people import SiteGroup, search_cell
+from src.api.rice_farmer import RiceFarmer
 
 
 class Hunter(SiteGroup):
@@ -37,7 +37,7 @@ class Hunter(SiteGroup):
         return self.size > self.params.is_complex if self.on_earth else False
 
     @alive_required
-    def moving(self, cell: PatchCell) -> None:
+    def moving(self, cell: PatchCell) -> bool:
         """狩猎采集者要去的格子如果已经有了一个主体，就会与他竞争
 
         Args:
@@ -46,15 +46,36 @@ class Hunter(SiteGroup):
         other = cell.agents.item("item")
         if other is None:
             return True
-        while other.alive and self.alive:
-            result = self.compete(other)
-        return result
+        if other.breed in ("Farmer", "RiceFarmer"):
+            while other.alive and self.alive:
+                result = self.compete(other)
+            return result
+        if other.breed == "Hunter":
+            # 如果合并，就不再继续前往了（已死）
+            self.merge(other)
+            return False
+        raise TypeError(f"Unknown breed {other.breed}.")
+
+    @alive_required
+    def merge(self, other_hunter: Hunter) -> bool:
+        """狩猎采集者合并。
+
+        Parameters:
+            other_hunter: 另一个狩猎采集者。
+
+        Returns:
+            是否被合并了。
+        """
+        size = max(other_hunter.size + self.size, other_hunter.get("lim_h"))
+        other_hunter.size = size
+        self.die()
 
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
 
         Args:
-            force (bool): 是否强制触发该方法
+            group_range (Tuple[Number, Number] | None):
+                新主体的规模范围（最小值，最大值），默认为当前主体的规模参数。
 
         returns:
             分散后的结果。

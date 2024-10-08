@@ -16,13 +16,29 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from abses_sce.model import Model
+    from src.core.model import Model
 
 
 class ModelViz:
-    """可视化模型结果"""
+    """
+    用于可视化模型结果的类。
+
+    属性:
+        model (Model): 要可视化的模型实例。
+        save (Path | None): 保存图表的路径。如果为None，则不保存图表。
+        outpath (str): 输出路径。
+        data (DataFrame): 模型变量的数据框。
+        repeats (int): 模型运行的次数。
+    """
 
     def __init__(self, model: Model, save_path: Path | None = None) -> None:
+        """
+        初始化ModelViz实例。
+
+        参数:
+            model (Model): 要可视化的模型实例。
+            save_path (Path | None): 保存图表的路径。如果为None，则不保存图表。
+        """
         self.model = model
         self.save = save_path
         self.outpath = ""
@@ -30,7 +46,12 @@ class ModelViz:
         self.repeats = model.run_id
 
     def dynamic(self) -> Axes:
-        """绘制动态变化趋势"""
+        """
+        绘制人口和群体数量的动态变化趋势。
+
+        返回:
+            Axes: matplotlib的Axes对象，包含绘制的图表。
+        """
         _, ax = plt.subplots()
         ax.plot(self.data["num_farmers_n"], label="farmers size")
         ax.plot(self.data["num_hunters_n"], label="hunters size")
@@ -50,18 +71,20 @@ class ModelViz:
     def stack_dynamic(
         self, flag: List[str] | None = None, ax: Axes | None = None
     ) -> Axes:
-        """绘制堆积图。
-        Parameters:
-            flag:
-                绘制哪种统计数据？
+        """
+        绘制堆积图，展示不同类型人口或群体的比例变化。
+
+        参数:
+            flag (List[str] | None):
+                指定绘制哪种统计数据。
                 如果 flag='num'，则绘制人口数量。
                 如果 flag='len'，则绘制群体数量。
                 如果 flag is None，则两个都绘制。
-            ax:
-                画布，如果没有则创建一个。
+            ax (Axes | None):
+                指定的matplotlib Axes对象。如果为None，则创建新的Axes。
 
-        Returns:
-            返回画布。
+        返回:
+            Axes: 包含堆积图的matplotlib Axes对象。
         """
         if ax is None and flag is not None:
             _, ax = plt.subplots()
@@ -85,7 +108,12 @@ class ModelViz:
         return ax
 
     def heatmap(self) -> Axes:
-        """绘制狩猎采集者和农民的空间分布"""
+        """
+        绘制狩猎采集者、农民和水稻农民的空间分布热力图。
+
+        返回:
+            Tuple[Axes, Axes, Axes]: 包含三个热力图的matplotlib Axes对象元组。
+        """
 
         def log(xda_: xr.DataArray):
             return xr.apply_ufunc(np.log, xda_.where(xda_ != 0))
@@ -106,4 +134,4 @@ class ModelViz:
         if self.save:
             plt.savefig(self.save / f"repeat_{self.repeats}_heatmap.jpg")
             plt.close()
-        return ax1, ax2
+        return ax1, ax2, ax3
