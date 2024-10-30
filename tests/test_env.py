@@ -214,7 +214,7 @@ class TestEnvironmentSettings:
         assert model.nature.get_xarray("is_water").sum() == 1
         assert len(model.agents) == 1
         left_cell: CompetingCell = model.nature.array_cells[0, 0]
-        assert model.agents.item() in left_cell.agents
+        assert model.agents.select().item() in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):
         """测试能否随机设置主体"""

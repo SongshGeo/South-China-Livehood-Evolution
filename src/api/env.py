@@ -15,8 +15,8 @@ from typing import Optional
 import numpy as np
 import rasterio
 from abses import ActorsList
-from abses.cells import raster_attribute
-from abses.nature import BaseNature, PatchCell
+from abses.cells import PatchCell, raster_attribute
+from abses.nature import BaseNature
 from hydra import compose, initialize
 
 from src.api.farmer import Farmer
@@ -34,10 +34,10 @@ class CompetingCell(PatchCell):
 
     max_agents = 1  # 一个斑块上最多有多少个主体
 
-    def __init__(self, pos=None, indices=None):
-        super().__init__(pos, indices)
-        self.lim_h: float = cfg.env.lim_h
-        self.lim_g: float = cfg.env.lim_g
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.lim_h: float = 0.0
+        self.lim_g: float = 0.0
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: Optional[bool] = None
@@ -272,9 +272,9 @@ class Env(BaseNature):
         Returns:
             本次新添加的狩猎采集者列表。
         """
-        available_cells = self.cells.select({"is_water": False})
+        available_cells = self.major_layer.cells_lst.select({"is_water": False})
         num = int(len(available_cells) * ratio)
-        hunters = available_cells.random.new(Hunter, size=num)
+        hunters = available_cells.random.new(Hunter, size=num, replace=False)
         init_min, init_max = cfg.hunter.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters

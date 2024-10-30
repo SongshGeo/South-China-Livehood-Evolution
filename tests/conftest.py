@@ -14,7 +14,9 @@ import numpy as np
 import pytest
 from abses import MainModel, PatchModule
 from hydra import compose, initialize
+from mesa.agent import AgentSet
 
+from src.api import Farmer, Hunter, RiceFarmer
 from src.api.env import CompetingCell
 
 # 加载项目层面的配置
@@ -27,6 +29,9 @@ os.chdir(cfg.root)
 def mock_model_layer():
     """创建一个用于测试的基本模型，拥有一个 4 * 4 的名为'layer'的图层。"""
     model = MainModel(parameters=cfg)
+    model._agents_by_type[Hunter] = AgentSet([], random=model.random)
+    model._agents_by_type[RiceFarmer] = AgentSet([], random=model.random)
+    model._agents_by_type[Farmer] = AgentSet([], random=model.random)
     layer = model.nature.create_module(
         name="layer",
         how="from_resolution",

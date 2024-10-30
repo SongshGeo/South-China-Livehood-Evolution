@@ -25,7 +25,9 @@ class Hunter(SiteGroup):
 
     @property
     def max_size(self) -> int:
-        return np.ceil(self.get("lim_h")) if self.on_earth else 100_000_000
+        return (
+            np.ceil(self.get("lim_h", target="cell")) if self.on_earth else 100_000_000
+        )
 
     @property
     def is_complex(self) -> bool:
@@ -43,7 +45,7 @@ class Hunter(SiteGroup):
         Args:
             cell (PatchCell | None): 狩猎采集者放到的格子。
         """
-        other = cell.agents.item("item")
+        other = cell.agents.select().item("item")
         if other is None:
             return True
         if other.breed in ("Farmer", "RiceFarmer"):
@@ -66,7 +68,9 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        size = max(other_hunter.size + self.size, other_hunter.get("lim_h"))
+        size = max(
+            other_hunter.size + self.size, other_hunter.get("lim_h", target="cell")
+        )
         other_hunter.size = size
         self.die()
 

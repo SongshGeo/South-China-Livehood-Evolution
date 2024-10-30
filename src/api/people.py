@@ -15,7 +15,8 @@ from typing import Optional, Self, Tuple
 import numpy as np
 import pandas as pd
 from abses import Actor, alive_required
-from abses.nature import PatchCell
+from abses.cells import PatchCell
+from loguru import logger
 
 
 class SiteGroup(Actor):
