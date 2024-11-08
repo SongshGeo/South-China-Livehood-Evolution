@@ -44,7 +44,7 @@ class CompetingCell(PatchCell):
 
     def _count(self, breed: str) -> int:
         """统计此处的农民或者狩猎采集者的数量"""
-        return self.agents(breed).get("size", how="item", default=0)
+        return self.agents[breed].get("size", how="item", default=0)
 
     @raster_attribute
     def farmers(self) -> int:
