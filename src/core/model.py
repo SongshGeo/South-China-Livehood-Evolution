@@ -18,7 +18,7 @@ import pandas as pd
 from abses import ActorsList, MainModel
 from scipy import stats
 
-from src.workflow.analysis import detect_breakpoints
+from src.workflow.analysis import detect_breakpoints, iterative_pettitt
 from src.workflow.plot import ModelViz
 
 # 正则表达式
@@ -177,6 +177,13 @@ class Model(MainModel):
             attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
         )
         self.export_conversion_data()
+        self.datacollector.get_model_vars_dataframe().apply(
+            iterative_pettitt,
+            axis=0,
+            alpha=self.p.get("pettitt_alpha", 0.005),
+            sim=self.p.get("pettitt_sim", 2000),
+            min_size=self.p.get("pettitt_min_size", None),
+        ).to_csv(self.outpath / f"final_{self.run_id}_breakpoints.csv")
 
     @property
     def plot(self) -> ModelViz:

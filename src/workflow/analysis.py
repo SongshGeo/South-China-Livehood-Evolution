@@ -5,11 +5,12 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from typing import List
+from typing import List, Optional, Sequence
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import ruptures as rpt
+from pyhomogeneity import pettitt_test
 
 
 def detect_breakpoints(
@@ -63,3 +64,55 @@ def draw_stacked_lineplot(data, x, y, hue, **kwargs):
     # 绘制堆积折线图
     colors = kwargs.get("colors")
     plt.stackplot(ratio.index, ratio.T, colors=colors, labels=ratio.columns)
+
+
+def iterative_pettitt(
+    data: Sequence,
+    alpha: float = 0.05,
+    sim: int = 20000,
+    min_size: Optional[int] = None,
+):
+    """
+    迭代进行Pettitt检验，直到找不到显著的断点为止。
+
+    参数:
+        data:
+            输入数据
+        alpha:
+            显著性水平，默认0.05
+        sim:
+            模拟次数，默认20000
+        min_size:
+            最小分段长度，默认数据长度的1/5。
+            当分段长度小于此值时停止继续分割。
+    返回:
+        change_points: 检测到的所有显著断点列表
+    """
+    change_points = []
+    length = len(data)
+    segments = [(0, length)]
+    # 默认最小分段长度为数据长度的1/5
+    if min_size is None:
+        min_size = length // 5
+
+    while segments:
+        new_segments = []
+        for start, end in segments:
+            segment = data[start:end]
+            if len(segment) < min_size * 2:  # 确保分割后的每段都不小于min_size
+                continue
+
+            h, cp, _, _, _ = pettitt_test(segment, alpha, sim)
+
+            if h:  # 如果检测到显著的断点
+                abs_cp = start + cp
+                # 检查分割后的两段是否都满足最小长度要求
+                if (abs_cp - start >= min_size) and (end - abs_cp >= min_size):
+                    change_points.append(int(abs_cp))
+                    # 将数据分成两段继续检测
+                    new_segments.append((start, abs_cp))
+                    new_segments.append((abs_cp, end))
+
+        segments = new_segments
+
+    return sorted(change_points)

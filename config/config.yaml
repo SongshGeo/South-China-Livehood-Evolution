@@ -24,6 +24,9 @@ model:
   # 3. 人口群体数量：group
   # 4. 人口群体比例：group_ratio
   detect_bkp_by: 'size'
+  pettitt_alpha: 0.005  # 显著性水平，越小越严格，检测到的断点越少
+  pettitt_sim: 2000  # 模拟次数
+  # pettitt_min_size: 5  # 最小分段长度，默认年份的1/5，当分段长度小于此值时停止继续分割
 
 reports:
   model:

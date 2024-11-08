@@ -18,6 +18,7 @@ seaborn = "~0"
 ruptures = ">=1.1.9"
 mesa = "2.1.x"  # 2.2.x 版本开始不兼容 TimeDriver
 abses = ">=0.6.9,<0.7.0"
+pyhomogeneity = "^1.1"
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.0.9"
