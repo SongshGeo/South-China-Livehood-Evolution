@@ -9,6 +9,6 @@
 """
 
 from .exp import MyExperiment
-from .model import Model
+from .model import LivelihoodModel
 
-__all__ = ["Model", "MyExperiment"]
+__all__ = ["LivelihoodModel", "MyExperiment"]

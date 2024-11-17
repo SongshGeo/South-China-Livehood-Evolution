@@ -19,6 +19,9 @@ ruptures = ">=1.1.9"
 mesa = "2.1.x"  # 2.2.x 版本开始不兼容 TimeDriver
 abses = ">=0.6.9,<0.7.0"
 pyhomogeneity = "^1.1"
+matplotkit = ">=0.1.0"
+future-annotations = ">=1.0.0"
+multi-ruptures = ">=0.1.3"
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.0.9"
@@ -50,7 +53,7 @@ mkdocs-minify-plugin = "^0.7.1"
 mkdocs-redirects = "^1.2.1"
 mkdocs-awesome-pages-plugin = "^2.9.2"
 mkdocs-git-authors-plugin = "^0.7.2"
-mkdocstrings = {extras = ["python"], version = "^0.23.0"}
+mkdocstrings = {extras = ["python"], version = ">0.23.0"}
 mkdocs-bibtex = "^2.11.0"
 mkdocs-macros-plugin = "^1.0.4"
 mkdocs-jupyter = "^0.24.5"

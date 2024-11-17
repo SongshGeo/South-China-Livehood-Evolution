@@ -11,64 +11,29 @@ from __future__ import annotations
 
 import re
 from functools import lru_cache
-from typing import TYPE_CHECKING, Dict, Tuple
+from itertools import product
+from typing import TYPE_CHECKING, Dict, List, Literal, Tuple
 
 import numpy as np
 import pandas as pd
 from abses import ActorsList, MainModel
+from multi_ruptures.api import detect_breakpoints, iterative_pettitt
 from scipy import stats
 
-from src.workflow.analysis import detect_breakpoints, iterative_pettitt
+from src.util.regex import BKP, COL_NAMES, POST, PRE, clean_name
+from src.util.stat import counting
 from src.workflow.plot import ModelViz
 
 # 正则表达式
 if TYPE_CHECKING:
     from src.core.exp import ActorType
 
-COL_NAMES = {
-    "size": "num_breed_n",
-    "ratio": "num_breed",
-    "group": "len_breed_n",
-    "group_ratio": "len_breed",
-}
 
-PATTERN = r"^(farmers|hunters|rice) (group|size) (ratio|num)$"
-BKP = r"^bkp_(farmers|hunters|rice)"
-PRE = r"^pre_(farmers|hunters|rice)"
-POST = r"^post_(farmers|hunters|rice)"
+AGENT_TYPES = Literal["Farmer", "Hunter", "RiceFarmer"]
+TYPES: List[AGENT_TYPES] = ["Farmer", "Hunter", "RiceFarmer"]
 
 
-def clean_name(attribute: str) -> dict:
-    """清理属性名"""
-    if not re.match(PATTERN, attribute):
-        raise ValueError(f"Invalid attribute name {attribute}.")
-    breed, group_or_size, ratio_or_num = attribute.split()
-    return {
-        "breed": breed,
-        "group": group_or_size == "group",
-        "ratio": ratio_or_num == "ratio",
-    }
-
-
-def counting(
-    model: Model,
-    breed: ActorType,
-    ratio: bool = False,
-    group: bool = False,
-) -> int | float:
-    """统计某个主体的数量"""
-    actors: ActorsList = getattr(model, breed)
-    num = len(actors) if group else actors.array("size").sum()
-    if num == 0:
-        return 0.0
-    if not ratio:
-        return num
-    if group:
-        return num / len(model.agents)
-    return num / model.actors.array("size").sum()
-
-
-class Model(MainModel):
+class LivelihoodModel(MainModel):
     """运行的模型"""
 
     def __getattr__(self, name: str):
@@ -144,30 +109,25 @@ class Model(MainModel):
 
         return before_rate, after_rate
 
-    def _inspect_sources(self, breed: str) -> Dict[str, int]:
-        """获取来源于某种人的转换结果"""
-        if breed not in {"Farmer", "RiceFarmer", "Hunter"}:
-            raise TypeError(f"Invalid breed {breed}.")
-        total = self.agents.select({"source": breed})
-        farmers = total.select("Farmer")
-        hunters = total.select("Hunter")
-        rice = total.select("RiceFarmer")
-        return {
-            "farmers_end": len(farmers),
-            "hunters_end": len(hunters),
-            "rice_end": len(rice),
-            "total_end": len(total),
-        }
+    def _inspect_sources(self, source: AGENT_TYPES, target: AGENT_TYPES) -> int:
+        """获取从source转换到target的主体数量"""
+        if source not in TYPES:
+            raise TypeError(f"Invalid source {source}.")
+        total = self.agents.select({"source": source})
+        return len(total.select(target))
 
     def export_conversion_data(self) -> None:
-        """导出转换过程"""
-        return pd.DataFrame(
-            {
-                "farmer_init": self._inspect_sources("Farmer"),
-                "hunter_init": self._inspect_sources("Hunter"),
-                "rice_init": self._inspect_sources("RiceFarmer"),
-            }
-        ).to_csv(self.outpath / f"repeat_{self.run_id}_conversion.csv")
+        """导出转换过程数据"""
+        # 创建所有可能的转换组合
+        conversions = {
+            f"{source.lower()}_to_{target.lower()}": self._inspect_sources(
+                source, target
+            )
+            for source, target in product(TYPES, TYPES)
+        }
+        # 导出为DataFrame并保存
+        df = pd.DataFrame([conversions])
+        df.to_csv(self.outpath / f"repeat_{self.run_id}_conversion.csv", index=False)
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
@@ -177,13 +137,6 @@ class Model(MainModel):
             attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
         )
         self.export_conversion_data()
-        self.datacollector.get_model_vars_dataframe().apply(
-            iterative_pettitt,
-            axis=0,
-            alpha=self.p.get("pettitt_alpha", 0.005),
-            sim=self.p.get("pettitt_sim", 2000),
-            min_size=self.p.get("pettitt_min_size", None),
-        ).to_csv(self.outpath / f"final_{self.run_id}_breakpoints.csv")
 
     @property
     def plot(self) -> ModelViz:
@@ -191,3 +144,18 @@ class Model(MainModel):
         save_fig = self.params.get("save_plots", False)
         path = self.outpath if save_fig else None
         return ModelViz(model=self, save_path=path)
+
+    @property
+    def bkps(self) -> Dict[str, List[int]]:
+        """拐点"""
+        return (
+            self.datacollector.get_model_vars_dataframe()
+            .apply(
+                iterative_pettitt,
+                axis=0,
+                alpha=self.p.get("pettitt_alpha", 0.005),
+                sim=self.p.get("pettitt_sim", 2000),
+                min_size=self.p.get("pettitt_min_size", None),
+            )
+            .to_dict()
+        )

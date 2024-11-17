@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from src.core.model import Model
+    from src.core.model import LivelihoodModel
 
 
 class ModelViz:
@@ -31,7 +31,7 @@ class ModelViz:
         repeats (int): 模型运行的次数。
     """
 
-    def __init__(self, model: Model, save_path: Path | None = None) -> None:
+    def __init__(self, model: LivelihoodModel, save_path: Path | None = None) -> None:
         """
         初始化ModelViz实例。
 

@@ -13,7 +13,7 @@ from loguru import logger
 from omegaconf import DictConfig
 
 from src.api import Env
-from src.core import Model, MyExperiment
+from src.core import LivelihoodModel, MyExperiment
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
@@ -44,10 +44,11 @@ def main(cfg: DictConfig | None = None) -> None:
         ValueError: 热力图绘制出现问题时可能引发。
         AttributeError: 热力图绘制出现问题时可能引发。
     """
-    exp = MyExperiment(Model, nature_cls=Env)
+    exp = MyExperiment(LivelihoodModel, nature_cls=Env)
     exp.batch_run(cfg=cfg)
     exp.plot_all_dynamic(save=True)
     exp.plot_breakpoints(save=True)
+    exp.plot_bkps(save=True)
     exp.summary().to_csv(exp.folder / "summary.csv")
     if heatmap := cfg.exp.get("plot_heatmap"):
         try:
