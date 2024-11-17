@@ -229,8 +229,22 @@ class Env(BaseNature):
         add_farmers(): 添加初始的农民。
     """
 
+    @property
+    def agents(self):
+        """明确重写agents属性"""
+        try:
+            # 首先尝试获取BaseNature的agents
+            return super().agents
+        except AttributeError:
+            # 如果失败，返回GeoSpace的agents
+            return self._agent_layer.agents if hasattr(self, "_agent_layer") else []
+
     def __init__(self, model, name="env"):
         super().__init__(model, name)
+        self.setup_dem()
+
+    def setup_dem(self):
+        """创建数字高程模型"""
         self.dem = self.create_module(
             how="from_file",
             raster_file=cfg.db.dem,
@@ -295,22 +309,38 @@ class Env(BaseNature):
             farmers_num = 0
         else:
             farmers_num = np.random.poisson(self.params.get(lam_key, 0))
-        # create farmers
-        farmers = self.model.agents.new(farmer_cls, num=farmers_num)
+        # 从可耕地、没有主体的里面选
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-        arable_cells = self.dem.array_cells[arable.astype(bool)]
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        agents_num = arable_cells.apply(lambda c: c.agents.has())
+        valid_cells = arable_cells.select(agents_num == 0)
+        # 如果可耕地数量不够，则减少农民数量
+        farmers_num = min(farmers_num, len(valid_cells))
+        if farmers_num == 0:
+            return ActorsList(self.model, [])
+        # 随机在满足条件的斑块上创建农民
+        farmers = valid_cells.random.new(
+            farmer_cls,
+            size=farmers_num,
+            replace=False,
+        )
+        # 随机分配大小
         for farmer in farmers:
             min_size, max_size = farmer.params.new_group_size
             farmer.size = farmer.random.randint(int(min_size), int(max_size))
-        # 从可耕地、没有主体的里面选
-        arable_cells = ActorsList(self.model, arable_cells)
-        agents_num = arable_cells.apply(lambda c: c.agents.has())
-        valid_cells = arable_cells.select(agents_num == 0)
-        chosen_cells = valid_cells.random.choice(
-            size=farmers_num, replace=False, as_list=True
-        )
-        for farmer, cell in zip(farmers, chosen_cells):
-            if not cell:
-                raise ValueError(f"arable_cells {cell} is None")
-            farmer.move.to(cell)
         return farmers
+
+
+class ToyEnv(Env):
+    """玩具环境"""
+
+    def setup_dem(self):
+        """创建数字高程模型"""
+        self.dem = self.create_module(
+            how="from_resolution",
+            shape=(10, 10),
+            cell_cls=CompetingCell,
+        )
+        self.dem.apply_raster(np.ones((10, 10)), attr_name="elevation")
+        self.dem.apply_raster(np.ones((10, 10)), attr_name="slope")
+        self.dem.apply_raster(np.ones((10, 10)), attr_name="lim_h")

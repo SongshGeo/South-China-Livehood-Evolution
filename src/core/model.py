@@ -91,6 +91,11 @@ class Model(MainModel):
             return counting(model=self, **kwargs)
         return super().__getattribute__(name)
 
+    @property
+    def grid(self):
+        """数字高程模型"""
+        return self.nature.dem
+
     def register_agents(self):
         """注册主体"""
         self._agents_by_type[Farmer] = AgentSet([], random=self.random)
@@ -186,6 +191,7 @@ class Model(MainModel):
     def step(self) -> None:
         """每一步运行后，收集数据"""
         self._do_each("step", order=("nature", "human"))
+        self.agents.shuffle_do("step")
         self.datacollector.collect(self)
 
     def end(self):

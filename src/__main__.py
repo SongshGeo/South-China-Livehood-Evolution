@@ -44,8 +44,8 @@ def main(cfg: DictConfig | None = None) -> None:
         ValueError: 热力图绘制出现问题时可能引发。
         AttributeError: 热力图绘制出现问题时可能引发。
     """
-    exp = MyExperiment(Model, nature_cls=Env)
-    exp.batch_run(cfg=cfg)
+    exp = MyExperiment(Model, nature_cls=Env, cfg=cfg)
+    exp.batch_run()
     exp.plot_all_dynamic(save=True)
     exp.plot_breakpoints(save=True)
     exp.summary().to_csv(exp.folder / "summary.csv")

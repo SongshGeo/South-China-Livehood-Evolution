@@ -49,6 +49,7 @@ class Hunter(SiteGroup):
         if other is None:
             return True
         if other.breed in ("Farmer", "RiceFarmer"):
+            result = False  # 默认不移动，因为有一个人一定死了
             while other.alive and self.alive:
                 result = self.compete(other)
             return result

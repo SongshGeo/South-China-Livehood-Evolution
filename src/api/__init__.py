@@ -5,10 +5,18 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from .env import CompetingCell, Env
+from .env import CompetingCell, Env, ToyEnv
 from .farmer import Farmer
 from .hunter import Hunter
 from .people import SiteGroup
 from .rice_farmer import RiceFarmer
 
-__all__ = ["Farmer", "Hunter", "CompetingCell", "Env", "RiceFarmer", "SiteGroup"]
+__all__ = [
+    "Farmer",
+    "Hunter",
+    "CompetingCell",
+    "Env",
+    "RiceFarmer",
+    "SiteGroup",
+    "ToyEnv",
+]
