@@ -32,7 +32,6 @@ class CompetingCell(PatchCell):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lim_h: float = 0.0
-        self.lim_g: float = 0.0
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: Optional[bool] = None

@@ -9,6 +9,7 @@ import os
 from importlib import resources
 from pathlib import Path
 from pprint import pformat
+from typing import Any, Dict
 
 import numpy as np
 import solara
@@ -16,6 +17,7 @@ import yaml
 from abses.viz.solara import make_mpl_space_component
 from hydra import compose, initialize
 from mesa.visualization import Slider, SolaraViz, make_plot_component
+from omegaconf import OmegaConf
 
 from src.api import CompetingCell, Env
 from src.core import Model
@@ -24,7 +26,7 @@ from src.core import Model
 with open(
     Path(str(resources.files("config") / "viz_config.yaml")), "r", encoding="utf-8"
 ) as f:
-    VIZ_CONFIG = yaml.safe_load(f)
+    VIZ_CONFIG: Dict[str, dict[str, Any]] = yaml.safe_load(f)
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -118,6 +120,8 @@ def display_input_settings(my_model: Model):
 
 model_params = {}
 for k, v in VIZ_CONFIG.items():
+    value = OmegaConf.select(cfg, k)
+    v.update(value=value)
     if v["type"] == "Slider":
         del v["type"]
         model_params[k] = Slider(**v)

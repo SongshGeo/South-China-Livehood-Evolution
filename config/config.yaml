@@ -59,7 +59,6 @@ env:
   init_hunters: 0.05  # 初始设置5%的地块有狩猎采集者
   lam_farmer: 1  # 添加农民数量的期望
   lam_ricefarmer: 1  # 添加水稻农民数量的期望
-  lim_g: 30  # 一般格子的上限
   tick_farmer: 0
   tick_ricefarmer: 100
   width: 10
