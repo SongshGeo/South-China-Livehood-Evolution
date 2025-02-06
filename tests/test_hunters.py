@@ -34,14 +34,14 @@ class TestHunters:
         return hunter
 
     @pytest.fixture(name="other_group")
-    def mock_other_group(self, model):
+    def mock_other_group(self, model: MainModel):
         """一个虚假的聚落"""
-        agent = model.agents.new(Hunter, size=60, singleton=True)
         module = model.nature.create_module(
             how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
         )
-        agent.move.to(module.array_cells[3][3])
-        return agent
+        cell = module.array_cells[2][3]
+        cell.lim_h = 35
+        return cell.agents.new(Hunter)
 
     def test_hunter_init(self, hunter: Hunter):
         """测试狩猎采集者的初始化"""
@@ -65,7 +65,7 @@ class TestHunters:
         """测试人口规模有最大最小值限制"""
         # Arrange
         assert hunter.on_earth
-        assert hunter.get("lim_h") == cfg.sitegroup.max_size
+        assert hunter.get("lim_h", target="cell") == cfg.sitegroup.max_size
 
         # Act
         hunter.size = size
@@ -120,7 +120,7 @@ class TestHunters:
         hunter.random.random = MagicMock(return_value=random_value)
 
         # 配置，转化需要旁边有农民
-        farmer = model.agents.new(Farmer, singleton=1)
+        farmer = model.agents.new(Farmer, singleton=True)
         farmer.move.to(layer.array_cells[2][2])
         # 配置是否是可耕地的条件
         set_cell_arable_condition(cell, arable=arable, rice_arable=False)
@@ -156,7 +156,7 @@ class TestHunters:
         hunter.random.random = MagicMock(return_value=random_value)
 
         # 配置，转化需要旁边有农民
-        farmer = model.agents.new(RiceFarmer, singleton=1)
+        farmer = model.agents.new(RiceFarmer, singleton=True)
         farmer.move.to(layer.array_cells[2][2])
         # 配置是否是可耕地的条件
         set_cell_arable_condition(cell, arable=True, rice_arable=arable)
@@ -222,7 +222,7 @@ class TestHunters:
             # Add more test cases as needed
         ],
     )
-    def test_compete(self, hunter, other_group, other_size, expected):
+    def test_compete(self, hunter: Hunter, other_group: Hunter, other_size, expected):
         """测试主体之间的竞争"""
         hunter.size = 10
         other_group.size = other_size

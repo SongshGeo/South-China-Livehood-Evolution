@@ -53,7 +53,7 @@ class Farmer(SiteGroup):
 
         其中complexity为复杂化时的损失系数，应该在0-1之间。
         """
-        return getattr(self, "_area", 0)
+        return getattr(self, "_area", 0.0)
 
     @area.setter
     def area(self, area: float) -> None:

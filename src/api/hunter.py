@@ -25,7 +25,9 @@ class Hunter(SiteGroup):
 
     @property
     def max_size(self) -> int:
-        return np.ceil(self.get("lim_h")) if self.on_earth else 100_000_000
+        return (
+            np.ceil(self.get("lim_h", target="cell")) if self.on_earth else 100_000_000
+        )
 
     @property
     def is_complex(self) -> bool:
@@ -43,10 +45,11 @@ class Hunter(SiteGroup):
         Args:
             cell (PatchCell | None): 狩猎采集者放到的格子。
         """
-        other = cell.agents.item("item")
+        other = cell.agents.select().item("item")
         if other is None:
             return True
         if other.breed in ("Farmer", "RiceFarmer"):
+            result = False  # 默认不移动，因为有一个人一定死了
             while other.alive and self.alive:
                 result = self.compete(other)
             return result
@@ -66,7 +69,9 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        size = max(other_hunter.size + self.size, other_hunter.get("lim_h"))
+        size = max(
+            other_hunter.size + self.size, other_hunter.get("lim_h", target="cell")
+        )
         other_hunter.size = size
         self.die()
 
@@ -117,7 +122,7 @@ class Hunter(SiteGroup):
         """
         # 周围有农民
         cells = self.at.neighboring(radius=radius, moore=moore)
-        cond1 = any(cells.apply(lambda c: c.agents.has("Farmer")))
+        cond1 = any(cells.apply(lambda c: c.agents.has(Farmer)))
         # 且目前的土地是可耕地
         cond2 = self.at.is_arable
         # 转化概率小于阈值
@@ -146,7 +151,7 @@ class Hunter(SiteGroup):
         """
         # 周围有水稻农民
         cells = self.at.neighboring(radius=radius, moore=moore)
-        cond1 = any(cells.apply(lambda c: c.agents.has("RiceFarmer")))
+        cond1 = any(cells.apply(lambda c: c.agents.has(RiceFarmer)))
         # 且目前的土地是可耕地
         cond2 = self.at.is_rice_arable
         # 转化概率小于阈值

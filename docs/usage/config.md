@@ -65,7 +65,6 @@ author: Shuang Song
 | init_hunters | float | 0.05 | 初始狩猎采集者人口比例 |
 | lam_farmer | float | 1 | 农民人口增长率 |
 | lam_ricefarmer | float | 1 | 水稻农民人口增长率 |
-| lim_g | int | 30 | 一般格子的上限 |
 | tick_farmer | int | 0 | 农民加入世界的tick数 |
 | tick_ricefarmer | int | 100 | 水稻农民加入世界的tick数 |
 

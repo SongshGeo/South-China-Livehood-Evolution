@@ -16,8 +16,10 @@ from typing import TYPE_CHECKING, Dict, Tuple
 import numpy as np
 import pandas as pd
 from abses import ActorsList, MainModel
+from mesa.agent import AgentSet
 from scipy import stats
 
+from src.api import Farmer, Hunter, RiceFarmer
 from src.workflow.analysis import detect_breakpoints
 from src.workflow.plot import ModelViz
 
@@ -71,6 +73,9 @@ def counting(
 class Model(MainModel):
     """运行的模型"""
 
+    def __deepcopy__(self, memo):
+        return self
+
     def __getattr__(self, name: str):
         # 断点识别
         if re.match(BKP, name):
@@ -87,19 +92,24 @@ class Model(MainModel):
         return super().__getattribute__(name)
 
     @property
+    def grid(self):
+        """数字高程模型"""
+        return self.nature.dem
+
+    @property
     def farmers(self) -> ActorsList:
         """农民列表"""
-        return self.agents("Farmer")
+        return self.agents[Farmer]
 
     @property
     def hunters(self) -> ActorsList:
         """狩猎采集者列表"""
-        return self.agents("Hunter")
+        return self.agents[Hunter]
 
     @property
     def rice(self) -> ActorsList:
         """种水稻的农民列表"""
-        return self.agents("RiceFarmer")
+        return self.agents[RiceFarmer]
 
     @lru_cache
     def get_data_col(self, actor: ActorType) -> pd.Series:
@@ -169,13 +179,19 @@ class Model(MainModel):
             }
         ).to_csv(self.outpath / f"repeat_{self.run_id}_conversion.csv")
 
+    def step(self) -> None:
+        """每一步运行后，收集数据"""
+        self._do_each("step", order=("nature", "human"))
+        self.agents.shuffle_do("step")
+        self.datacollector.collect(self)
+
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
         self.plot.dynamic()
         self.plot.heatmap()
-        self.actors.plot.hist(
-            attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
-        )
+        # self.actors.plot.hist(
+        #     attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
+        # )
         self.export_conversion_data()
 
     @property

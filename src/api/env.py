@@ -15,18 +15,13 @@ from typing import Optional
 import numpy as np
 import rasterio
 from abses import ActorsList
-from abses.cells import raster_attribute
-from abses.nature import BaseNature, PatchCell
-from hydra import compose, initialize
+from abses.cells import PatchCell, raster_attribute
+from abses.nature import BaseNature
 
 from src.api.farmer import Farmer
 from src.api.hunter import Hunter
 from src.api.people import SiteGroup
 from src.api.rice_farmer import RiceFarmer
-
-# 加载项目层面的配置
-with initialize(version_base=None, config_path="../../config"):
-    cfg = compose(config_name="config")
 
 
 class CompetingCell(PatchCell):
@@ -34,45 +29,44 @@ class CompetingCell(PatchCell):
 
     max_agents = 1  # 一个斑块上最多有多少个主体
 
-    def __init__(self, pos=None, indices=None):
-        super().__init__(pos, indices)
-        self.lim_h: float = cfg.env.lim_h
-        self.lim_g: float = cfg.env.lim_g
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.lim_h: float = 0.0
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
         self._is_water: Optional[bool] = None
 
     def _count(self, breed: str) -> int:
         """统计此处的农民或者狩猎采集者的数量"""
-        return self.agents(breed).get("size", how="item", default=0)
+        return self.agents[breed].get("size", how="item", default=0)
 
     @raster_attribute
     def farmers(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("Farmer")
+        return self._count(Farmer)
 
     @raster_attribute
     def hunters(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("Hunter")
+        return self._count(Hunter)
 
     @raster_attribute
     def rice_farmers(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("RiceFarmer")
+        return self._count(RiceFarmer)
 
     @raster_attribute
     def is_water(self) -> bool:
         """是否是水体"""
         if self._is_water is None:
             return self.elevation <= 0 or np.isnan(self.elevation)
-        return self._is_water
+        return bool(self._is_water)
 
     @is_water.setter
     def is_water(self, value: bool) -> None:
-        if not isinstance(value, bool):
+        if not isinstance(value, (bool, np.bool_)):
             raise TypeError(f"Can only be bool type, got {type(value)}.")
-        self._is_water = value
+        self._is_water = bool(value)
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -229,18 +223,35 @@ class Env(BaseNature):
         add_farmers(): 添加初始的农民。
     """
 
+    @property
+    def agents(self):
+        """明确重写agents属性"""
+        try:
+            # 首先尝试获取BaseNature的agents
+            return super().agents
+        except AttributeError:
+            # 如果失败，返回GeoSpace的agents
+            return self._agent_layer.agents if hasattr(self, "_agent_layer") else []
+
     def __init__(self, model, name="env"):
         super().__init__(model, name)
+
+    def initialize(self):
+        self.setup_dem()
+        self.add_hunters(self.p.init_hunters)
+
+    def setup_dem(self):
+        """创建数字高程模型"""
         self.dem = self.create_module(
             how="from_file",
-            raster_file=cfg.db.dem,
+            raster_file=self.ds.dem,
             cell_cls=CompetingCell,
             attr_name="elevation",
             apply_raster=True,
         )
-        arr = self._open_rasterio(cfg.db.slo)
+        arr = self._open_rasterio(self.ds.slope)
         self.dem.apply_raster(arr, attr_name="slope")
-        arr = self._open_rasterio(cfg.db.lim_h)
+        arr = self._open_rasterio(self.ds.lim_h)
         self.dem.apply_raster(arr, attr_name="lim_h")
 
     def _open_rasterio(self, source: str) -> np.ndarray:
@@ -248,9 +259,6 @@ class Env(BaseNature):
             arr = dataset.read(1)
             arr = np.where(arr < 0, np.nan, arr)
         return arr.reshape((1, arr.shape[0], arr.shape[1]))
-
-    def setup(self):
-        self.add_hunters(self.p.init_hunters)
 
     def step(self) -> None:
         """
@@ -262,7 +270,7 @@ class Env(BaseNature):
         self.add_farmers(Farmer)
         self.add_farmers(RiceFarmer)
 
-    def add_hunters(self, ratio: Optional[float] = 0.05) -> ActorsList[Hunter]:
+    def add_hunters(self, ratio: Optional[float | str] = 0.05) -> ActorsList[Hunter]:
         """
         添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去。
 
@@ -272,10 +280,14 @@ class Env(BaseNature):
         Returns:
             本次新添加的狩猎采集者列表。
         """
-        available_cells = self.cells.select({"is_water": False})
-        num = int(len(available_cells) * ratio)
-        hunters = available_cells.random.new(Hunter, size=num)
-        init_min, init_max = cfg.hunter.init_size
+        available_cells = self.major_layer.cells_lst.select({"is_water": False})
+        ratio = float(ratio)
+        if ratio.is_integer():
+            num = int(ratio)
+        else:
+            num = int(len(available_cells) * ratio)
+        hunters = available_cells.random.new(Hunter, size=num, replace=False)
+        init_min, init_max = hunters[0].params.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
 
@@ -295,22 +307,23 @@ class Env(BaseNature):
             farmers_num = 0
         else:
             farmers_num = np.random.poisson(self.params.get(lam_key, 0))
-        # create farmers
-        farmers = self.model.agents.new(farmer_cls, num=farmers_num)
+        # 从可耕地、没有主体的里面选
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-        arable_cells = self.dem.array_cells[arable.astype(bool)]
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        agents_num = arable_cells.apply(lambda c: c.agents.has())
+        valid_cells = arable_cells.select(agents_num == 0)
+        # 如果可耕地数量不够，则减少农民数量
+        farmers_num = min(farmers_num, len(valid_cells))
+        if farmers_num == 0:
+            return ActorsList(self.model, [])
+        # 随机在满足条件的斑块上创建农民
+        farmers = valid_cells.random.new(
+            farmer_cls,
+            size=farmers_num,
+            replace=False,
+        )
+        # 随机分配大小
         for farmer in farmers:
             min_size, max_size = farmer.params.new_group_size
             farmer.size = farmer.random.randint(int(min_size), int(max_size))
-        # 从可耕地、没有主体的里面选
-        arable_cells = ActorsList(self.model, arable_cells)
-        agents_num = arable_cells.apply(lambda c: c.agents.has())
-        valid_cells = arable_cells.select(agents_num == 0)
-        chosen_cells = valid_cells.random.choice(
-            size=farmers_num, replace=False, as_list=True
-        )
-        for farmer, cell in zip(farmers, chosen_cells):
-            if not cell:
-                raise ValueError(f"arable_cells {cell} is None")
-            farmer.move.to(cell)
         return farmers

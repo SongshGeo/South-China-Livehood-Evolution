@@ -1,0 +1,134 @@
+seed:
+  type: InputText
+  value: 42
+  label: Random Seed
+
+model.loss_rate:
+  type: Slider
+  min: 0
+  max: 1
+  step: 0.1
+  label: Loss Rate
+
+env.lim_h:
+  type: Slider
+  min: 20
+  max: 200
+  step: 10
+  label: Lim H
+
+env.lam_farmer:
+  type: Slider
+  min: 0
+  max: 1
+  step: 0.1
+  label: Lambda Farmer
+
+env.init_hunters:
+  type: InputText
+  label: Initial Hunters
+
+env.width:
+  type: Slider
+  min: 1
+  max: 100
+  step: 5
+  label: Width
+
+env.height:
+  type: Slider
+  min: 1
+  max: 100
+  step: 5
+  label: Height
+
+env.tick_farmer:
+  type: Slider
+  min: 0
+  max: 5000
+  step: 100
+  label: Tick Farmer
+
+env.tick_ricefarmer:
+  type: Slider
+  min: 0
+  max: 5000
+  step: 100
+  label: Tick Rice
+
+hunter.growth_rate:
+  type: Slider
+  min: 0
+  max: 0.01
+  step: 0.001
+  label: Hunter Growth Rate
+
+farmer.growth_rate:
+  type: Slider
+  min: 0
+  max: 0.01
+  step: 0.001
+  label: Farmer Growth Rate
+
+ricefarmer.growth_rate:
+  type: Slider
+  min: 0
+  max: 0.01
+  step: 0.001
+  label: Rice Growth Rate
+
+farmer.diffuse_prob:
+  type: Slider
+  min: 0
+  max: 0.1
+  step: 0.01
+  label: Farmer Diffuse Prob
+
+ricefarmer.diffuse_prob:
+  type: Slider
+  min: 0
+  max: 0.1
+  step: 0.01
+  label: Rice Diffuse Prob
+
+hunter.intensified_coefficient:
+  type: Slider
+  min: 1
+  max: 3
+  step: 0.1
+  label: Hunter Intensified Coefficient
+
+hunter.convert_prob.to_farmer:
+  type: Slider
+  min: 0
+  max: 0.2
+  step: 0.01
+  label: Hunter Convert Prob to Farmer
+
+hunter.convert_prob.to_rice:
+  type: Slider
+  min: 0
+  max: 0.2
+  step: 0.01
+  label: Hunter Convert Prob to Rice
+
+farmer.convert_prob.to_rice:
+  type: Slider
+  min: 0
+  max: 0.2
+  step: 0.01
+  label: Farmer Convert Prob to Rice
+
+farmer.convert_prob.to_hunter:
+  type: Slider
+  min: 0
+  max: 0.2
+  step: 0.01
+  label: Farmer Convert Prob to Hunter
+
+ricefarmer.convert_prob.to_farmer:
+  type: Slider
+  min: 0
+  max: 0.2
+  step: 0.01
+  label: Rice Convert Prob to Farmer
