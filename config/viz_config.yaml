@@ -1,0 +1,49 @@
+seed:
+  type: InputText
+  value: 42
+  label: Random Seed
+
+model.loss_rate:
+  type: Slider
+  value: 0.5
+  min: 0
+  max: 1
+  step: 0.1
+  label: Loss Rate
+
+env.lim_h:
+  type: Slider
+  value: 31.93
+  min: 20
+  max: 200
+  step: 10
+  label: Lim H
+
+env.lam_farmer:
+  type: Slider
+  value: 1
+  min: 0
+  max: 1
+  step: 0.1
+  label: Lambda Farmer
+
+env.init_hunters:
+  type: InputText
+  value: 1
+  label: Initial Hunters
+
+env.width:
+  type: Slider
+  value: 15
+  min: 1
+  max: 100
+  step: 5
+  label: Width
+
+env.height:
+  type: Slider
+  value: 15
+  min: 1
+  max: 100
+  step: 5
+  label: Height

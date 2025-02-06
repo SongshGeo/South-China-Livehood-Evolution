@@ -6,16 +6,25 @@
 # Website: https://cv.songshgeo.com/
 
 import os
+from importlib import resources
+from pathlib import Path
 from pprint import pformat
 
 import numpy as np
 import solara
+import yaml
 from abses.viz.solara import make_mpl_space_component
 from hydra import compose, initialize
 from mesa.visualization import Slider, SolaraViz, make_plot_component
 
 from src.api import CompetingCell, Env
 from src.core import Model
+
+# 加载可视化配置
+with open(
+    Path(str(resources.files("config") / "viz_config.yaml")), "r", encoding="utf-8"
+) as f:
+    VIZ_CONFIG = yaml.safe_load(f)
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -65,13 +74,19 @@ def agent_portrayal(agent):
         return {
             "color": "red",
             "shape": "o",
-            "size": 20,
+            "size": agent.size,
         }
     if agent.breed == "Hunter":
         return {
             "color": "blue",
             "shape": "o",
-            "size": 5,
+            "size": agent.size,
+        }
+    if agent.breed == "RiceFarmer":
+        return {
+            "color": "green",
+            "shape": "o",
+            "size": agent.size,
         }
     return {}
 
@@ -104,32 +119,15 @@ def display_input_settings(my_model: Model):
     return solara.Markdown(f"**Input Settings:**\n```python\n{settings_str}\n```")
 
 
-model_params = {
-    "seed": {
-        "type": "InputText",
-        "value": 42,
-        "label": "Random Seed",
-    },
-    "env.init_hunters": {
-        "type": "InputText",
-        "value": 1,
-        "label": "Initial Hunters",
-    },
-    "env.width": Slider(
-        "Width",
-        value=15,
-        min=1,
-        max=100,
-        step=1,
-    ),
-    "env.height": Slider(
-        "Height",
-        value=15,
-        min=1,
-        max=100,
-        step=1,
-    ),
-}
+model_params = {}
+for k, v in VIZ_CONFIG.items():
+    if v["type"] == "Slider":
+        del v["type"]
+        model_params[k] = Slider(**v)
+    elif v["type"] == "InputText":
+        model_params[k] = v
+    else:
+        raise ValueError(f"Unsupported type: {v['type']}")
 
 
 page = SolaraViz(

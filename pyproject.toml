@@ -5,6 +5,7 @@ description = ""
 authors = ["SongshGeo <songshgeo@gmail.com>"]
 readme = "README.md"
 packages = [{include = "src"}]
+include = ["config/viz_config.yaml"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
