@@ -122,7 +122,7 @@ class Hunter(SiteGroup):
         """
         # 周围有农民
         cells = self.at.neighboring(radius=radius, moore=moore)
-        cond1 = any(cells.apply(lambda c: c.agents.has("Farmer")))
+        cond1 = any(cells.apply(lambda c: c.agents.has(Farmer)))
         # 且目前的土地是可耕地
         cond2 = self.at.is_arable
         # 转化概率小于阈值
@@ -151,7 +151,7 @@ class Hunter(SiteGroup):
         """
         # 周围有水稻农民
         cells = self.at.neighboring(radius=radius, moore=moore)
-        cond1 = any(cells.apply(lambda c: c.agents.has("RiceFarmer")))
+        cond1 = any(cells.apply(lambda c: c.agents.has(RiceFarmer)))
         # 且目前的土地是可耕地
         cond2 = self.at.is_rice_arable
         # 转化概率小于阈值

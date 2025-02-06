@@ -51,7 +51,7 @@ class ToyEnv(Env):
         water = np.random.random(shape) < 0.2
         self.dem.apply_raster(np.random.randint(0, 1000, shape), attr_name="elevation")
         self.dem.apply_raster(np.ones(shape), attr_name="slope")
-        self.dem.apply_raster(np.ones(shape), attr_name="lim_h")
+        self.dem.apply_raster(np.full(shape, self.p.lim_h), attr_name="lim_h")
         self.dem.apply_raster(water, attr_name="is_water")
 
 
@@ -61,9 +61,6 @@ class ToyModel(Model):
     def __init__(self, **kwargs):
         super().__init__(parameters=cfg, nature_class=ToyEnv, **kwargs)
         self.input_settings = kwargs
-        self.register_agents()
-        self.nature.setup_dem()
-        self.nature.setup()
 
 
 def agent_portrayal(agent):

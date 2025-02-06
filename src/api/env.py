@@ -17,16 +17,11 @@ import rasterio
 from abses import ActorsList
 from abses.cells import PatchCell, raster_attribute
 from abses.nature import BaseNature
-from hydra import compose, initialize
 
 from src.api.farmer import Farmer
 from src.api.hunter import Hunter
 from src.api.people import SiteGroup
 from src.api.rice_farmer import RiceFarmer
-
-# 加载项目层面的配置
-with initialize(version_base=None, config_path="../../config"):
-    cfg = compose(config_name="config")
 
 
 class CompetingCell(PatchCell):
@@ -49,17 +44,17 @@ class CompetingCell(PatchCell):
     @raster_attribute
     def farmers(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("Farmer")
+        return self._count(Farmer)
 
     @raster_attribute
     def hunters(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("Hunter")
+        return self._count(Hunter)
 
     @raster_attribute
     def rice_farmers(self) -> int:
         """这里的农民有多少（size）"""
-        return self._count("RiceFarmer")
+        return self._count(RiceFarmer)
 
     @raster_attribute
     def is_water(self) -> bool:
@@ -242,18 +237,22 @@ class Env(BaseNature):
     def __init__(self, model, name="env"):
         super().__init__(model, name)
 
+    def initialize(self):
+        self.setup_dem()
+        self.add_hunters(self.p.init_hunters)
+
     def setup_dem(self):
         """创建数字高程模型"""
         self.dem = self.create_module(
             how="from_file",
-            raster_file=cfg.db.dem,
+            raster_file=self.ds.dem,
             cell_cls=CompetingCell,
             attr_name="elevation",
             apply_raster=True,
         )
-        arr = self._open_rasterio(cfg.db.slo)
+        arr = self._open_rasterio(self.ds.slope)
         self.dem.apply_raster(arr, attr_name="slope")
-        arr = self._open_rasterio(cfg.db.lim_h)
+        arr = self._open_rasterio(self.ds.lim_h)
         self.dem.apply_raster(arr, attr_name="lim_h")
 
     def _open_rasterio(self, source: str) -> np.ndarray:
@@ -261,9 +260,6 @@ class Env(BaseNature):
             arr = dataset.read(1)
             arr = np.where(arr < 0, np.nan, arr)
         return arr.reshape((1, arr.shape[0], arr.shape[1]))
-
-    def setup(self):
-        self.add_hunters(self.p.init_hunters)
 
     def step(self) -> None:
         """
@@ -292,7 +288,7 @@ class Env(BaseNature):
         else:
             num = int(len(available_cells) * ratio)
         hunters = available_cells.random.new(Hunter, size=num, replace=False)
-        init_min, init_max = cfg.hunter.init_size
+        init_min, init_max = hunters[0].params.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
 

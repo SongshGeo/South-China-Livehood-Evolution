@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 from abses import Actor, alive_required
 from abses.cells import PatchCell
-from loguru import logger
 
 
 class SiteGroup(Actor):

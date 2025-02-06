@@ -96,29 +96,20 @@ class Model(MainModel):
         """数字高程模型"""
         return self.nature.dem
 
-    def register_agents(self):
-        """注册主体"""
-        self._agents_by_type[Farmer] = AgentSet([], random=self.random)
-        self._agents_by_type[Hunter] = AgentSet([], random=self.random)
-        self._agents_by_type[RiceFarmer] = AgentSet([], random=self.random)
-
     @property
     def farmers(self) -> ActorsList:
         """农民列表"""
-        return self.agents["Farmer"]
+        return self.agents[Farmer]
 
     @property
     def hunters(self) -> ActorsList:
         """狩猎采集者列表"""
-        return self.agents["Hunter"]
+        return self.agents[Hunter]
 
     @property
     def rice(self) -> ActorsList:
         """种水稻的农民列表"""
-        return self.agents["RiceFarmer"]
-
-    def setup(self) -> None:
-        self.register_agents()
+        return self.agents[RiceFarmer]
 
     @lru_cache
     def get_data_col(self, actor: ActorType) -> pd.Series:
