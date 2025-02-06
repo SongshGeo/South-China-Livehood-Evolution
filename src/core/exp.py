@@ -35,7 +35,7 @@ class MyExperiment(Experiment):
         self, y: ActorType, job: JobType = "len", ax=None, save=False
     ) -> Axes:
         """绘制某种人数的变化比例"""
-        data = self.get_model_vars_dataframe()
+        data = self.summary()
         sns.lineplot(data, x="tick", y=f"{job}_{y}", hue="job_id", ax=ax)
         ax.set_ylim(0, 1)
         if save:

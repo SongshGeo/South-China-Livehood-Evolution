@@ -66,13 +66,13 @@ class CompetingCell(PatchCell):
         """是否是水体"""
         if self._is_water is None:
             return self.elevation <= 0 or np.isnan(self.elevation)
-        return self._is_water
+        return bool(self._is_water)
 
     @is_water.setter
     def is_water(self, value: bool) -> None:
-        if not isinstance(value, bool):
+        if not isinstance(value, (bool, np.bool_)):
             raise TypeError(f"Can only be bool type, got {type(value)}.")
-        self._is_water = value
+        self._is_water = bool(value)
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -241,7 +241,6 @@ class Env(BaseNature):
 
     def __init__(self, model, name="env"):
         super().__init__(model, name)
-        self.setup_dem()
 
     def setup_dem(self):
         """创建数字高程模型"""
@@ -276,7 +275,7 @@ class Env(BaseNature):
         self.add_farmers(Farmer)
         self.add_farmers(RiceFarmer)
 
-    def add_hunters(self, ratio: Optional[float] = 0.05) -> ActorsList[Hunter]:
+    def add_hunters(self, ratio: Optional[float | str] = 0.05) -> ActorsList[Hunter]:
         """
         添加初始的狩猎采集者，随机抽取一些斑块，将初始的狩猎采集者放上去。
 
@@ -287,7 +286,11 @@ class Env(BaseNature):
             本次新添加的狩猎采集者列表。
         """
         available_cells = self.major_layer.cells_lst.select({"is_water": False})
-        num = int(len(available_cells) * ratio)
+        ratio = float(ratio)
+        if ratio.is_integer():
+            num = int(ratio)
+        else:
+            num = int(len(available_cells) * ratio)
         hunters = available_cells.random.new(Hunter, size=num, replace=False)
         init_min, init_max = cfg.hunter.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
@@ -329,18 +332,3 @@ class Env(BaseNature):
             min_size, max_size = farmer.params.new_group_size
             farmer.size = farmer.random.randint(int(min_size), int(max_size))
         return farmers
-
-
-class ToyEnv(Env):
-    """玩具环境"""
-
-    def setup_dem(self):
-        """创建数字高程模型"""
-        self.dem = self.create_module(
-            how="from_resolution",
-            shape=(10, 10),
-            cell_cls=CompetingCell,
-        )
-        self.dem.apply_raster(np.ones((10, 10)), attr_name="elevation")
-        self.dem.apply_raster(np.ones((10, 10)), attr_name="slope")
-        self.dem.apply_raster(np.ones((10, 10)), attr_name="lim_h")

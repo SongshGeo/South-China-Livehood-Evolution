@@ -5,7 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-from .env import CompetingCell, Env, ToyEnv
+from .env import CompetingCell, Env
 from .farmer import Farmer
 from .hunter import Hunter
 from .people import SiteGroup
@@ -18,5 +18,4 @@ __all__ = [
     "Env",
     "RiceFarmer",
     "SiteGroup",
-    "ToyEnv",
 ]
