@@ -140,9 +140,7 @@ class ToyModel(Model):
 
 
 def agent_portrayal(agent):
-    """绘制代理
-    其中农民用红色，猎人用蓝色
-    """
+    """绘制代理"""
     if agent.breed == "Farmer":
         return {
             "color": "blue",
@@ -198,8 +196,15 @@ def display_model_settings(my_model: Model):
 def display_input_settings(my_model: Model):
     """Display the input settings in a formatted way."""
     settings_str = pformat(my_model.input_settings, indent=2)
-    notes.append(f"\n**Input Settings:**\n```python\n{settings_str}\n```")
-    return solara.Markdown("\n".join(notes))
+    return solara.Markdown(f"\n**Input Settings:**\n```python\n{settings_str}\n```")
+
+
+def display_statistics(my_model: Model):
+    """Display the statistics in a formatted way."""
+    n1 = f"最大群体人口数量: {my_model.actors.array('size').max():.2f}"
+    n2 = f"最小群体人口数量: {my_model.actors.array('size').min():.2f}"
+    n3 = f"平均群体人口数量: {my_model.actors.array('size').mean():.2f}"
+    return solara.Markdown("\n".join(notes) + "\n" + n1 + "\n" + n2 + "\n" + n3)
 
 
 model_params = {}
@@ -235,6 +240,7 @@ page = SolaraViz(
             ],
         ),
         display_model_settings,
+        display_statistics,
         display_input_settings,
     ],
     name="Livelihood Evolution",
