@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Dict, Tuple
 import numpy as np
 import pandas as pd
 from abses import ActorsList, MainModel
-from mesa.agent import AgentSet
 from scipy import stats
 
 from src.api import Farmer, Hunter, RiceFarmer
