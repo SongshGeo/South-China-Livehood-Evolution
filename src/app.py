@@ -145,13 +145,13 @@ def agent_portrayal(agent):
     """
     if agent.breed == "Farmer":
         return {
-            "color": "red",
+            "color": "blue",
             "shape": "o",
             "size": agent.size,
         }
     if agent.breed == "Hunter":
         return {
-            "color": "blue",
+            "color": "orange",
             "shape": "o",
             "size": agent.size,
         }
@@ -167,14 +167,14 @@ def agent_portrayal(agent):
 propertylayer_portrayal = {
     "is_only_arable": {
         "colormap": "YlOrBr",  # 使用黄橙棕色系表示普通可耕地
-        "alpha": 0.7,
+        "alpha": 0.8,
         "zorder": 2,
         "vmin": 0,
         "vmax": 1,
     },
     "is_rice_arable": {
         "colormap": "Greens",  # 使用绿色系表示水稻可耕地
-        "alpha": 0.6,
+        "alpha": 0.8,
         "zorder": 1,
         "vmin": 0,
         "vmax": 1,
@@ -184,7 +184,7 @@ propertylayer_portrayal = {
         "alpha": 0.8,
         "vmin": 0,
         "vmax": 1,
-        "zorder": 3,
+        "zorder": 0,
     },
 }
 
@@ -220,7 +220,20 @@ page = SolaraViz(
     model=ToyModel(),
     components=[
         make_mpl_space_component(agent_portrayal, propertylayer_portrayal),
-        make_plot_component(["len_farmers", "len_hunters", "len_rice"]),
+        make_plot_component(
+            [
+                "len_farmers",
+                "len_hunters",
+                "len_rice",
+            ],
+        ),
+        make_plot_component(
+            [
+                "num_farmers",
+                "num_hunters",
+                "num_rice",
+            ],
+        ),
         display_model_settings,
         display_input_settings,
     ],
