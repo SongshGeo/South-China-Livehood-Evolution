@@ -10,6 +10,27 @@ model.loss_rate:
   step: 0.1
   label: Loss Rate
 
+env.arable_ratio:
+  type: Slider
+  min: 0
+  max: 1
+  step: 0.05
+  label: Arable Ratio
+
+env.rice_arable_ratio:
+  type: Slider
+  min: 0
+  max: 1
+  step: 0.05
+  label: Rice Arable Ratio
+
+env.water_ratio:
+  type: Slider
+  min: 0
+  max: 1
+  step: 0.05
+  label: Water Ratio
+
 env.lim_h:
   type: Slider
   min: 20

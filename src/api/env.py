@@ -82,7 +82,6 @@ class CompetingCell(PatchCell):
         returns:
             是否是耕地，是则返回 True，否则返回 False。
         """
-
         # 坡度小于10度
         cond1 = self.slope <= 10
         # 海拔高度小于200m
@@ -124,14 +123,27 @@ class CompetingCell(PatchCell):
 
     @raster_attribute
     def is_rice_arable(self) -> bool:
-        """是否是水稻的可耕地"""
-        # 坡度小于等于0.5
+        """是否是水稻的可耕地，只有同时满足以下条件，才能成为水稻可耕地:
+        1. 坡度小于等于0.5度。
+        2. 海拔高度小于200m且大于0。
+        3. 不是水体。
+
+        returns:
+            是否是水稻可耕地，是则返回 True，否则返回 False。
+        """
+        # 坡度小于等于0.5度
         cond1 = self.slope <= 0.5
-        # 海拔高度小于200m
+        # 海拔高度小于200m且大于0
         cond2 = (self.elevation < 200) and (self.elevation > 0)
         # 不是水体
         cond3 = not self.is_water
+        # 条件都满足才是水稻可耕地
         return cond1 and cond2 and cond3
+
+    @raster_attribute
+    def is_only_arable(self) -> bool:
+        """是否只是普通可耕地而不是水稻可耕地"""
+        return self.is_arable and not self.is_rice_arable
 
     def able_to_live(self, agent: SiteGroup) -> None:
         """检查该主体能否能到特定的地方:
@@ -155,7 +167,7 @@ class CompetingCell(PatchCell):
             return True
         raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, agent: SiteGroup) -> float:
+    def suitable_level(self, breed: SiteGroup | str) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
@@ -167,13 +179,15 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if agent.breed == "Hunter":
+        if not isinstance(breed, str):
+            breed = breed.breed
+        if breed == "Hunter":
             return 1.0
-        if agent.breed == "RiceFarmer":
+        if breed == "RiceFarmer":
             return self.dem_suitable
-        if agent.breed == "Farmer":
+        if breed == "Farmer":
             return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
-        if agent.breed == "SiteGroup":
+        if breed == "SiteGroup":
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
