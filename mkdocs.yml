@@ -1,26 +1,36 @@
-site_name: sc-20230710-sce
+site_name: 华南生计演变模型
+site_description: South China Livelihood Evolution Model - Agent-Based Simulation
+site_author: Shuang Song
+repo_url: https://github.com/SongshGeo/SC-20230710-SCE
+repo_name: SC-20230710-SCE
 
 nav:
   - Home: index.md
+  - 更新说明: UPDATES.md
   - Usage:
     - 快速开始: usage/quick_start.md
     - 参数配置: usage/config.md
     - 模拟流程: usage/workflow.md
     - 结果分析: usage/plots.md
+  - Technical:
+    - 变更日志 v2.0: tech/changelog_v2.md
+    - 断点检测: tech/breakpoint.md
   - API References:
-    - index: api/model.md
-    - hunter: api/hunter.md
-    - farmer: api/farmer.md
-    - env: api/env.md
+    - Model: api/model.md
+    - Hunter: api/hunter.md
+    - Farmer: api/farmer.md
+    - Environment: api/env.md
 
 plugins:
     - search
+    - autorefs
     - mkdocstrings:
         handlers:
             python:
-              setup_commands:
-                - import sys
-                - sys.path.insert(0, "..")
+              options:
+                docstring_style: google
+                show_source: true
+              paths: [.]
     - bibtex:
         bib_file: "docs/refs.bib"
     - macros

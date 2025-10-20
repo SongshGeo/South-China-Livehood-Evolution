@@ -176,7 +176,7 @@ class CompetingCell(PatchCell):
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
-            agent (Farmer | Hunter): 狩猎采集者或者农民。
+            breed (SiteGroup | str): 主体或主体类型名称。
 
         Returns:
             适合该类主体停留此处的适宜度。

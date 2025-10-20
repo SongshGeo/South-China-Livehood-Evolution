@@ -11,6 +11,21 @@ author: Shuang Song
 
 配置文件主要分为以下几个部分：
 
+### convert
+
+转化机制开关，控制不同主体类型之间的转化行为。
+
+| 参数名 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| enabled | bool | true | 全局转化开关，关闭后所有转化都不会发生 |
+| hunter_to_farmer | bool | true | 狩猎采集者能否转化为农民 |
+| hunter_to_rice | bool | true | 狩猎采集者能否转化为水稻农民 |
+| farmer_to_hunter | bool | true | 农民能否转化为狩猎采集者 |
+| farmer_to_rice | bool | true | 农民能否转化为水稻农民 |
+| rice_to_farmer | bool | true | 水稻农民能否转化为农民 |
+
+> **注意**：此功能允许您关闭转化机制，以对比有/无转化的模型行为差异。
+
 ### exp
 
 实验配置，包括实验名称、重复次数、进程数、绘图变量等。
@@ -57,16 +72,20 @@ author: Shuang Song
 
 ### env
 
-环境配置，包括环境参数，如环境容量、环境容量变化率等。
+环境配置，包括环境参数，如环境容量、初始主体数量等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| lim_h | float | 31.93 | 环境容量 |
-| init_hunters | float | 0.05 | 初始狩猎采集者人口比例 |
-| lam_farmer | float | 1 | 农民人口增长率 |
-| lam_ricefarmer | float | 1 | 水稻农民人口增长率 |
-| tick_farmer | int | 0 | 农民加入世界的tick数 |
-| tick_ricefarmer | int | 100 | 水稻农民加入世界的tick数 |
+| lim_h | float | 31.93 | 环境承载力（人/百平方公里） |
+| init_hunters | float | 0.05 | 初始狩猎采集者比例或数量（<1时为比例，≥1时为数量） |
+| init_farmers | int | 80 | 初始普通农民主体数量（推荐范围 60-100） |
+| init_rice_farmers | int | 350 | 初始水稻农民主体数量（推荐范围 300-400） |
+| lam_farmer | float | 1 | 每步添加农民的期望值（泊松分布参数） |
+| lam_ricefarmer | float | 1 | 每步添加水稻农民的期望值（泊松分布参数） |
+| tick_farmer | int | 0 | 农民开始添加的时间步（0表示从一开始就有） |
+| tick_ricefarmer | int | 0 | 水稻农民开始添加的时间步（0表示从一开始就有） |
+
+> **提示**：`tick_farmer` 和 `tick_ricefarmer` 现在默认为 0，表示从模型初始化时就创建这些主体，而不是在运行过程中才开始添加。
 
 ### time
 
@@ -76,56 +95,65 @@ author: Shuang Song
 | :--- | :--- | :--- | :--- |
 | end | int | 10 | 时间步数 |
 
-### farmer
+### Farmer
 
-农民配置，包括农民参数，如农民人口增长率、农民加入世界的tick数等。
+农民配置，包括农民参数，如农民人口增长率、扩散概率等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| area | int | 2 | 农民活动范围 |
-| growth_rate | float | 0.004 | 农民人口增长率 |
+| area | int | 2 | 农民活动范围（公里） |
+| growth_rate | float | 0.004 | 农民人口增长率（每步） |
 | min_size | int | 6 | 最小农民群体数，小于这个数时会死掉 |
-| new_group_size | list | [30, 60] | 新农民群体大小，第一个数是最小值，第二个数是最大值 |
-| diffuse_prob | float | 0.05 | 农民扩散概率，每时间单位有x几率向外扩散新农民群体大小的农业殖民队 |
-| complexity | float | 0.1 | 复杂化后人口增加速率下降多少 |
-| convert_prob | dict | - | 转换概率，分别对应向狩猎采集者、水稻农民的转换概率 |
-| convert_threshold | dict | - | 转换阈值，分别对应向狩猎采集者（超出xxx人不再转化为狩猎采集）、水稻农民（超出xxx人才能转化为水稻农民）的转换阈值 |
-| max_travel_distance | int | 5 | 最大移动距离 |
-| capital_area | float | 0.004 | 人均耕地面积 |
-| loss | dict | - | 损失，分别对应损失概率、损失比率 |
+| init_size | list | [60, 100] | **初始农民人口规模范围**（初始化时随机取值） |
+| new_group_size | list | [30, 60] | 扩散时新农民群体大小范围 |
+| diffuse_prob | float | 0.05 | 农民扩散概率，每步有此概率向外扩散 |
+| complexity | float | 0.1 | 复杂化后人口增长率下降比例 |
+| convert_prob | dict | - | 转换概率（to_hunter, to_rice） |
+| convert_threshold | dict | - | 转换阈值（to_hunter: 超过此值不再转化，to_rice: 超过此值才能转化） |
+| max_travel_distance | int | 5 | 扩散时最大搜索距离 |
+| capital_area | float | 0.004 | 人均耕地面积（平方公里） |
+| loss | dict | - | 损失机制（prob: 发生概率，rate: 损失比率） |
 
-### hunter
+### Hunter
 
-狩猎采集者配置，包括狩猎采集者参数，如狩猎采集者人口增长率、狩猎采集者加入世界的tick数等。
-
-| 参数名 | 类型 | 默认值 | 说明 |
-| :--- | :--- | :--- | :--- |
-| init_size | list | [0, 35] | 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 (默认为6) |
-| growth_rate | float | 0.0008 | 狩猎采集者人口增长率 |
-| min_size | int | 6 | 最小狩猎采集者群体数，小于这个数时会死掉 |
-| intensified_coefficient | float | 1.5 | 狩猎采集者相对农民具有优势，在竞争中会乘以这个系数 |
-| new_group_size | list | [6, 31] | 新狩猎采集者群体大小，第一个数是最小值，第二个数是最大值 |
-| convert_prob | dict | - | 转换概率，分别对应向农民、水稻农民的转换概率 |
-| max_travel_distance | int | 5 | 最大移动距离 |
-| is_complex | int | 100 | 超过多少之后狩猎采集者不再移动 |
-
-### ricefarmer
-
-水稻农民配置，包括水稻农民参数，如水稻农民人口增长率、水稻农民加入世界的tick数等。
+狩猎采集者配置，包括狩猎采集者参数，如人口增长率、移动规则等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| area | int | 2 | 水稻农民活动范围 |
-| growth_rate | float | 0.005 | 水稻农民人口增长率 |
-| min_size | int | 6 | 最小水稻农民群体数，小于这个数时会死掉 |
-| new_group_size | list | [200, 300] | 新水稻农民群体大小，第一个数是最小值，第二个数是最大值 |
-| diffuse_prob | float | 0.05 | 水稻农民扩散概率，每时间单位有x几率向外扩散新水稻农民群体大小的水稻农民殖民队 |
-| complexity | float | 0.1 | 复杂化后人口增加速率下降多少 |
-| convert_prob | dict | - | 转换概率，向农民转换概率，不能向狩猎采集者转换 |
-| convert_threshold | dict | - | 转换阈值，即超出xxx人不再转化为农民 |
-| max_travel_distance | int | 5 | 最大移动距离 |
-| capital_area | float | 0.002 | 人均耕地面积 |
-| loss | dict | - | 损失，分别对应损失概率、损失比率 |
+| init_size | list | [0, 35] | 初始化时的人口规模范围，小于 min_size 时自动调整为 min_size |
+| growth_rate | float | 0.0008 | 狩猎采集者人口增长率（每步） |
+| min_size | int | 6 | 最小群体规模，小于此值会死亡 |
+| **max_size** | int | 100 | **单位主体人口最大值（普通情况）** |
+| **max_size_water** | int | 500 | **临近水体时的最大值** |
+| new_group_size | list | [6, 31] | 扩散时新群体大小范围 |
+| convert_prob | dict | - | 转换概率（to_farmer, to_rice） |
+| max_travel_distance | int | 5 | 移动时最大搜索距离 |
+| is_complex | int | 100 | 超过此值变为定居狩猎采集者，不再移动 |
+| **loss** | dict | - | **损失机制（prob: 发生概率，rate: 损失比率）** |
+
+> **重要变更**：
+> - ❌ 已删除 `intensified_coefficient` 参数（不再有竞争机制）
+> - ✅ 新增 `max_size` 和 `max_size_water` 参数
+> - ✅ 新增 `loss` 参数，狩猎采集者现在也会经历随机损失
+
+### RiceFarmer
+
+水稻农民配置，包括水稻农民参数，如人口增长率、扩散概率等。
+
+| 参数名 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| area | int | 2 | 水稻农民活动范围（公里） |
+| growth_rate | float | 0.005 | 水稻农民人口增长率（每步） |
+| min_size | int | 6 | 最小群体规模，小于此值会死亡 |
+| **init_size** | list | [300, 400] | **初始水稻农民人口规模范围**（初始化时随机取值） |
+| new_group_size | list | [200, 300] | 扩散时新群体大小范围 |
+| diffuse_prob | float | 0.05 | 扩散概率，每步有此概率向外扩散 |
+| complexity | float | 0.1 | 复杂化后人口增长率下降比例 |
+| convert_prob | dict | - | 转换概率（to_farmer），不能向狩猎采集者转换 |
+| convert_threshold | dict | - | 转换阈值（to_farmer: 低于此值才能转化） |
+| max_travel_distance | int | 5 | 扩散时最大搜索距离 |
+| capital_area | float | 0.002 | 人均耕地面积（平方公里） |
+| loss | dict | - | 损失机制（prob: 发生概率，rate: 损失比率） |
 
 ### db
 
