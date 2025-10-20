@@ -5,8 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""环境类
-"""
+"""环境类"""
 
 from __future__ import annotations
 
@@ -36,7 +35,7 @@ class CompetingCell(PatchCell):
 
     def _count(self, breed: str) -> int:
         """统计此处的农民或者狩猎采集者的数量"""
-        return self.agents[breed].get("size", how="item", default=0)
+        return self.agents.select(agent_type=breed).array("size").sum()
 
     @raster_attribute
     def farmers(self) -> int:
@@ -249,16 +248,17 @@ class Env(BaseNature):
         super().__init__(model, name)
 
     def initialize(self):
+        """Initialize environment: setup DEM and add initial hunters."""
         self.setup_dem()
         self.add_hunters(self.p.init_hunters)
 
     def setup_dem(self):
-        """创建数字高程模型"""
+        """创建数字高程模型并设置为主图层"""
         self.dem = self.create_module(
-            how="from_file",
             raster_file=self.ds.dem,
             cell_cls=CompetingCell,
             attr_name="elevation",
+            major_layer=True,
             apply_raster=True,
         )
         arr = self._open_rasterio(self.ds.slope)
@@ -322,8 +322,8 @@ class Env(BaseNature):
         # 从可耕地、没有主体的里面选
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        agents_num = arable_cells.apply(lambda c: c.agents.has())
-        valid_cells = arable_cells.select(agents_num == 0)
+        # Use lambda function to filter cells with no agents
+        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(farmers_num, len(valid_cells))
         if farmers_num == 0:

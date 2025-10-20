@@ -13,6 +13,11 @@ exp:
   repeats: 5  # 每组参数的运行重复次数
   num_process: 5  # 并行运算的进程数
   plot_heatmap: 'bkp_farmer'  # 绘制热图的变量
+  logging: all  # 记录所有日志（而不是 once）
+
+log:
+  level: DEBUG  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  file: true   # 是否写入日志文件
 
 model:
   save_plots: True  # 保存绘图
@@ -123,9 +128,9 @@ RiceFarmer:
     rate: 0.1
 
 
-db:
+ds:
   dem: data/hn_dem_10km1.tif
-  slo: data/hn_slo_10km1.tif
+  slope: data/hn_slo_10km1.tif
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
   lim_h: data/hg_popu.tif  # 修改最大的上限数据路径

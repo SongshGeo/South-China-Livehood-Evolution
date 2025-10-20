@@ -5,8 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""Main model for South China Livelihood
-"""
+"""Main model for South China Livelihood"""
 from __future__ import annotations
 
 import re
@@ -153,14 +152,21 @@ class Model(MainModel):
 
         return before_rate, after_rate
 
-    def _inspect_sources(self, breed: str) -> Dict[str, int]:
-        """获取来源于某种人的转换结果"""
-        if breed not in {"Farmer", "RiceFarmer", "Hunter"}:
-            raise TypeError(f"Invalid breed {breed}.")
-        total = self.agents.select({"source": breed})
-        farmers = total.select("Farmer")
-        hunters = total.select("Hunter")
-        rice = total.select("RiceFarmer")
+    def _inspect_sources(self, breed_cls) -> Dict[str, int]:
+        """获取来源于某种人的转换结果
+
+        Args:
+            breed_cls: Agent class (Farmer, Hunter, or RiceFarmer)
+        """
+        if breed_cls not in {Farmer, Hunter, RiceFarmer}:
+            raise TypeError(f"Invalid breed {breed_cls}.")
+        # Use breed name (class.__name__) for source attribute
+        breed_name = breed_cls.__name__
+        total = self.agents.select({"source": breed_name})
+        # Use agent_type parameter to filter by class type
+        farmers = total.select(agent_type=Farmer)
+        hunters = total.select(agent_type=Hunter)
+        rice = total.select(agent_type=RiceFarmer)
         return {
             "farmers_end": len(farmers),
             "hunters_end": len(hunters),
@@ -170,11 +176,13 @@ class Model(MainModel):
 
     def export_conversion_data(self) -> None:
         """导出转换过程"""
+        # Ensure output directory exists
+        self.outpath.mkdir(parents=True, exist_ok=True)
         return pd.DataFrame(
             {
-                "farmer_init": self._inspect_sources("Farmer"),
-                "hunter_init": self._inspect_sources("Hunter"),
-                "rice_init": self._inspect_sources("RiceFarmer"),
+                "farmer_init": self._inspect_sources(Farmer),
+                "hunter_init": self._inspect_sources(Hunter),
+                "rice_init": self._inspect_sources(RiceFarmer),
             }
         ).to_csv(self.outpath / f"repeat_{self.run_id}_conversion.csv")
 
