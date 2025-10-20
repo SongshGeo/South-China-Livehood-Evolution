@@ -38,6 +38,7 @@
 - 📚 文档已通过 GitHub Actions 自动部署到 Vercel
 - 🔄 每次文档更新都会自动触发重新部署
 - 🌐 访问地址：[https://south-china-livehood-evolution.vercel.app](https://south-china-livehood-evolution.vercel.app)
+- ✅ Vercel secrets 已配置完成，测试部署中...
 
 <!-- Links -->
 [快速开始]: usage/quick_start.md
