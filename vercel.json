@@ -1,22 +1,8 @@
 {
-  "buildCommand": "pip install -r requirements-docs.txt && mkdocs build --clean",
+  "buildCommand": "pip install --upgrade pip && pip install -r requirements-docs.txt && mkdocs build --clean",
   "outputDirectory": "site",
-  "installCommand": "pip install --upgrade pip",
+  "installCommand": null,
   "framework": null,
-  "devCommand": "mkdocs serve",
-  "github": {
-    "enabled": true,
-    "silent": true
-  },
-  "routes": [
-    {
-      "src": "/en/(.*)",
-      "dest": "/en/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "devCommand": null
 }
 
