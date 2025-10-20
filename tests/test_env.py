@@ -119,24 +119,28 @@ class TestCompetingCell:
         assert cell.able_to_live(farmer) is True
 
     def test_able_to_live_when_has_agent(self, cell, farmer, hunter):
-        """
+        """测试当格子已经有主体时，其他主体不能进入（每格只能有一个主体）
+
         ID: TC008
         Arrange:
         - Create a CompetingCell instance.
         - Set the is_arable property to True.
         - Add a Farmer instance to the agents list.
         Act:
-        - Call the able_to_live method with a Farmer instance.
+        - Call the able_to_live method with another agent.
         Assert:
-        - Verify that the result is False.
+        - Verify that no other agent can enter (result is False).
+        - Verify that the same agent can still check its own position (result is True).
         """
         cell.slope = 5
         cell.elevation = 100
         cell.is_water = False
         cell.agents.add(farmer)
         assert cell.agents.has()
-        assert cell.able_to_live(hunter) is True
-        assert cell.able_to_live(farmer) is False
+        # 其他主体不能进入已有主体的格子
+        assert cell.able_to_live(hunter) is False
+        # 同一个主体检查自己的位置应该返回 True
+        assert cell.able_to_live(farmer) is True
 
     def test_convert_farmer(self, cell, farmer, the_model):
         """测试能够转换农民成为狩猎采集者"""

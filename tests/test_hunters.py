@@ -15,8 +15,6 @@ from src.api import CompetingCell, Farmer, Hunter, RiceFarmer, SiteGroup
 
 from .conftest import cfg, set_cell_arable_condition
 
-INTENSITY = cfg.Hunter.intensified_coefficient
-
 
 class TestHunters:
     """用于测试狩猎采集者主体"""
@@ -49,15 +47,20 @@ class TestHunters:
         assert hunter.size == 50
         assert hunter.min_size == 6
         assert not hunter.is_complex
-        assert hunter.max_size == np.ceil(cfg.SiteGroup.max_size) == 31
+        # max_size 现在是配置中的固定值 100，而不是从 lim_h 计算
+        assert hunter.max_size == cfg.Hunter.max_size == 100
 
     @pytest.mark.parametrize(
         "size, expected, settled",
         [
             (20, 20, False),
             (0, None, False),
-            (100, 31, False),
-            (101, 31, False),
+            (100, 100, False),  # max_size 现在是 100，is_complex阈值也是100
+            (
+                101,
+                100,
+                False,
+            ),  # 超过 max_size 会被限制，但仍然不是 complex (100 不大于 100)
         ],
         ids=["positive_size", "zero_size", "max_size", "large_size"],
     )
@@ -188,43 +191,3 @@ class TestHunters:
 
         # assert
         assert (hunter.at.indices != initial_pos) is expected_move
-
-    @pytest.mark.parametrize(
-        "other_size, expected",
-        # intensified = 1.5
-        [
-            (10 * INTENSITY - 1, True),
-            (10 * INTENSITY + 1, False),
-        ],
-        ids=["Hunter success", "Farmer success"],
-    )
-    def test_compete_with_farmers(
-        self, hunter: Hunter, model: MainModel, layer: PatchModule, other_size, expected
-    ):
-        """测试主体之间的竞争"""
-        # arrange
-        hunter.size = 10
-        farmer = model.agents.new(Farmer, singleton=True)
-        farmer.move.to(layer.array_cells[3][3])
-        farmer.size = other_size
-        assert hunter.on_earth
-        assert farmer.on_earth
-
-        # Act / Assert
-        assert hunter.compete(farmer) == expected
-
-    @pytest.mark.parametrize(
-        "other_size, expected",
-        # intensified = 1.5
-        [
-            (9, True),
-            (11, False),
-            # Add more test cases as needed
-        ],
-    )
-    def test_compete(self, hunter: Hunter, other_group: Hunter, other_size, expected):
-        """测试主体之间的竞争"""
-        hunter.size = 10
-        other_group.size = other_size
-        result = hunter.compete(other_group)
-        assert result == expected

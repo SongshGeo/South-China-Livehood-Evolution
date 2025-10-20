@@ -5,8 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""狩猎采集者的。
-"""
+"""狩猎采集者的。"""
 from __future__ import annotations
 
 from numbers import Number
@@ -25,13 +24,29 @@ class Hunter(SiteGroup):
 
     @property
     def max_size(self) -> int:
-        return (
-            np.ceil(self.get("lim_h", target="cell")) if self.on_earth else 100_000_000
-        )
+        """单位主体人口最大值：普通情况100，临近水体500"""
+        if not self.on_earth:
+            return 100_000_000
+
+        # 检查是否临近水体
+        if self.is_near_water():
+            return self.params.max_size_water
+        return self.params.max_size
+
+    def is_near_water(self) -> bool:
+        """检查是否临近水体（相邻格子有水体）
+
+        Returns:
+            如果相邻格子（包括对角线）有水体，返回 True，否则返回 False
+        """
+        if not self.on_earth:
+            return False
+        cells = self.at.neighboring(radius=1, moore=True, include_center=False)
+        return any(cells.apply(lambda c: c.is_water))
 
     @property
     def is_complex(self) -> bool:
-        """超过定居规模的阈值，会变成复杂狩猎采集者。参数配置文件里的`settle_size`可以调节该阈值。
+        """超过定居规模的阈值，会变成复杂狩猎采集者。参数配置文件里的`is_complex`可以调节该阈值。
 
         returns:
             是否是复杂狩猎采集者
@@ -39,29 +54,8 @@ class Hunter(SiteGroup):
         return self.size > self.params.is_complex if self.on_earth else False
 
     @alive_required
-    def moving(self, cell: PatchCell) -> bool:
-        """狩猎采集者要去的格子如果已经有了一个主体，就会与他竞争
-
-        Args:
-            cell (PatchCell | None): 狩猎采集者放到的格子。
-        """
-        other = cell.agents.select().item("item")
-        if other is None:
-            return True
-        if other.breed in ("Farmer", "RiceFarmer"):
-            result = False  # 默认不移动，因为有一个人一定死了
-            while other.alive and self.alive:
-                result = self.compete(other)
-            return result
-        if other.breed == "Hunter":
-            # 如果合并，就不再继续前往了（已死）
-            self.merge(other)
-            return False
-        raise TypeError(f"Unknown breed {other.breed}.")
-
-    @alive_required
     def merge(self, other_hunter: Hunter) -> bool:
-        """狩猎采集者合并。
+        """狩猎采集者合并，保证人口守恒。
 
         Parameters:
             other_hunter: 另一个狩猎采集者。
@@ -69,10 +63,8 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        size = max(
-            other_hunter.size + self.size, other_hunter.get("lim_h", target="cell")
-        )
-        other_hunter.size = size
+        # 合并后总人口 = 两个狩猎采集者人口之和（确保人口守恒）
+        other_hunter.size = other_hunter.size + self.size
         self.die()
 
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
@@ -187,39 +179,13 @@ class Hunter(SiteGroup):
             return True
         return False
 
-    @alive_required
-    def compete(self, other: SiteGroup) -> bool:
-        """与其它主体竞争，根据竞争对象有着不同的竞争规则：
-        1. 与狩猎采集者竞争时，比较两者的人口规模。输了的一方将人口减半并进行一次移动。
-        2. 与农民竞争时，狩猎采集者会具备一定强化系数，通过配置文件里的 `intensified_coefficient` 参数进行调节。
-        输了的一方如果是农民，则直接被狩猎采集者消灭；
-        如果是狩猎采集者，则将人口减半并进行一次移动。
-
-        Args:
-            other: 与该主体竞争的另一个主体。
-
-        returns:
-            竞争成功则返回 `True`，否则返回 `False`。
-        """
-        power = self.size
-        if isinstance(other, (Farmer, RiceFarmer)):
-            power *= self.params.intensified_coefficient
-        if power >= other.size:
-            other.loss_in_competition(at=other.at)
-            return True
-        self.loss_in_competition(at=other.at)
-        return False
-
-    def loss_in_competition(self, at: Optional[PatchCell] = None) -> None:
-        """在竞争中失败"""
-        if self.is_complex:
-            return self.die()
-        self.size *= self.model.params.loss_rate
-        # 没打过就继续跑吧
-        self.move_one(cell_now=at)
-        return None
+    def loss(self) -> None:
+        """狩猎采集者的损失，按概率减少人口。"""
+        if self.random.random() < self.params.loss.prob:
+            self.size *= 1 - self.params.loss.rate
 
     def step(self):
         """step of a hunter."""
         super().step()
+        self.loss()
         self.move_one()

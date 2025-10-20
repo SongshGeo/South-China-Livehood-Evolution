@@ -144,8 +144,9 @@ class CompetingCell(PatchCell):
 
     def able_to_live(self, agent: SiteGroup) -> None:
         """检查该主体能否能到特定的地方:
-        1. 对狩猎采集者而言，只要不是水域
-        2. 对农民而言，需要是可耕地
+        1. 格子里必须没有其他主体（每格只能有一个主体）
+        2. 对狩猎采集者而言，只要不是水域
+        3. 对农民而言，需要是可耕地
 
         Args:
             agent (SiteGroup): 狩猎采集者或者农民，需要被检查的主体。
@@ -153,13 +154,20 @@ class CompetingCell(PatchCell):
         Returns:
             如果被检查的主体能够在此处存活，返回True；否则返回False。
         """
+        # 首先检查是否已有其他主体（所有类型都不能重叠）
+        if self.agents.has() > 0:
+            # 唯一的例外：同一个主体检查自己的位置
+            existing = self.agents.select().item("item")
+            if existing is not None and existing is not agent:
+                return False
+
+        # 然后检查特定类型的要求
         if agent.breed == "Hunter":
             return not self.is_water
-        no_agent_here = self.agents.has() == 0
         if agent.breed == "RiceFarmer":
-            return self.is_rice_arable & no_agent_here
+            return self.is_rice_arable
         if agent.breed == "Farmer":
-            return self.is_arable & no_agent_here
+            return self.is_arable
         if agent.breed == "SiteGroup":
             return True
         raise TypeError("Agent must be a valid People.")
@@ -193,14 +201,30 @@ class CompetingCell(PatchCell):
 
         Args:
             agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
+            to (str): 转化成的主体类型名称。
 
         Returns:
             被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
+            如果转化开关关闭，返回原主体。
 
         Raises:
             TypeError:
                 如果输入的主体不是狩猎采集者或者农民，或者想转化成的类型不从基础主体继承而来，则会抛出TypeError异常。
         """
+        # 检查全局转化开关
+        try:
+            convert_config = self.layer.model.params.get("convert", {})
+            if not convert_config.get("enabled", True):
+                return agent
+
+            # 检查具体转化类型的开关
+            convert_type = f"{agent.breed.lower()}_to_{to.lower()}"
+            if not convert_config.get(convert_type, True):
+                return agent
+        except (AttributeError, KeyError):
+            # 如果配置中没有 convert 部分，默认允许转化
+            pass
+
         to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
         if not isinstance(agent, SiteGroup):
             raise TypeError(f"Agent must be inherited from SiteGroup, not {agent}.")
@@ -248,9 +272,11 @@ class Env(BaseNature):
         super().__init__(model, name)
 
     def initialize(self):
-        """Initialize environment: setup DEM and add initial hunters."""
+        """Initialize environment: setup DEM and add initial hunters and farmers."""
         self.setup_dem()
         self.add_hunters(self.p.init_hunters)
+        self.add_initial_farmers(Farmer, self.p.get("init_farmers", 0))
+        self.add_initial_farmers(RiceFarmer, self.p.get("init_rice_farmers", 0))
 
     def setup_dem(self):
         """创建数字高程模型并设置为主图层"""
@@ -302,6 +328,48 @@ class Env(BaseNature):
         init_min, init_max = hunters[0].params.init_size
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
+
+    def add_initial_farmers(
+        self, farmer_cls: type = Farmer, num: int = 0
+    ) -> ActorsList[Farmer | RiceFarmer]:
+        """
+        添加初始的农民，随机选择一些可耕地，将初始的农民放上去。
+
+        Args:
+            farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
+            num (int): 要添加的农民数量。
+
+        Returns:
+            本次新添加的农民列表。
+        """
+        if num <= 0:
+            return ActorsList(self.model, [])
+
+        # 根据农民类型选择合适的可耕地
+        if farmer_cls == RiceFarmer:
+            arable = self.dem.get_raster("is_rice_arable").reshape(self.dem.shape2d)
+        else:
+            arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
+
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        # 过滤出没有主体的格子
+        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+
+        # 如果可耕地数量不够，则减少农民数量
+        farmers_num = min(num, len(valid_cells))
+        if farmers_num == 0:
+            return ActorsList(self.model, [])
+
+        # 随机在满足条件的斑块上创建农民
+        farmers = valid_cells.random.new(
+            farmer_cls,
+            size=farmers_num,
+            replace=False,
+        )
+        # 根据 init_size 参数随机分配初始人口规模
+        init_min, init_max = farmers[0].params.init_size
+        farmers.apply(lambda f: f.random_size(init_min, init_max))
+        return farmers
 
     def add_farmers(self, farmer_cls: type = Farmer) -> ActorsList[Farmer | RiceFarmer]:
         """
