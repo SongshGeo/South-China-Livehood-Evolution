@@ -1,8 +1,7 @@
 {
-  "trailingSlash": true,
-  "buildCommand": "python3 -m pip install poetry && python3 -m poetry install --only docs && python3 -m poetry run mkdocs build",
-  "installCommand": "python3 -m pip install --upgrade pip",
-  "outputDirectory": "site",
-  "framework": null
+  "buildCommand": "cd docs-docusaurus && npm ci && npm run build",
+  "outputDirectory": "docs-docusaurus/build",
+  "framework": "docusaurus",
+  "trailingSlash": true
 }
 
