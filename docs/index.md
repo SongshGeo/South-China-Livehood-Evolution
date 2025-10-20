@@ -33,6 +33,12 @@
 - 作者：[宋爽]
 - 邮箱：songshgeo[at]gmail.com
 
+## 部署状态
+
+- 📚 文档已通过 GitHub Actions 自动部署到 Vercel
+- 🔄 每次文档更新都会自动触发重新部署
+- 🌐 访问地址：[https://south-china-livehood-evolution.vercel.app](https://south-china-livehood-evolution.vercel.app)
+
 <!-- Links -->
 [快速开始]: usage/quick_start.md
 [模型工作流]: usage/workflow.md
