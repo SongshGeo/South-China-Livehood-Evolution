@@ -31,8 +31,8 @@ class TestRiceFarmer:
     def test_init(self, rice: RiceFarmer):
         """测试初始化"""
         # Arrange
-        assert rice.growth_rate == cfg.farmer.growth_rate
-        assert rice.area == cfg.farmer.area
+        assert rice.growth_rate == cfg.Farmer.growth_rate
+        assert rice.area == cfg.Farmer.area
 
         # Act
         rice.area = 2  # 2km

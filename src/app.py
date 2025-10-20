@@ -52,7 +52,6 @@ class ToyEnv(Env):
         rice_in_arable_ratio = min(0.2, rice_arable_ratio / max(arable_ratio, 0.001))
 
         self.dem = self.create_module(
-            how="from_resolution",
             shape=shape,
             cell_cls=CompetingCell,
         )

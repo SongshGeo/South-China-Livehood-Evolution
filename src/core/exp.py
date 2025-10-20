@@ -14,7 +14,7 @@ from typing import Literal
 
 import seaborn as sns
 from abses import Experiment
-from abses.tools.func import with_axes
+from abses.utils.func import with_axes
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 

@@ -180,7 +180,7 @@ class Model(MainModel):
 
     def step(self) -> None:
         """每一步运行后，收集数据"""
-        self._do_each("step", order=("nature", "human"))
+        self.do_each("step", order=("nature", "human"))
         self.agents.shuffle_do("step")
         self.datacollector.collect(self)
 

@@ -15,7 +15,7 @@ from src.api import CompetingCell, Farmer, Hunter, RiceFarmer, SiteGroup
 
 from .conftest import cfg, set_cell_arable_condition
 
-INTENSITY = cfg.hunter.intensified_coefficient
+INTENSITY = cfg.Hunter.intensified_coefficient
 
 
 class TestHunters:
@@ -37,7 +37,7 @@ class TestHunters:
     def mock_other_group(self, model: MainModel):
         """一个虚假的聚落"""
         module = model.nature.create_module(
-            how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
+            shape=(4, 4), resolution=1, cell_cls=CompetingCell, name="test"
         )
         cell = module.array_cells[2][3]
         cell.lim_h = 35
@@ -49,7 +49,7 @@ class TestHunters:
         assert hunter.size == 50
         assert hunter.min_size == 6
         assert not hunter.is_complex
-        assert hunter.max_size == np.ceil(cfg.sitegroup.max_size) == 31
+        assert hunter.max_size == np.ceil(cfg.SiteGroup.max_size) == 31
 
     @pytest.mark.parametrize(
         "size, expected, settled",
@@ -65,7 +65,7 @@ class TestHunters:
         """测试人口规模有最大最小值限制"""
         # Arrange
         assert hunter.on_earth
-        assert hunter.get("lim_h", target="cell") == cfg.sitegroup.max_size
+        assert hunter.get("lim_h", target="cell") == cfg.SiteGroup.max_size
 
         # Act
         hunter.size = size

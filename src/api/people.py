@@ -14,8 +14,7 @@ from typing import Optional, Self, Tuple
 
 import numpy as np
 import pandas as pd
-from abses import Actor, alive_required
-from abses.cells import PatchCell
+from abses import Actor, PatchCell, alive_required
 
 
 class SiteGroup(Actor):
@@ -167,12 +166,11 @@ def search_cell(
         radius=radius, moore=False, include_center=False, annular=True
     )
     # 检查周围的格子是否符合当前主体的停留要求
-    accessibility = [cell.able_to_live(agent) for cell in cells]
-    # 如果有符合要求的格子，随机选择一个符合要求的
-    if any(accessibility):
-        selected_cells = cells.select(accessibility)
-        prob = [cell.suitable_level(agent) for cell in selected_cells]
+    selected_cells = cells.select(lambda c: c.able_to_live(agent))
+    # 如果有符合要求的格子，按适宜度加权随机选择
+    if len(selected_cells) > 0:
+        prob = selected_cells.apply(lambda c: c.suitable_level(agent))
         return selected_cells.random.choice(prob=prob)
-    if radius < agent.params.max_travel_distance:
+    if radius < agent.params.get("max_travel_distance", 5):
         return search_cell(agent, cell, radius=radius + 1, **kwargs)
     return None

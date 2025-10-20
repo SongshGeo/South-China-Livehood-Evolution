@@ -14,9 +14,7 @@ from typing import Optional
 
 import numpy as np
 import rasterio
-from abses import ActorsList
-from abses.cells import PatchCell, raster_attribute
-from abses.nature import BaseNature
+from abses import ActorsList, BaseNature, PatchCell, raster_attribute
 
 from src.api.farmer import Farmer
 from src.api.hunter import Hunter

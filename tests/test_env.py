@@ -29,7 +29,7 @@ class TestCompetingCell:
         farmer = model.agents.new(Farmer, singleton=True)
         hunter = model.agents.new(Hunter, singleton=True)
         module = model.nature.create_module(
-            how="from_resolution", shape=(4, 4), cell_cls=CompetingCell, name="test"
+            shape=(4, 4), resolution=1, cell_cls=CompetingCell, name="test"
         )
         return model, module, farmer, hunter
 
@@ -176,9 +176,10 @@ class TestEnvironmentSettings:
             def __init__(self, model, name="nature"):
                 super().__init__(model, name)
                 self.dem = self.create_module(
-                    how="from_resolution",
                     shape=(1, 2),
+                    resolution=1,
                     cell_cls=CompetingCell,
+                    major_layer=True,
                 )
                 self.setup_is_water("right")
 
@@ -204,16 +205,16 @@ class TestEnvironmentSettings:
     def test_setup_is_correct(self, model: MainModel):
         """测试环境的设置如预期"""
         assert model.nature.shape2d == (1, 2)
-        is_water = model.nature.get_raster("is_water").reshape((1, 2))
+        is_water = model.nature.dem.get_raster("is_water").reshape((1, 2))
         assert is_water.sum() == 1
         assert (~is_water.astype(bool)).any()
 
     def test_setup_hunters(self, model: MainModel):
         """测试能设置主体"""
         model.nature.add_hunters(1)  # using 0.5 ratio by default
-        assert model.nature.get_xarray("is_water").sum() == 1
+        assert model.nature.dem.get_xarray("is_water").sum() == 1
         assert len(model.agents) == 1
-        left_cell: CompetingCell = model.nature.array_cells[0, 0]
+        left_cell: CompetingCell = model.nature.dem.array_cells[0, 0]
         assert model.agents.select().item() in left_cell.agents
 
     def test_random_setup_hunters(self, model: MainModel):
