@@ -22,7 +22,39 @@ nav:
     - Environment: api/env.md
 
 plugins:
-    - search
+    - search:
+        lang:
+          - en
+          - zh
+    - i18n:
+        docs_structure: suffix
+        fallback_to_default: true
+        reconfigure_material: true
+        reconfigure_search: true
+        languages:
+          - locale: zh
+            default: true
+            name: 简体中文
+            build: true
+          - locale: en
+            name: English
+            build: true
+            nav_translations:
+              Home: Home
+              更新说明: Updates
+              Usage: Usage Guide
+              快速开始: Quick Start
+              参数配置: Configuration
+              模拟流程: Workflow
+              结果分析: Analysis
+              Technical: Technical Docs
+              变更日志 v2.0: Changelog v2.0
+              断点检测: Breakpoint Detection
+              API References: API References
+              Model: Model
+              Hunter: Hunter
+              Farmer: Farmer
+              Environment: Environment
     - autorefs
     - mkdocstrings:
         handlers:
@@ -46,6 +78,7 @@ plugins:
 theme:
     name: "material"
     logo: "https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png"
+    language: zh
     palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -60,7 +93,6 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-    language: en
     features:
         - header.autohide
         - navigation.tabs
