@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.7.0...v0.8.0) (2025-10-20)
+
+
+### Features
+
+* :sparkles: 增加了可耕种地的可视化 ([673531e](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/673531e75d938656c1ba6476f4c48d34a4bb837f))
+* :sparkles: 监控当前群体人口的最大和最小值 ([f900610](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/f9006104167c29fcf837863b2635a46be8d76ded))
+* **config, api:** :sparkles: 添加全局转换机制配置，更新农民和狩猎采集者的初始化设置，优化生存和竞争逻辑 ([52762a6](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/52762a6e95508e1a1d0cd7702f92ae158a89f0ef))
+* **docs:** :memo: 新增部署说明文档，优化 GitHub Actions 工作流，支持双语文档，更新 README 和使用指南以反映最新功能和配置 ([c32f545](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/c32f545cb24235447f0d952c7fa8a318e7593b50))
+* **docs:** :memo: 更新文档以反映模型v2.0重构，新增更新说明和变更日志，优化配置和使用指南 ([d90fbe5](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/d90fbe5fbfbdb942874a617173d303f5cb17b406))
+* **docs:** :memo: 添加模型时序图文档，更新 Vercel 部署配置，优化 mkdocs.yml，新增 JavaScript 初始化脚本以支持 Mermaid 图表渲染 ([f464d0d](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/f464d0da2f06369b52ed44b646e70bca2f52f5fd))
+
+
+### Bug Fixes
+
+* :white_check_mark: fix fixture problem for passing tests ([852443c](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/852443cfd407c90cfbff98999bb6c7e61a7dbae3))
+
 ## [0.7.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.6.2...v0.7.0) (2025-02-06)
 
 
