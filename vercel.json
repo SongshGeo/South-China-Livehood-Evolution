@@ -1,8 +1,4 @@
 {
-  "trailingSlash": true,
-  "buildCommand": "pip install poetry && poetry install --only docs && poetry run mkdocs build",
-  "installCommand": "pip install --upgrade pip",
-  "outputDirectory": "site",
-  "framework": null
+  "trailingSlash": true
 }
 
