@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "buildCommand": null,
-  "installCommand": null,
-  "outputDirectory": ".",
-  "framework": null
+  "buildCommand": "pip install mkdocs-material mkdocs-jupyter mkdocs-glightbox mkdocs-macros-plugin mkdocs-bibtex mkdocs-callouts mkdocstrings[python] && mkdocs build",
+  "installCommand": "pip install --upgrade pip",
+  "outputDirectory": "site",
+  "framework": null,
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": true
+    }
+  }
 }
 
