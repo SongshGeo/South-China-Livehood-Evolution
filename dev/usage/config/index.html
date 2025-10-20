@@ -1,0 +1,1738 @@
+<!DOCTYPE html><html lang="zh" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="South China Livelihood Evolution Model - Agent-Based Simulation">
+      
+      
+        <meta name="author" content="Shuang Song">
+      
+      
+      
+        <link rel="prev" href="../quick_start/">
+      
+      
+        <link rel="next" href="../workflow/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>配置文件 - 华南生计演变模型</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="华南生计演变模型" class="md-header__button md-logo" aria-label="华南生计演变模型" data-md-component="logo">
+      
+  <img src="https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            华南生计演变模型
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              配置文件
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/usage/config/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/SongshGeo/SC-20230710-SCE" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    SC-20230710-SCE
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../UPDATES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  更新说明
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../quick_start/" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tech/changelog_v2/" class="md-tabs__link">
+          
+  
+  
+  Technical
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/model/" class="md-tabs__link">
+          
+  
+  
+  API References
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="华南生计演变模型" class="md-nav__button md-logo" aria-label="华南生计演变模型" data-md-component="logo">
+      
+  <img src="https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png" alt="logo">
+
+    </a>
+    华南生计演变模型
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/SongshGeo/SC-20230710-SCE" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    SC-20230710-SCE
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../UPDATES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    更新说明
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    快速开始
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    参数配置
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    参数配置
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      配置文件结构
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="配置文件结构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      convert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exp" class="md-nav__link">
+    <span class="md-ellipsis">
+      exp
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      reports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env" class="md-nav__link">
+    <span class="md-ellipsis">
+      env
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      time
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Farmer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hunter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hunter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ricefarmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      RiceFarmer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#db" class="md-nav__link">
+    <span class="md-ellipsis">
+      db
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    模拟流程
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    结果分析
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Technical
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tech/changelog_v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    变更日志 v2.0
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tech/sequence_diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    模型时序图
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tech/breakpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    断点检测
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API References
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/hunter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hunter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/farmer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Farmer
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      配置文件结构
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="配置文件结构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      convert
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exp" class="md-nav__link">
+    <span class="md-ellipsis">
+      exp
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      reports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#env" class="md-nav__link">
+    <span class="md-ellipsis">
+      env
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      time
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Farmer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hunter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hunter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ricefarmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      RiceFarmer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#db" class="md-nav__link">
+    <span class="md-ellipsis">
+      db
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>参数配置</h1>
+
+<p>配置文件是模型运行的重要组成部分。模型运行时，会根据配置文件中的参数进行模拟。配置文件的格式为YAML，用户可以在配置文件中修改模型参数。</p>
+<p>配置文件的默认位置为<code>config/config.yaml</code>，用户也可以在运行模型时通过命令行参数指定配置文件的位置。例如：</p>
+<h3 id="_1">配置文件结构<a class="headerlink" href="#_1" title="Permanent link">#</a></h3>
+<p>配置文件主要分为以下几个部分：</p>
+<h4 id="convert">convert<a class="headerlink" href="#convert" title="Permanent link">#</a></h4>
+<p>转化机制开关，控制不同主体类型之间的转化行为。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">enabled</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">全局转化开关，关闭后所有转化都不会发生</td>
+</tr>
+<tr>
+<td style="text-align: left;">hunter_to_farmer</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">狩猎采集者能否转化为农民</td>
+</tr>
+<tr>
+<td style="text-align: left;">hunter_to_rice</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">狩猎采集者能否转化为水稻农民</td>
+</tr>
+<tr>
+<td style="text-align: left;">farmer_to_hunter</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">农民能否转化为狩猎采集者</td>
+</tr>
+<tr>
+<td style="text-align: left;">farmer_to_rice</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">农民能否转化为水稻农民</td>
+</tr>
+<tr>
+<td style="text-align: left;">rice_to_farmer</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">true</td>
+<td style="text-align: left;">水稻农民能否转化为农民</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>注意</strong>：此功能允许您关闭转化机制，以对比有/无转化的模型行为差异。</p>
+</blockquote>
+<h4 id="exp">exp<a class="headerlink" href="#exp" title="Permanent link">#</a></h4>
+<p>实验配置，包括实验名称、重复次数、进程数、绘图变量等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">name</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">实验名称</td>
+</tr>
+<tr>
+<td style="text-align: left;">repeats</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">每组参数的重复次数</td>
+</tr>
+<tr>
+<td style="text-align: left;">num_process</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">并行运算的进程数</td>
+</tr>
+<tr>
+<td style="text-align: left;">plot_heatmap</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;"><a href="../plots/#绘制热图">绘制热图</a>的变量</td>
+</tr>
+</tbody>
+</table>
+<h4 id="model">model<a class="headerlink" href="#model" title="Permanent link">#</a></h4>
+<p>模型配置，包括模型参数，如竞争失败者的人口损失系数、断点检测方法等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">save_plots</td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">是否保存绘图</td>
+</tr>
+<tr>
+<td style="text-align: left;">loss_rate</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.5</td>
+<td style="text-align: left;">竞争失败者的人口损失系数</td>
+</tr>
+<tr>
+<td style="text-align: left;">n_bkps</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;"><a href="../../tech/breakpoint/#断点检测方法">断点数量</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">detect_bkp_by</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">'size'</td>
+<td style="text-align: left;"><a href="../../tech/breakpoint/#断点检测方法">断点检测方法</a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="reports">reports<a class="headerlink" href="#reports" title="Permanent link">#</a></h4>
+<p>决定了报告的输出内容，包括报告的名称、报告的变量等。变量命名规则为 <code>{report_type}_{group}_{variable_type}</code>，例如：</p>
+<ul>
+<li><code>len_farmers</code>: 农民，团体数，占总人口比例</li>
+<li>
+<p><code>num_farmers_n</code>: 农民，人口数，绝对人口数量</p>
+</li>
+<li>
+<p>报告名称包括：</p>
+</li>
+<li><code>model</code>: 模型报告，单次实验每个时间步都记录的变量</li>
+<li><code>final</code>: 实验报告，每次实验只在结束时记录的变量</li>
+<li>主体包括：</li>
+<li><code>farmers</code>: 农民</li>
+<li><code>hunters</code>: 狩猎采集者</li>
+<li><code>rice</code>: 水稻</li>
+<li>变量类型包括：</li>
+<li><code>num</code>: 绝对人口数量</li>
+<li><code>len</code>: 团体数</li>
+<li><code>ratio</code>: 占总人口比例（什么尾缀都没加时默认使用这个）</li>
+<li><code>bkp</code>: 断点位置（年份，或tick数）</li>
+<li><code>pre</code>: 断点前的人口增长率</li>
+<li><code>post</code>: 断点后的人口增长率</li>
+</ul>
+<h4 id="env">env<a class="headerlink" href="#env" title="Permanent link">#</a></h4>
+<p>环境配置，包括环境参数，如环境容量、初始主体数量等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">lim_h</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">31.93</td>
+<td style="text-align: left;">环境承载力（人/百平方公里）</td>
+</tr>
+<tr>
+<td style="text-align: left;">init_hunters</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.05</td>
+<td style="text-align: left;">初始狩猎采集者比例或数量（&lt;1时为比例，≥1时为数量）</td>
+</tr>
+<tr>
+<td style="text-align: left;">init_farmers</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">80</td>
+<td style="text-align: left;">初始普通农民主体数量（推荐范围 60-100）</td>
+</tr>
+<tr>
+<td style="text-align: left;">init_rice_farmers</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">350</td>
+<td style="text-align: left;">初始水稻农民主体数量（推荐范围 300-400）</td>
+</tr>
+<tr>
+<td style="text-align: left;">lam_farmer</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">每步添加农民的期望值（泊松分布参数）</td>
+</tr>
+<tr>
+<td style="text-align: left;">lam_ricefarmer</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">每步添加水稻农民的期望值（泊松分布参数）</td>
+</tr>
+<tr>
+<td style="text-align: left;">tick_farmer</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">农民开始添加的时间步（0表示从一开始就有）</td>
+</tr>
+<tr>
+<td style="text-align: left;">tick_ricefarmer</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">水稻农民开始添加的时间步（0表示从一开始就有）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>提示</strong>：<code>tick_farmer</code> 和 <code>tick_ricefarmer</code> 现在默认为 0，表示从模型初始化时就创建这些主体，而不是在运行过程中才开始添加。</p>
+</blockquote>
+<h4 id="time">time<a class="headerlink" href="#time" title="Permanent link">#</a></h4>
+<p>时间配置，包括时间参数，如时间步数、时间步长等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">end</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">时间步数</td>
+</tr>
+</tbody>
+</table>
+<h4 id="farmer">Farmer<a class="headerlink" href="#farmer" title="Permanent link">#</a></h4>
+<p>农民配置，包括农民参数，如农民人口增长率、扩散概率等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">area</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">农民活动范围（公里）</td>
+</tr>
+<tr>
+<td style="text-align: left;">growth_rate</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.004</td>
+<td style="text-align: left;">农民人口增长率（每步）</td>
+</tr>
+<tr>
+<td style="text-align: left;">min_size</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">最小农民群体数，小于这个数时会死掉</td>
+</tr>
+<tr>
+<td style="text-align: left;">init_size</td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[60, 100]</td>
+<td style="text-align: left;"><strong>初始农民人口规模范围</strong>（初始化时随机取值）</td>
+</tr>
+<tr>
+<td style="text-align: left;">new_group_size</td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[30, 60]</td>
+<td style="text-align: left;">扩散时新农民群体大小范围</td>
+</tr>
+<tr>
+<td style="text-align: left;">diffuse_prob</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.05</td>
+<td style="text-align: left;">农民扩散概率，每步有此概率向外扩散</td>
+</tr>
+<tr>
+<td style="text-align: left;">complexity</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: left;">复杂化后人口增长率下降比例</td>
+</tr>
+<tr>
+<td style="text-align: left;">convert_prob</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">转换概率（to_hunter, to_rice）</td>
+</tr>
+<tr>
+<td style="text-align: left;">convert_threshold</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">转换阈值（to_hunter: 超过此值不再转化，to_rice: 超过此值才能转化）</td>
+</tr>
+<tr>
+<td style="text-align: left;">max_travel_distance</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">扩散时最大搜索距离</td>
+</tr>
+<tr>
+<td style="text-align: left;">capital_area</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.004</td>
+<td style="text-align: left;">人均耕地面积（平方公里）</td>
+</tr>
+<tr>
+<td style="text-align: left;">loss</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">损失机制（prob: 发生概率，rate: 损失比率）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hunter">Hunter<a class="headerlink" href="#hunter" title="Permanent link">#</a></h4>
+<p>狩猎采集者配置，包括狩猎采集者参数，如人口增长率、移动规则等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">init_size</td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[0, 35]</td>
+<td style="text-align: left;">初始化时的人口规模范围，小于 min_size 时自动调整为 min_size</td>
+</tr>
+<tr>
+<td style="text-align: left;">growth_rate</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.0008</td>
+<td style="text-align: left;">狩猎采集者人口增长率（每步）</td>
+</tr>
+<tr>
+<td style="text-align: left;">min_size</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">最小群体规模，小于此值会死亡</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>max_size</strong></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">100</td>
+<td style="text-align: left;"><strong>单位主体人口最大值（普通情况）</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>max_size_water</strong></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">500</td>
+<td style="text-align: left;"><strong>临近水体时的最大值</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">new_group_size</td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[6, 31]</td>
+<td style="text-align: left;">扩散时新群体大小范围</td>
+</tr>
+<tr>
+<td style="text-align: left;">convert_prob</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">转换概率（to_farmer, to_rice）</td>
+</tr>
+<tr>
+<td style="text-align: left;">max_travel_distance</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">移动时最大搜索距离</td>
+</tr>
+<tr>
+<td style="text-align: left;">is_complex</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">100</td>
+<td style="text-align: left;">超过此值变为定居狩猎采集者，不再移动</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>loss</strong></td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;"><strong>损失机制（prob: 发生概率，rate: 损失比率）</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>重要变更</strong>：
+- ❌ 已删除 <code>intensified_coefficient</code> 参数（不再有竞争机制）
+- ✅ 新增 <code>max_size</code> 和 <code>max_size_water</code> 参数
+- ✅ 新增 <code>loss</code> 参数，狩猎采集者现在也会经历随机损失</p>
+</blockquote>
+<h4 id="ricefarmer">RiceFarmer<a class="headerlink" href="#ricefarmer" title="Permanent link">#</a></h4>
+<p>水稻农民配置，包括水稻农民参数，如人口增长率、扩散概率等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">area</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">水稻农民活动范围（公里）</td>
+</tr>
+<tr>
+<td style="text-align: left;">growth_rate</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.005</td>
+<td style="text-align: left;">水稻农民人口增长率（每步）</td>
+</tr>
+<tr>
+<td style="text-align: left;">min_size</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">最小群体规模，小于此值会死亡</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>init_size</strong></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[300, 400]</td>
+<td style="text-align: left;"><strong>初始水稻农民人口规模范围</strong>（初始化时随机取值）</td>
+</tr>
+<tr>
+<td style="text-align: left;">new_group_size</td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">[200, 300]</td>
+<td style="text-align: left;">扩散时新群体大小范围</td>
+</tr>
+<tr>
+<td style="text-align: left;">diffuse_prob</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.05</td>
+<td style="text-align: left;">扩散概率，每步有此概率向外扩散</td>
+</tr>
+<tr>
+<td style="text-align: left;">complexity</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: left;">复杂化后人口增长率下降比例</td>
+</tr>
+<tr>
+<td style="text-align: left;">convert_prob</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">转换概率（to_farmer），不能向狩猎采集者转换</td>
+</tr>
+<tr>
+<td style="text-align: left;">convert_threshold</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">转换阈值（to_farmer: 低于此值才能转化）</td>
+</tr>
+<tr>
+<td style="text-align: left;">max_travel_distance</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">扩散时最大搜索距离</td>
+</tr>
+<tr>
+<td style="text-align: left;">capital_area</td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">0.002</td>
+<td style="text-align: left;">人均耕地面积（平方公里）</td>
+</tr>
+<tr>
+<td style="text-align: left;">loss</td>
+<td style="text-align: left;">dict</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">损失机制（prob: 发生概率，rate: 损失比率）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="db">db<a class="headerlink" href="#db" title="Permanent link">#</a></h4>
+<p>数据库配置，包括数据库参数，如数据库路径、数据库类型等。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">参数名</th>
+<th style="text-align: left;">类型</th>
+<th style="text-align: left;">默认值</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">dem</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">数字高程模型路径</td>
+</tr>
+<tr>
+<td style="text-align: left;">slo</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">土壤类型路径</td>
+</tr>
+<tr>
+<td style="text-align: left;">asp</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">坡度路径</td>
+</tr>
+<tr>
+<td style="text-align: left;">farmland</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">耕地路径</td>
+</tr>
+<tr>
+<td style="text-align: left;">lim_h</td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">环境容量路径</td>
+</tr>
+</tbody>
+</table>
+<!-- Links -->
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "navigation.tabs", "navigation.tracking", "toc.follow", "content.tooltips"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

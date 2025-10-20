@@ -1,0 +1,1922 @@
+<!DOCTYPE html><html lang="zh" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="South China Livelihood Evolution Model - Agent-Based Simulation">
+      
+      
+        <meta name="author" content="Shuang Song">
+      
+      
+      
+        <link rel="prev" href="../changelog_v2/">
+      
+      
+        <link rel="next" href="../breakpoint/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>模型时序图 - 华南生计演变模型</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="华南生计演变模型" class="md-header__button md-logo" aria-label="华南生计演变模型" data-md-component="logo">
+      
+  <img src="https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            华南生计演变模型
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              模型时序图
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              简体中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/tech/sequence_diagram/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/SongshGeo/SC-20230710-SCE" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    SC-20230710-SCE
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../UPDATES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  更新说明
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../usage/quick_start/" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../changelog_v2/" class="md-tabs__link">
+          
+  
+  
+  Technical
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/model/" class="md-tabs__link">
+          
+  
+  
+  API References
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="华南生计演变模型" class="md-nav__button md-logo" aria-label="华南生计演变模型" data-md-component="logo">
+      
+  <img src="https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png" alt="logo">
+
+    </a>
+    华南生计演变模型
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/SongshGeo/SC-20230710-SCE" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    SC-20230710-SCE
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../UPDATES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    更新说明
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    快速开始
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    参数配置
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    模拟流程
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    结果分析
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technical
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Technical
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog_v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    变更日志 v2.0
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    模型时序图
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    模型时序图
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      模型详细时序图
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="模型详细时序图">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      完整运行时序
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      初始化详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hunter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hunter 行为详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Farmer 行为详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20" class="md-nav__link">
+    <span class="md-ellipsis">
+      转化机制详细流程 (v2.0 新增开关控制)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      扩散机制与人口守恒 (v2.0 改进)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      格子规则检查流程 (v2.0 新增每格唯一主体)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      数据收集与可视化流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      使用说明
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使用说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      在文档中嵌入时序图
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      查看时序图
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      修改时序图
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      关键流程说明
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="关键流程说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v20_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0 重要变更在时序图中的体现
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      关键时间点
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      参考文档
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../breakpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    断点检测
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API References
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/hunter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hunter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/farmer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Farmer
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      模型详细时序图
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="模型详细时序图">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      完整运行时序
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      初始化详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hunter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hunter 行为详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farmer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Farmer 行为详细流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20" class="md-nav__link">
+    <span class="md-ellipsis">
+      转化机制详细流程 (v2.0 新增开关控制)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      扩散机制与人口守恒 (v2.0 改进)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v20_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      格子规则检查流程 (v2.0 新增每格唯一主体)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      数据收集与可视化流程
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      使用说明
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使用说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      在文档中嵌入时序图
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      查看时序图
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      修改时序图
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      关键流程说明
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="关键流程说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v20_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0 重要变更在时序图中的体现
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      关键时间点
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      参考文档
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>模型时序图</h1>
+
+<h2 id="_1">模型详细时序图<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p>本文档通过时序图详细说明华南生计演变模型的运行流程。</p>
+<h3 id="_2">完整运行时序<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User as 用户
+    participant Exp as MyExperiment
+    participant Model as Model
+    participant Env as Environment
+    participant H as Hunter
+    participant F as Farmer
+    participant RF as RiceFarmer
+    participant Cell as CompetingCell
+
+    Note over User,Cell: 初始化阶段
+
+    User-&gt;&gt;Exp: 运行实验 (batch_run)
+    Exp-&gt;&gt;Model: 创建模型实例
+    Model-&gt;&gt;Env: initialize()
+
+    Note over Env,Cell: 环境初始化
+    Env-&gt;&gt;Env: setup_dem()
+    Env-&gt;&gt;Cell: 加载 DEM 数据
+    Env-&gt;&gt;Cell: 加载 Slope 数据
+    Env-&gt;&gt;Cell: 加载 lim_h 数据
+
+    Note over Env,H: 添加初始 Hunters
+    Env-&gt;&gt;Env: add_hunters(0.05)
+    Env-&gt;&gt;Cell: 选择非水体格子
+    Env-&gt;&gt;H: 创建 Hunter (init_size: 6-35)
+    H-&gt;&gt;Cell: 移动到格子
+
+    Note over Env,F: 添加初始 Farmers (新增)
+    Env-&gt;&gt;Env: add_initial_farmers(80)
+    Env-&gt;&gt;Cell: 选择可耕地
+    Env-&gt;&gt;F: 创建 Farmer (init_size: 60-100)
+    F-&gt;&gt;Cell: 移动到格子
+
+    Note over Env,RF: 添加初始 RiceFarmers (新增)
+    Env-&gt;&gt;Env: add_initial_farmers(350)
+    Env-&gt;&gt;Cell: 选择水稻可耕地
+    Env-&gt;&gt;RF: 创建 RiceFarmer (init_size: 300-400)
+    RF-&gt;&gt;Cell: 移动到格子
+
+    Note over User,Cell: 运行阶段 (每个 Tick)
+
+    loop 每个时间步 (tick)
+        Model-&gt;&gt;Env: env.step()
+
+        Note over Env,F: 环境步骤：添加新主体
+        Env-&gt;&gt;Env: add_farmers(Farmer)
+        Env-&gt;&gt;F: 泊松分布创建新 Farmers
+        Env-&gt;&gt;Env: add_farmers(RiceFarmer)
+        Env-&gt;&gt;RF: 泊松分布创建新 RiceFarmers
+
+        Note over Model,RF: 主体步骤：随机执行
+        Model-&gt;&gt;Model: agents.shuffle_do("step")
+
+        alt 选中 Hunter
+            Model-&gt;&gt;H: step()
+            H-&gt;&gt;H: population_growth()
+            H-&gt;&gt;H: convert() [检查转化开关]
+            opt 转化开关开启 &amp; 满足条件
+                H-&gt;&gt;Cell: convert(to="Farmer")
+                Cell-&gt;&gt;Cell: 检查 convert.hunter_to_farmer
+                Cell-&gt;&gt;F: 创建新 Farmer
+                Cell-&gt;&gt;H: 死亡
+            end
+            H-&gt;&gt;H: diffuse()
+            opt 人口 &gt;= max_size
+                H-&gt;&gt;H: 创建新 Hunter
+                H-&gt;&gt;Cell: 搜索合适格子
+                Cell--&gt;&gt;H: 返回目标格子
+            end
+            H-&gt;&gt;H: loss() [新增]
+            opt 随机损失触发
+                H-&gt;&gt;H: size *= (1 - loss.rate)
+            end
+            H-&gt;&gt;H: move_one()
+            opt 不是定居型 (size &lt;= 100)
+                H-&gt;&gt;Cell: 搜索更好的格子
+                opt 遇到另一个 Hunter
+                    H-&gt;&gt;H: merge(other_hunter)
+                    Note over H: 人口守恒：size = size1 + size2
+                end
+            end
+        else 选中 Farmer
+            Model-&gt;&gt;F: step()
+            F-&gt;&gt;F: population_growth()
+            F-&gt;&gt;F: convert() [检查转化开关]
+            opt 转化开关开启 &amp; 满足条件
+                alt 人口 &lt;= 100 &amp; 随机
+                    F-&gt;&gt;Cell: convert(to="Hunter")
+                    Cell-&gt;&gt;H: 创建新 Hunter
+                else 人口 &gt;= 200 &amp; 在水稻地
+                    F-&gt;&gt;Cell: convert(to="RiceFarmer")
+                    Cell-&gt;&gt;RF: 创建新 RiceFarmer
+                end
+            end
+            F-&gt;&gt;F: diffuse()
+            opt 随机扩散触发
+                F-&gt;&gt;F: 创建新 Farmer
+                Note over F: 人口守恒：原主体先减人口
+                F-&gt;&gt;Cell: 搜索可耕地
+            end
+            F-&gt;&gt;F: loss()
+            opt 随机损失触发
+                F-&gt;&gt;F: size *= (1 - loss.rate)
+            end
+        else 选中 RiceFarmer
+            Model-&gt;&gt;RF: step()
+            RF-&gt;&gt;RF: population_growth()
+            RF-&gt;&gt;RF: convert() [检查转化开关]
+            opt 人口 &lt; 200 &amp; 随机
+                RF-&gt;&gt;Cell: convert(to="Farmer")
+                Cell-&gt;&gt;F: 创建新 Farmer
+            end
+            RF-&gt;&gt;RF: diffuse()
+            RF-&gt;&gt;RF: loss()
+        end
+
+        Note over Model: 检查死亡条件
+        alt 主体人口 &lt; min_size
+            Model-&gt;&gt;H: die()
+            Model-&gt;&gt;F: die()
+            Model-&gt;&gt;RF: die()
+        end
+
+        Model-&gt;&gt;Model: datacollector.collect()
+    end
+
+    Note over User,Cell: 结束阶段
+
+    Model-&gt;&gt;Model: end()
+    Model-&gt;&gt;Model: plot.dynamic()
+    Model-&gt;&gt;Model: plot.heatmap()
+    Model-&gt;&gt;Model: export_conversion_data()
+    Model--&gt;&gt;Exp: 返回结果
+    Exp--&gt;&gt;User: 保存结果文件</code></pre>
+<h3 id="_3">初始化详细流程<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Model
+    participant Env
+    participant DEM as DEM Layer
+    participant Cell as CompetingCells
+    participant H as Hunters
+    participant F as Farmers
+    participant RF as RiceFarmers
+
+    Model-&gt;&gt;Env: initialize()
+
+    Note over Env,Cell: 1. 设置地形
+    Env-&gt;&gt;Env: setup_dem()
+    Env-&gt;&gt;DEM: create_module(dem_file)
+    DEM-&gt;&gt;Cell: 创建 CompetingCell 数组
+    loop 每个格子
+        Cell-&gt;&gt;Cell: 设置 elevation
+        Cell-&gt;&gt;Cell: 设置 slope
+        Cell-&gt;&gt;Cell: 设置 lim_h
+        Cell-&gt;&gt;Cell: 计算 is_water
+        Cell-&gt;&gt;Cell: 计算 is_arable
+        Cell-&gt;&gt;Cell: 计算 is_rice_arable
+    end
+
+    Note over Env,H: 2. 添加初始狩猎采集者
+    Env-&gt;&gt;Env: add_hunters(ratio=0.05)
+    Env-&gt;&gt;Cell: 选择非水体格子
+    Cell--&gt;&gt;Env: 返回可用格子列表
+    Env-&gt;&gt;Env: 计算数量 (5% 或固定数)
+    loop 每个初始 Hunter
+        Env-&gt;&gt;H: 创建 Hunter
+        H-&gt;&gt;H: random_size(0, 35)
+        H-&gt;&gt;Cell: 移动到格子
+        Cell-&gt;&gt;Cell: agents.add(hunter)
+    end
+
+    Note over Env,F: 3. 添加初始农民 (v2.0 新增)
+    Env-&gt;&gt;Env: add_initial_farmers(Farmer, 80)
+    Env-&gt;&gt;Cell: 选择可耕地 &amp; 无主体的格子
+    Cell--&gt;&gt;Env: 返回可用格子列表
+    loop 每个初始 Farmer
+        Env-&gt;&gt;F: 创建 Farmer
+        F-&gt;&gt;F: random_size(60, 100)
+        F-&gt;&gt;Cell: 移动到格子
+        Cell-&gt;&gt;Cell: 检查 able_to_live()
+        Cell-&gt;&gt;Cell: agents.add(farmer)
+    end
+
+    Note over Env,RF: 4. 添加初始水稻农民 (v2.0 新增)
+    Env-&gt;&gt;Env: add_initial_farmers(RiceFarmer, 350)
+    Env-&gt;&gt;Cell: 选择水稻可耕地 &amp; 无主体的格子
+    Cell--&gt;&gt;Env: 返回可用格子列表
+    loop 每个初始 RiceFarmer
+        Env-&gt;&gt;RF: 创建 RiceFarmer
+        RF-&gt;&gt;RF: random_size(300, 400)
+        RF-&gt;&gt;Cell: 移动到格子
+        Cell-&gt;&gt;Cell: 检查 able_to_live()
+        Cell-&gt;&gt;Cell: agents.add(rice_farmer)
+    end
+
+    Env--&gt;&gt;Model: 初始化完成</code></pre>
+<h3 id="hunter">Hunter 行为详细流程<a class="headerlink" href="#hunter" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Model
+    participant H as Hunter
+    participant Cell as Current Cell
+    participant NewCell as Target Cell
+    participant Other as Other Hunter
+
+    Model-&gt;&gt;H: step()
+
+    Note over H: 1. 人口增长
+    H-&gt;&gt;H: population_growth(rate=0.0008)
+    H-&gt;&gt;H: size = size * (1 + growth_rate)
+
+    Note over H,Cell: 2. 转化检查 (v2.0: 可关闭)
+    H-&gt;&gt;H: convert()
+
+    alt 转化开关开启
+        H-&gt;&gt;H: _convert_to_farmer()
+        opt 周围有 Farmer &amp; 当前可耕地 &amp; 随机
+            H-&gt;&gt;Cell: 检查 convert.hunter_to_farmer
+            alt 开关开启
+                Cell-&gt;&gt;Cell: convert(hunter, "Farmer")
+                Cell-&gt;&gt;Model: 创建 Farmer(size=hunter.size)
+                Cell-&gt;&gt;H: die()
+            end
+        end
+
+        opt 未转化为 Farmer
+            H-&gt;&gt;H: _convert_to_rice()
+            opt 周围有 RiceFarmer &amp; 水稻地 &amp; 随机
+                H-&gt;&gt;Cell: 检查 convert.hunter_to_rice
+                alt 开关开启
+                    Cell-&gt;&gt;Cell: convert(hunter, "RiceFarmer")
+                    Cell-&gt;&gt;Model: 创建 RiceFarmer(size=hunter.size)
+                    Cell-&gt;&gt;H: die()
+                end
+            end
+        end
+    end
+
+    Note over H: 3. 扩散 (人口守恒)
+    H-&gt;&gt;H: diffuse()
+
+    alt 人口 &gt;= max_size
+        H-&gt;&gt;H: 计算 max_size
+        alt 临近水体
+            H-&gt;&gt;H: max_size = 500
+        else 普通情况
+            H-&gt;&gt;H: max_size = 100
+        end
+
+        H-&gt;&gt;Model: 创建新 Hunter
+        Note over H: 人口守恒：先减后创建
+        H-&gt;&gt;H: size -= new_size
+
+        opt 原 Hunter 仍存活
+            H-&gt;&gt;Cell: search_cell(new_hunter)
+            Cell--&gt;&gt;H: 返回合适格子
+            H-&gt;&gt;NewCell: 新 Hunter 移动到目标格子
+        else 原 Hunter 死亡
+            H-&gt;&gt;H: 新 Hunter 也死亡
+        end
+    end
+
+    Note over H: 4. 损失 (v2.0 新增)
+    H-&gt;&gt;H: loss()
+
+    alt 随机触发 (prob=0.05)
+        H-&gt;&gt;H: size *= (1 - 0.1)
+        Note over H: 人口减少 10%
+    end
+
+    Note over H,NewCell: 5. 移动
+    H-&gt;&gt;H: move_one()
+
+    alt 非定居型 (size &lt;= 100)
+        H-&gt;&gt;Cell: neighboring(radius=1)
+        Cell--&gt;&gt;H: 返回周围格子
+
+        loop 搜索合适格子
+            H-&gt;&gt;NewCell: 检查 able_to_live(hunter)
+
+            alt 格子有其他 Hunter
+                H-&gt;&gt;Other: 合并
+                Note over H,Other: merge(): size = h1.size + h2.size
+                Other-&gt;&gt;Other: size = self.size + h.size
+                H-&gt;&gt;H: die()
+            else 格子有其他主体
+                NewCell--&gt;&gt;H: False (不能进入)
+            else 格子为空 &amp; 非水体
+                H-&gt;&gt;NewCell: 移动到新格子
+            end
+        end
+    end
+
+    opt 人口 &lt; min_size (6)
+        H-&gt;&gt;H: die()
+    end
+
+    H--&gt;&gt;Model: step 完成</code></pre>
+<h3 id="farmer">Farmer 行为详细流程<a class="headerlink" href="#farmer" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Model
+    participant F as Farmer
+    participant Cell as Current Cell
+    participant NewCell as Target Cell
+
+    Model-&gt;&gt;F: step()
+
+    Note over F: 1. 人口增长
+    F-&gt;&gt;F: population_growth(rate=0.004)
+    F-&gt;&gt;F: size = size * (1 + growth_rate)
+
+    Note over F,Cell: 2. 转化检查
+    F-&gt;&gt;F: convert()
+
+    alt 转化开关开启
+        F-&gt;&gt;F: _convert_to_hunter()
+        opt size &lt;= 100 &amp; 随机
+            F-&gt;&gt;Cell: 检查 convert.farmer_to_hunter
+            alt 开关开启
+                Cell-&gt;&gt;Cell: convert(farmer, "Hunter")
+                Cell-&gt;&gt;Model: 创建 Hunter(size=farmer.size)
+                Cell-&gt;&gt;F: die()
+            end
+        end
+
+        opt 未转化 &amp; size &gt;= 200
+            F-&gt;&gt;F: _convert_to_rice()
+            opt 在水稻地 &amp; 随机
+                F-&gt;&gt;Cell: 检查 convert.farmer_to_rice
+                alt 开关开启
+                    Cell-&gt;&gt;Cell: convert(farmer, "RiceFarmer")
+                    Cell-&gt;&gt;Model: 创建 RiceFarmer(size=farmer.size)
+                    Cell-&gt;&gt;F: die()
+                end
+            end
+        end
+    end
+
+    Note over F: 3. 扩散 (人口守恒)
+    F-&gt;&gt;F: diffuse(diffuse_prob=0.05)
+
+    alt 随机触发扩散
+        F-&gt;&gt;F: random_size(30, 60)
+        Note over F: 人口守恒：先创建后减少
+        F-&gt;&gt;Model: 创建新 Farmer(size=new_size)
+        F-&gt;&gt;F: size -= new_size
+
+        opt 原 Farmer 仍存活
+            F-&gt;&gt;Cell: search_cell(new_farmer)
+            Cell--&gt;&gt;F: 返回可耕地
+            F-&gt;&gt;NewCell: 新 Farmer 移动
+            NewCell-&gt;&gt;NewCell: 检查 able_to_live()
+        end
+    end
+
+    Note over F: 4. 损失
+    F-&gt;&gt;F: loss()
+    alt 随机触发 (prob=0.05)
+        F-&gt;&gt;F: size *= (1 - 0.1)
+    end
+
+    Note over F: 5. 复杂化检查
+    opt size &gt; max_size
+        F-&gt;&gt;F: complicate()
+        F-&gt;&gt;F: growth_rate *= (1 - 0.1)
+        F-&gt;&gt;F: area += 2 * (1 - 0.1)
+    end
+
+    opt size &lt; min_size (6)
+        F-&gt;&gt;F: die()
+    end
+
+    F--&gt;&gt;Model: step 完成</code></pre>
+<h3 id="v20">转化机制详细流程 (v2.0 新增开关控制)<a class="headerlink" href="#v20" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    Start([主体尝试转化]) --&gt; CheckGlobal{全局开关&lt;br/&gt;convert.enabled?}
+
+    CheckGlobal --&gt;|False| NoConvert[不转化]
+    CheckGlobal --&gt;|True| CheckType{检查主体类型}
+
+    CheckType --&gt;|Hunter| HunterConvert[Hunter 转化逻辑]
+    CheckType --&gt;|Farmer| FarmerConvert[Farmer 转化逻辑]
+    CheckType --&gt;|RiceFarmer| RiceConvert[RiceFarmer 转化逻辑]
+
+    HunterConvert --&gt; CheckH2F{hunter_to_farmer&lt;br/&gt;开关?}
+    CheckH2F --&gt;|True| H2FCond{周围有 Farmer &amp;&lt;br/&gt;当前可耕地 &amp;&lt;br/&gt;随机触发?}
+    CheckH2F --&gt;|False| CheckH2R{hunter_to_rice&lt;br/&gt;开关?}
+    H2FCond --&gt;|Yes| ConvertH2F[转化为 Farmer]
+    H2FCond --&gt;|No| CheckH2R
+
+    CheckH2R --&gt;|True| H2RCond{周围有 RiceFarmer &amp;&lt;br/&gt;水稻可耕地 &amp;&lt;br/&gt;随机触发?}
+    CheckH2R --&gt;|False| NoConvert
+    H2RCond --&gt;|Yes| ConvertH2R[转化为 RiceFarmer]
+    H2RCond --&gt;|No| NoConvert
+
+    FarmerConvert --&gt; CheckF2H{farmer_to_hunter&lt;br/&gt;开关?}
+    CheckF2H --&gt;|True| F2HCond{人口 &lt;= 100 &amp;&lt;br/&gt;随机触发?}
+    CheckF2H --&gt;|False| CheckF2R{farmer_to_rice&lt;br/&gt;开关?}
+    F2HCond --&gt;|Yes| ConvertF2H[转化为 Hunter]
+    F2HCond --&gt;|No| CheckF2R
+
+    CheckF2R --&gt;|True| F2RCond{人口 &gt;= 200 &amp;&lt;br/&gt;在水稻地 &amp;&lt;br/&gt;随机触发?}
+    CheckF2R --&gt;|False| NoConvert
+    F2RCond --&gt;|Yes| ConvertF2R[转化为 RiceFarmer]
+    F2RCond --&gt;|No| NoConvert
+
+    RiceConvert --&gt; CheckR2F{rice_to_farmer&lt;br/&gt;开关?}
+    CheckR2F --&gt;|True| R2FCond{人口 &lt; 200 &amp;&lt;br/&gt;随机触发?}
+    CheckR2F --&gt;|False| NoConvert
+    R2FCond --&gt;|Yes| ConvertR2F[转化为 Farmer]
+    R2FCond --&gt;|No| NoConvert
+
+    ConvertH2F --&gt; Create[创建新主体&lt;br/&gt;保持人口数]
+    ConvertH2R --&gt; Create
+    ConvertF2H --&gt; Create
+    ConvertF2R --&gt; Create
+    ConvertR2F --&gt; Create
+
+    Create --&gt; Die[旧主体死亡]
+    Die --&gt; End([转化完成])
+    NoConvert --&gt; End
+
+    style CheckGlobal fill:#ff9999
+    style Create fill:#99ff99
+    style Die fill:#ffcc99</code></pre>
+<h3 id="v20_1">扩散机制与人口守恒 (v2.0 改进)<a class="headerlink" href="#v20_1" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Agent as 原主体&lt;br/&gt;(size=100)
+    participant Model
+    participant NewAgent as 新主体
+    participant Cell as 原格子
+    participant NewCell as 目标格子
+
+    Note over Agent: 触发扩散条件
+    Agent-&gt;&gt;Agent: 检查扩散条件
+
+    alt Hunter: size &gt;= max_size
+        Agent-&gt;&gt;Agent: 自动扩散
+    else Farmer/RiceFarmer: 随机
+        Agent-&gt;&gt;Agent: random() &lt; diffuse_prob
+    end
+
+    Note over Agent,Model: 人口守恒关键步骤
+
+    rect rgb(255, 220, 220)
+        Note over Agent,NewAgent: 步骤1: 先创建新主体
+        Agent-&gt;&gt;Agent: new_size = random(min, max)
+        Agent-&gt;&gt;Agent: new_size = min(new_size, self.size)
+        Agent-&gt;&gt;Model: 创建新主体(size=new_size)
+        Model-&gt;&gt;NewAgent: 新主体诞生
+    end
+
+    rect rgb(220, 255, 220)
+        Note over Agent: 步骤2: 减少原主体人口
+        Agent-&gt;&gt;Agent: self.size -= new_size
+        Note over Agent: 🔒 人口守恒检查点&lt;br/&gt;原人口 = 现人口 + 新人口
+    end
+
+    alt 原主体人口 &lt; min_size
+        Agent-&gt;&gt;Agent: die()
+        Note over Agent: 原主体死亡
+    end
+
+    rect rgb(220, 220, 255)
+        Note over NewAgent,NewCell: 步骤3: 新主体寻找位置
+        NewAgent-&gt;&gt;Cell: search_cell(radius=1)
+        Cell-&gt;&gt;NewCell: 检查周围格子
+
+        loop 扩大搜索半径
+            NewCell-&gt;&gt;NewCell: able_to_live(new_agent)?
+            alt 找到合适格子
+                NewAgent-&gt;&gt;NewCell: 移动到新格子
+            else 未找到
+                NewCell-&gt;&gt;Cell: 扩大半径继续搜索
+            end
+        end
+
+        alt 搜索失败 (半径 &gt; max_travel_distance)
+            NewAgent-&gt;&gt;NewAgent: die()
+            Note over NewAgent: 新主体死亡&lt;br/&gt;但人口已从原主体减少&lt;br/&gt;总人口守恒
+        end
+    end
+
+    Note over Agent,NewAgent: 最终结果：&lt;br/&gt;总人口 = 原主体剩余 + 新主体</code></pre>
+<h3 id="v20_2">格子规则检查流程 (v2.0 新增每格唯一主体)<a class="headerlink" href="#v20_2" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    Start([主体尝试进入格子]) --&gt; HasAgent{格子有主体?}
+
+    HasAgent --&gt;|No| CheckType{检查主体类型}
+    HasAgent --&gt;|Yes| SameAgent{是同一个主体?}
+
+    SameAgent --&gt;|Yes| CheckType
+    SameAgent --&gt;|No| Reject[拒绝: 每格只能有一个主体]
+
+    CheckType --&gt;|Hunter| CheckWater{是水体?}
+    CheckType --&gt;|Farmer| CheckArable{是可耕地?}
+    CheckType --&gt;|RiceFarmer| CheckRiceArable{是水稻可耕地?}
+
+    CheckWater --&gt;|No| Allow[允许进入]
+    CheckWater --&gt;|Yes| Reject
+
+    CheckArable --&gt;|Yes| Allow
+    CheckArable --&gt;|No| Reject
+
+    CheckRiceArable --&gt;|Yes| Allow
+    CheckRiceArable --&gt;|No| Reject
+
+    Allow --&gt; Success([成功])
+    Reject --&gt; Fail([失败])
+
+    style HasAgent fill:#ffcccc
+    style CheckType fill:#ccccff
+    style Allow fill:#ccffcc
+    style Reject fill:#ffcccc</code></pre>
+<h3 id="_4">数据收集与可视化流程<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Model
+    participant DC as DataCollector
+    participant Agents as All Agents
+    participant Plot as ModelViz
+    participant File as Output Files
+
+    Note over Model,DC: 每个时间步
+    loop 每个 tick
+        Model-&gt;&gt;DC: collect(model)
+        DC-&gt;&gt;Agents: 统计各类主体
+        DC-&gt;&gt;DC: 计算 num_farmers
+        DC-&gt;&gt;DC: 计算 num_hunters
+        DC-&gt;&gt;DC: 计算 num_rice
+        DC-&gt;&gt;DC: 计算 len_farmers (群体数)
+        DC-&gt;&gt;DC: 计算 len_hunters
+        DC-&gt;&gt;DC: 计算 len_rice
+        DC-&gt;&gt;DC: 存储到 DataFrame
+    end
+
+    Note over Model,File: 运行结束
+    Model-&gt;&gt;Model: end()
+
+    Model-&gt;&gt;Plot: plot.dynamic()
+    Plot-&gt;&gt;DC: 获取时间序列数据
+    Plot-&gt;&gt;Plot: 绘制人口变化趋势
+    Plot-&gt;&gt;File: 保存 repeat_X_dynamic.jpg
+
+    Model-&gt;&gt;Plot: plot.heatmap()
+    Plot-&gt;&gt;DC: 获取断点数据
+    Plot-&gt;&gt;Plot: 绘制空间热图
+    Plot-&gt;&gt;File: 保存 repeat_X_heatmap.jpg
+
+    Model-&gt;&gt;Model: export_conversion_data()
+    Model-&gt;&gt;Agents: 统计来源转化矩阵
+    Model-&gt;&gt;File: 保存 repeat_X_conversion.csv
+
+    File--&gt;&gt;Model: 所有文件已保存</code></pre>
+<h3 id="_5">使用说明<a class="headerlink" href="#_5" title="Permanent link">#</a></h3>
+<h4 id="_6">在文档中嵌入时序图<a class="headerlink" href="#_6" title="Permanent link">#</a></h4>
+<p>这些时序图使用 Mermaid 语法编写，会自动在文档中渲染成可交互的图表。</p>
+<h4 id="_7">查看时序图<a class="headerlink" href="#_7" title="Permanent link">#</a></h4>
+<ol>
+<li>启动文档服务器：<code>poetry run mkdocs serve</code></li>
+<li>访问此页面查看完整的交互式时序图</li>
+<li>可以缩放、导出 SVG/PNG</li>
+</ol>
+<h4 id="_8">修改时序图<a class="headerlink" href="#_8" title="Permanent link">#</a></h4>
+<p>直接编辑本文件中的 Mermaid 代码块，保存后自动更新。</p>
+<h3 id="_9">关键流程说明<a class="headerlink" href="#_9" title="Permanent link">#</a></h3>
+<h4 id="v20_3">v2.0 重要变更在时序图中的体现<a class="headerlink" href="#v20_3" title="Permanent link">#</a></h4>
+<ol>
+<li><strong>转化机制开关</strong>：每个转化操作都会检查对应的开关</li>
+<li><strong>人口守恒</strong>：扩散时先创建新主体，再减少原主体人口</li>
+<li><strong>损失机制</strong>：Hunter 现在也有 loss() 步骤</li>
+<li><strong>每格唯一</strong>：able_to_live() 检查格子是否已有其他主体</li>
+<li><strong>初始化</strong>：同时创建三类主体，不再等待特定 tick</li>
+</ol>
+<h4 id="_10">关键时间点<a class="headerlink" href="#_10" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>tick=0</strong>：初始化，创建所有三类主体</li>
+<li><strong>每个 tick</strong>：</li>
+<li>环境步骤（添加新主体）</li>
+<li>主体步骤（随机执行所有主体的 step）</li>
+<li>数据收集</li>
+<li><strong>tick=end</strong>：结束，绘图和导出数据</li>
+</ul>
+<h3 id="_11">参考文档<a class="headerlink" href="#_11" title="Permanent link">#</a></h3>
+<ul>
+<li><a href="../../usage/workflow/">工作流程</a> - 文字描述</li>
+<li><a href="../changelog_v2/">变更日志</a> - 详细变更说明</li>
+<li><a href="../../usage/config/">配置文件</a> - 参数说明</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["header.autohide", "navigation.tabs", "navigation.tracking", "toc.follow", "content.tooltips"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
