@@ -11,32 +11,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: '多主体模拟',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        支持狩猎采集者、普通农民和水稻农民三类人群的互动模拟，
+        考虑地形因素对人群分布的影响。
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: '灵活配置',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        提供灵活的转化机制控制，可独立开关不同类型的转化，
+        支持人口增长、迁移和转化等动态过程。
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: '数据可视化',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        提供多种数据可视化方法，如人口分布热力图、人口变化趋势图等，
+        严格的人口守恒机制确保扩散和合并过程的准确性。
       </>
     ),
   },

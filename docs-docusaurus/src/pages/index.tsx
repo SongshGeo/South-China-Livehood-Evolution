@@ -21,7 +21,7 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+            快速开始 - 5分钟上手 🚀
           </Link>
         </div>
       </div>
@@ -33,8 +33,8 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title} - 基于主体的华南生计演变模拟`}
+      description="基于主体的华南生计演变模拟模型，支持狩猎采集者、普通农民和水稻农民的互动模拟">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
