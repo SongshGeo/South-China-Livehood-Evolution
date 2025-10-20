@@ -1,7 +1,0 @@
-{
-  "buildCommand": "bash build_vercel.sh",
-  "outputDirectory": "site",
-  "installCommand": "echo 'Python project - no install needed'",
-  "framework": null
-}
-

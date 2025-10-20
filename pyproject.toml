@@ -54,6 +54,7 @@ mkdocs-jupyter = ">=0.24"
 mkdocs-callouts = ">=1.9"
 mkdocs-glightbox = ">=0.3"
 mkdocs-static-i18n = ">=1.2"
+mike = ">=2.0"
 
 [build-system]
 requires = ["poetry-core"]
