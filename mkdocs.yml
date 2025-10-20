@@ -14,6 +14,7 @@ nav:
     - 结果分析: usage/plots.md
   - Technical:
     - 变更日志 v2.0: tech/changelog_v2.md
+    - 模型时序图: tech/sequence_diagram.md
     - 断点检测: tech/breakpoint.md
   - API References:
     - Model: api/model.md
@@ -49,6 +50,7 @@ plugins:
               结果分析: Analysis
               Technical: Technical Docs
               变更日志 v2.0: Changelog v2.0
+              模型时序图: Sequence Diagrams
               断点检测: Breakpoint Detection
               API References: API References
               Model: Model
@@ -110,7 +112,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: "!!python/name:pymdownx.superfences.fence_code_format"
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - footnotes
@@ -118,10 +120,12 @@ markdown_extensions:
       permalink: "#"
       baselevel: 2
       separator: "-"
-  - attr_list
-  - md_in_html
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.snippets:
       auto_append:
         - abbreviations.md
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js

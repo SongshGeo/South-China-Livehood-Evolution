@@ -23,6 +23,7 @@ This model currently includes the following main features:
 ## Method Documentation
 
 - [Model Workflow](api/model.md)
+- [Sequence Diagrams](tech/sequence_diagram.en.md) - 🆕 Visual Process Flows
 - [Farmer Agent Methods](api/farmer.md)
 - [Hunter Agent Methods](api/hunter.md)
 - [Patches and Environment](api/env.md)
