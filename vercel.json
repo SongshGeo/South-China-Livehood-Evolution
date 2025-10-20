@@ -1,6 +1,6 @@
 {
   "trailingSlash": true,
-  "buildCommand": "python3 -m pip install mkdocs-material mkdocs-jupyter mkdocs-glightbox mkdocs-macros-plugin mkdocs-bibtex mkdocs-callouts mkdocstrings[python] && python3 -m mkdocs build",
+  "buildCommand": "python3 -m pip install poetry && poetry install --only docs && poetry run mkdocs build",
   "installCommand": "python3 -m pip install --upgrade pip",
   "outputDirectory": "site",
   "framework": null
