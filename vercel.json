@@ -1,6 +1,6 @@
 {
   "trailingSlash": true,
-  "buildCommand": "python3 -m pip install mkdocs-material mkdocs-jupyter mkdocs-glightbox mkdocs-macros-plugin mkdocs-bibtex mkdocs-callouts mkdocstrings[python] && python3 -m mkdocs build",
+  "buildCommand": "python3 -m pip install mkdocs-material mkdocs-jupyter mkdocs-glightbox mkdocs-macros-plugin mkdocs-bibtex mkdocs-callouts mkdocstrings[python] mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin mkdocs-redirects mkdocs-awesome-pages-plugin mkdocs-git-authors-plugin mkdocs-static-i18n mike && python3 -m mkdocs build",
   "installCommand": "python3 -m pip install --upgrade pip",
   "outputDirectory": "site",
   "framework": null
