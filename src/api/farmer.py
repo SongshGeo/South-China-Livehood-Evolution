@@ -92,7 +92,7 @@ class Farmer(SiteGroup):
         return self._cell.convert(self, to="Hunter") if cond1 & cond2 else self
 
     def _convert_to_rice(self) -> RiceFarmer | Self:
-        """转化成"""
+        """转化成水稻农民"""
         # 人数大于水稻所需最小人数
         cond1 = self.size >= self.params.convert_threshold.get("to_rice", 0)
         # 概率小于转化概率

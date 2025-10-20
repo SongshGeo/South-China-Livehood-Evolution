@@ -119,10 +119,10 @@ class ModelViz:
             return xr.apply_ufunc(np.log, xda_.where(xda_ != 0))
 
         _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 3))
-        mask = self.model.nature.get_xarray("elevation") >= 0
-        farmers = self.model.nature.get_xarray("farmers").where(mask)
-        hunters = self.model.nature.get_xarray("hunters").where(mask)
-        rice = self.model.nature.get_xarray("rice_farmers").where(mask)
+        mask = self.model.nature.dem.get_xarray("elevation") >= 0
+        farmers = self.model.nature.dem.get_xarray("farmers").where(mask)
+        hunters = self.model.nature.dem.get_xarray("hunters").where(mask)
+        rice = self.model.nature.dem.get_xarray("rice_farmers").where(mask)
         # Calculate logarithmically, without warnings
         log(farmers).plot.contourf(ax=ax1, cmap="Reds")
         log(hunters).plot.contourf(ax=ax2, cmap="Greens")

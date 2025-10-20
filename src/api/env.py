@@ -5,8 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""环境类
-"""
+"""环境类"""
 
 from __future__ import annotations
 
@@ -14,9 +13,7 @@ from typing import Optional
 
 import numpy as np
 import rasterio
-from abses import ActorsList
-from abses.cells import PatchCell, raster_attribute
-from abses.nature import BaseNature
+from abses import ActorsList, BaseNature, PatchCell, raster_attribute
 
 from src.api.farmer import Farmer
 from src.api.hunter import Hunter
@@ -38,7 +35,7 @@ class CompetingCell(PatchCell):
 
     def _count(self, breed: str) -> int:
         """统计此处的农民或者狩猎采集者的数量"""
-        return self.agents[breed].get("size", how="item", default=0)
+        return self.agents.select(agent_type=breed).array("size").sum()
 
     @raster_attribute
     def farmers(self) -> int:
@@ -82,7 +79,6 @@ class CompetingCell(PatchCell):
         returns:
             是否是耕地，是则返回 True，否则返回 False。
         """
-
         # 坡度小于10度
         cond1 = self.slope <= 10
         # 海拔高度小于200m
@@ -124,19 +120,33 @@ class CompetingCell(PatchCell):
 
     @raster_attribute
     def is_rice_arable(self) -> bool:
-        """是否是水稻的可耕地"""
-        # 坡度小于等于0.5
+        """是否是水稻的可耕地，只有同时满足以下条件，才能成为水稻可耕地:
+        1. 坡度小于等于0.5度。
+        2. 海拔高度小于200m且大于0。
+        3. 不是水体。
+
+        returns:
+            是否是水稻可耕地，是则返回 True，否则返回 False。
+        """
+        # 坡度小于等于0.5度
         cond1 = self.slope <= 0.5
-        # 海拔高度小于200m
+        # 海拔高度小于200m且大于0
         cond2 = (self.elevation < 200) and (self.elevation > 0)
         # 不是水体
         cond3 = not self.is_water
+        # 条件都满足才是水稻可耕地
         return cond1 and cond2 and cond3
+
+    @raster_attribute
+    def is_only_arable(self) -> bool:
+        """是否只是普通可耕地而不是水稻可耕地"""
+        return self.is_arable and not self.is_rice_arable
 
     def able_to_live(self, agent: SiteGroup) -> None:
         """检查该主体能否能到特定的地方:
-        1. 对狩猎采集者而言，只要不是水域
-        2. 对农民而言，需要是可耕地
+        1. 格子里必须没有其他主体（每格只能有一个主体）
+        2. 对狩猎采集者而言，只要不是水域
+        3. 对农民而言，需要是可耕地
 
         Args:
             agent (SiteGroup): 狩猎采集者或者农民，需要被检查的主体。
@@ -144,22 +154,29 @@ class CompetingCell(PatchCell):
         Returns:
             如果被检查的主体能够在此处存活，返回True；否则返回False。
         """
+        # 首先检查是否已有其他主体（所有类型都不能重叠）
+        if self.agents.has() > 0:
+            # 唯一的例外：同一个主体检查自己的位置
+            existing = self.agents.select().item("item")
+            if existing is not None and existing is not agent:
+                return False
+
+        # 然后检查特定类型的要求
         if agent.breed == "Hunter":
             return not self.is_water
-        no_agent_here = self.agents.has() == 0
         if agent.breed == "RiceFarmer":
-            return self.is_rice_arable & no_agent_here
+            return self.is_rice_arable
         if agent.breed == "Farmer":
-            return self.is_arable & no_agent_here
+            return self.is_arable
         if agent.breed == "SiteGroup":
             return True
         raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, agent: SiteGroup) -> float:
+    def suitable_level(self, breed: SiteGroup | str) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
-            agent (Farmer | Hunter): 狩猎采集者或者农民。
+            breed (SiteGroup | str): 主体或主体类型名称。
 
         Returns:
             适合该类主体停留此处的适宜度。
@@ -167,13 +184,15 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if agent.breed == "Hunter":
+        if not isinstance(breed, str):
+            breed = breed.breed
+        if breed == "Hunter":
             return 1.0
-        if agent.breed == "RiceFarmer":
+        if breed == "RiceFarmer":
             return self.dem_suitable
-        if agent.breed == "Farmer":
+        if breed == "Farmer":
             return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
-        if agent.breed == "SiteGroup":
+        if breed == "SiteGroup":
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
@@ -182,14 +201,30 @@ class CompetingCell(PatchCell):
 
         Args:
             agent (Farmer | Hunter): 狩猎采集者或者农民，需要被转化的主体。
+            to (str): 转化成的主体类型名称。
 
         Returns:
             被转化的主体。输入农民，则转化为一个狩猎采集者；输入狩猎采集者，则转化为一个农民。
+            如果转化开关关闭，返回原主体。
 
         Raises:
             TypeError:
                 如果输入的主体不是狩猎采集者或者农民，或者想转化成的类型不从基础主体继承而来，则会抛出TypeError异常。
         """
+        # 检查全局转化开关
+        try:
+            convert_config = self.layer.model.params.get("convert", {})
+            if not convert_config.get("enabled", True):
+                return agent
+
+            # 检查具体转化类型的开关
+            convert_type = f"{agent.breed.lower()}_to_{to.lower()}"
+            if not convert_config.get(convert_type, True):
+                return agent
+        except (AttributeError, KeyError):
+            # 如果配置中没有 convert 部分，默认允许转化
+            pass
+
         to = {"Farmer": Farmer, "RiceFarmer": RiceFarmer, "Hunter": Hunter}.get(to)
         if not isinstance(agent, SiteGroup):
             raise TypeError(f"Agent must be inherited from SiteGroup, not {agent}.")
@@ -237,16 +272,19 @@ class Env(BaseNature):
         super().__init__(model, name)
 
     def initialize(self):
+        """Initialize environment: setup DEM and add initial hunters and farmers."""
         self.setup_dem()
         self.add_hunters(self.p.init_hunters)
+        self.add_initial_farmers(Farmer, self.p.get("init_farmers", 0))
+        self.add_initial_farmers(RiceFarmer, self.p.get("init_rice_farmers", 0))
 
     def setup_dem(self):
-        """创建数字高程模型"""
+        """创建数字高程模型并设置为主图层"""
         self.dem = self.create_module(
-            how="from_file",
             raster_file=self.ds.dem,
             cell_cls=CompetingCell,
             attr_name="elevation",
+            major_layer=True,
             apply_raster=True,
         )
         arr = self._open_rasterio(self.ds.slope)
@@ -291,6 +329,48 @@ class Env(BaseNature):
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
 
+    def add_initial_farmers(
+        self, farmer_cls: type = Farmer, num: int = 0
+    ) -> ActorsList[Farmer | RiceFarmer]:
+        """
+        添加初始的农民，随机选择一些可耕地，将初始的农民放上去。
+
+        Args:
+            farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
+            num (int): 要添加的农民数量。
+
+        Returns:
+            本次新添加的农民列表。
+        """
+        if num <= 0:
+            return ActorsList(self.model, [])
+
+        # 根据农民类型选择合适的可耕地
+        if farmer_cls == RiceFarmer:
+            arable = self.dem.get_raster("is_rice_arable").reshape(self.dem.shape2d)
+        else:
+            arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
+
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        # 过滤出没有主体的格子
+        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+
+        # 如果可耕地数量不够，则减少农民数量
+        farmers_num = min(num, len(valid_cells))
+        if farmers_num == 0:
+            return ActorsList(self.model, [])
+
+        # 随机在满足条件的斑块上创建农民
+        farmers = valid_cells.random.new(
+            farmer_cls,
+            size=farmers_num,
+            replace=False,
+        )
+        # 根据 init_size 参数随机分配初始人口规模
+        init_min, init_max = farmers[0].params.init_size
+        farmers.apply(lambda f: f.random_size(init_min, init_max))
+        return farmers
+
     def add_farmers(self, farmer_cls: type = Farmer) -> ActorsList[Farmer | RiceFarmer]:
         """
         添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
@@ -310,8 +390,8 @@ class Env(BaseNature):
         # 从可耕地、没有主体的里面选
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        agents_num = arable_cells.apply(lambda c: c.agents.has())
-        valid_cells = arable_cells.select(agents_num == 0)
+        # Use lambda function to filter cells with no agents
+        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(farmers_num, len(valid_cells))
         if farmers_num == 0:

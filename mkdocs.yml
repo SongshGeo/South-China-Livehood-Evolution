@@ -1,26 +1,70 @@
-site_name: sc-20230710-sce
+site_name: 华南生计演变模型
+site_description: South China Livelihood Evolution Model - Agent-Based Simulation
+site_author: Shuang Song
+repo_url: https://github.com/SongshGeo/SC-20230710-SCE
+repo_name: SC-20230710-SCE
 
 nav:
   - Home: index.md
+  - 更新说明: UPDATES.md
   - Usage:
     - 快速开始: usage/quick_start.md
     - 参数配置: usage/config.md
     - 模拟流程: usage/workflow.md
     - 结果分析: usage/plots.md
+  - Technical:
+    - 变更日志 v2.0: tech/changelog_v2.md
+    - 模型时序图: tech/sequence_diagram.md
+    - 断点检测: tech/breakpoint.md
   - API References:
-    - index: api/model.md
-    - hunter: api/hunter.md
-    - farmer: api/farmer.md
-    - env: api/env.md
+    - Model: api/model.md
+    - Hunter: api/hunter.md
+    - Farmer: api/farmer.md
+    - Environment: api/env.md
 
 plugins:
-    - search
+    - search:
+        lang:
+          - en
+          - zh
+    - i18n:
+        docs_structure: suffix
+        fallback_to_default: true
+        reconfigure_material: true
+        reconfigure_search: true
+        languages:
+          - locale: zh
+            default: true
+            name: 简体中文
+            build: true
+          - locale: en
+            name: English
+            build: true
+            nav_translations:
+              Home: Home
+              更新说明: Updates
+              Usage: Usage Guide
+              快速开始: Quick Start
+              参数配置: Configuration
+              模拟流程: Workflow
+              结果分析: Analysis
+              Technical: Technical Docs
+              变更日志 v2.0: Changelog v2.0
+              模型时序图: Sequence Diagrams
+              断点检测: Breakpoint Detection
+              API References: API References
+              Model: Model
+              Hunter: Hunter
+              Farmer: Farmer
+              Environment: Environment
+    - autorefs
     - mkdocstrings:
         handlers:
             python:
-              setup_commands:
-                - import sys
-                - sys.path.insert(0, "..")
+              options:
+                docstring_style: google
+                show_source: true
+              paths: [.]
     - bibtex:
         bib_file: "docs/refs.bib"
     - macros
@@ -36,6 +80,7 @@ plugins:
 theme:
     name: "material"
     logo: "https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/logo.png"
+    language: zh
     palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -50,7 +95,6 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-    language: en
     features:
         - header.autohide
         - navigation.tabs
@@ -68,7 +112,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: "!!python/name:pymdownx.superfences.fence_code_format"
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - footnotes
@@ -76,10 +120,12 @@ markdown_extensions:
       permalink: "#"
       baselevel: 2
       separator: "-"
-  - attr_list
-  - md_in_html
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.snippets:
       auto_append:
         - abbreviations.md
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js

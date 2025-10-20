@@ -14,8 +14,7 @@ from typing import Optional, Self, Tuple
 
 import numpy as np
 import pandas as pd
-from abses import Actor, alive_required
-from abses.cells import PatchCell
+from abses import Actor, PatchCell, alive_required
 
 
 class SiteGroup(Actor):
@@ -89,6 +88,7 @@ class SiteGroup(Actor):
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self | None:
         """人口分散，采用均匀分布随机选择一个最小和最大的规模，分裂出去。
         如果分裂出新的小队之后，原有的主体数量小于最小阈值，则原有主体会死掉。
+        确保扩散后总人口数守恒。
 
         Parameters:
             group_range:
@@ -109,15 +109,18 @@ class SiteGroup(Actor):
             return None
         # 随机大小的一个规模，用于创建新的小队
         random_size = self.random.randint(int(s_min), int(s_max))
-        # 如果这个随机来的大小比原来主体拥有的人数还多，则将大小设置为之前主体的全部人口
+        # 确保不超过当前人口
         size = min(random_size, self.size)
-        # 创建一个新的小队伍
-        cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
-        new = self.model.agents.new(cls, singleton=True, size=size)
+
         # 记录当前的位置
         cell = self.at
-        # 原有人口减少，这里会触发减少到人数不足最小值时，死去
-        self.size -= size
+        # 创建一个新的小队伍（先创建，确保即使原主体死亡，新主体也存在）
+        cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
+        new = self.model.agents.new(cls, singleton=True, size=size)
+
+        # 减少原有人口（确保人口守恒）
+        self.size -= size  # 这里会触发死亡检查
+
         # 新的人在周围寻找一个可以去的格子，并试图移动到那里
         if new_cell := search_cell(new, cell=cell):
             new.move.to(new_cell)
@@ -167,12 +170,11 @@ def search_cell(
         radius=radius, moore=False, include_center=False, annular=True
     )
     # 检查周围的格子是否符合当前主体的停留要求
-    accessibility = [cell.able_to_live(agent) for cell in cells]
-    # 如果有符合要求的格子，随机选择一个符合要求的
-    if any(accessibility):
-        selected_cells = cells.select(accessibility)
-        prob = [cell.suitable_level(agent) for cell in selected_cells]
+    selected_cells = cells.select(lambda c: c.able_to_live(agent))
+    # 如果有符合要求的格子，按适宜度加权随机选择
+    if len(selected_cells) > 0:
+        prob = selected_cells.apply(lambda c: c.suitable_level(agent))
         return selected_cells.random.choice(prob=prob)
-    if radius < agent.params.max_travel_distance:
+    if radius < agent.params.get("max_travel_distance", 5):
         return search_cell(agent, cell, radius=radius + 1, **kwargs)
     return None

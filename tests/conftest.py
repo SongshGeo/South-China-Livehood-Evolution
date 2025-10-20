@@ -28,14 +28,12 @@ os.chdir(cfg.root)
 def mock_model_layer():
     """创建一个用于测试的基本模型，拥有一个 4 * 4 的名为'layer'的图层。"""
     model = Model(parameters=cfg)
-    model.register_agents()
     layer = model.nature.create_module(
         name="layer",
-        how="from_resolution",
         shape=(4, 4),
         cell_cls=CompetingCell,
     )
-    layer.apply_raster(np.ones((1, 4, 4)) * cfg.sitegroup.max_size, "lim_h")
+    layer.apply_raster(np.ones((1, 4, 4)) * cfg.SiteGroup.max_size, "lim_h")
     return model, layer
 
 

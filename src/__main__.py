@@ -44,16 +44,17 @@ def main(cfg: DictConfig | None = None) -> None:
         ValueError: 热力图绘制出现问题时可能引发。
         AttributeError: 热力图绘制出现问题时可能引发。
     """
-    exp = MyExperiment(Model, nature_cls=Env, cfg=cfg)
-    exp.batch_run()
-    exp.plot_all_dynamic(save=True)
-    exp.plot_breakpoints(save=True)
-    exp.summary().to_csv(exp.folder / "summary.csv")
-    if heatmap := cfg.exp.get("plot_heatmap"):
-        try:
-            exp.plot_heatmap(heatmap, save=True)
-        except (ValueError, AttributeError) as e:
-            logger.critical(f"Error: {e}")
+    exp = MyExperiment(Model, cfg=cfg, nature_class=Env)
+    exp.batch_run(repeats=cfg.exp.repeats, parallels=cfg.exp.num_process)
+    logger.info(f"Experiment folder: {exp.folder}")
+    # exp.plot_all_dynamic(save=True)
+    # exp.plot_breakpoints(save=True)
+    # exp.summary().to_csv(exp.folder / "summary.csv")
+    # if heatmap := cfg.exp.get("plot_heatmap"):
+    #     try:
+    #         exp.plot_heatmap(heatmap, save=True)
+    #     except (ValueError, AttributeError, KeyError) as e:
+    #         logger.critical(f"Error: {e}")
 
 
 if __name__ == "__main__":

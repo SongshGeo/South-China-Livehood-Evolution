@@ -1,5 +1,13 @@
 root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
 
+convert:
+  enabled: true  # Global switch for conversion mechanism
+  hunter_to_farmer: true
+  hunter_to_rice: true
+  farmer_to_hunter: true
+  farmer_to_rice: true
+  rice_to_farmer: true
+
 model:
   loss_rate: 0.5  # 竞争失败者的人口损失系数
 
@@ -12,12 +20,12 @@ env:
 time:
   end: 10
 
-sitegroup:
+SiteGroup:
   min_size: 5.5
   max_size: 30.5
 
 
-farmer:
+Farmer:
   area: 2
   # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
   growth_rate: 0.1  # 0.1~0.25
@@ -38,7 +46,7 @@ farmer:
     prob: 0.05
     rate: 0.1
 
-hunter:
+Hunter:
   init_size: [0, 35]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
   convert_prob:
     to_farmer: 0.05
@@ -46,11 +54,15 @@ hunter:
   new_group_size: [6, 31]
   growth_rate: 0.04
   min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
-  intensified_coefficient: 1.5  # 狩猎采集者相对农民具有优势
+  max_size: 100  # 单位主体人口最大值
+  max_size_water: 500  # 临近水体时的最大值
   max_travel_distance: 5
   is_complex: 100  # 超过多少之后狩猎采集者不再移动
+  loss:
+    prob: 0.05
+    rate: 0.1
 
-ricefarmer:
+RiceFarmer:
   area: 2
   # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
   growth_rate: 0.1  # 0.1~0.25

@@ -33,8 +33,8 @@ class TestFarmer:
     def test_init(self, farmer: Farmer):
         """测试初始化"""
         # Arrange
-        assert farmer.growth_rate == cfg.farmer.growth_rate
-        assert farmer.area == cfg.farmer.area
+        assert farmer.growth_rate == cfg.Farmer.growth_rate
+        assert farmer.area == cfg.Farmer.area
 
         # Act
         farmer.area = 2  # 2km
