@@ -1,8 +1,7 @@
 {
-  "buildCommand": "pip install --upgrade pip && pip install -r requirements-docs.txt && mkdocs build --clean",
+  "buildCommand": "bash build_vercel.sh",
   "outputDirectory": "site",
-  "installCommand": null,
-  "framework": null,
-  "devCommand": null
+  "installCommand": "echo 'Python project - no install needed'",
+  "framework": null
 }
 
