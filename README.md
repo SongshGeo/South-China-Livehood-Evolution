@@ -192,3 +192,8 @@ If you use this model, please cite:
 ## Acknowledgments
 
 This model is built with [ABSESpy](https://github.com/ABSESpy/ABSESpy), a Python framework for agent-based modeling.
+
+- [模型工作流](docs/api/model.md)
+- [农民主体方法](docs/api/farmer.md)
+- [狩猎采集者主体方法](docs/api/hunter.md)
+- [斑块与环境](docs/api/env.md)
