@@ -28,9 +28,9 @@ class CompetingCell(PatchCell):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.lim_h: float = 0.0
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
+        self.water_type: int = 0  # -1=海，0=陆地，1=近水陆地
         self._is_water: Optional[bool] = None
 
     def _count(self, breed: str) -> int:
@@ -54,9 +54,9 @@ class CompetingCell(PatchCell):
 
     @raster_attribute
     def is_water(self) -> bool:
-        """是否是水体"""
+        """是否是水体（-1=海，0=陆地，1=近水陆地）"""
         if self._is_water is None:
-            return self.elevation <= 0 or np.isnan(self.elevation)
+            return self.water_type == -1  # 只有 -1 才是水体
         return bool(self._is_water)
 
     @is_water.setter
@@ -64,6 +64,11 @@ class CompetingCell(PatchCell):
         if not isinstance(value, (bool, np.bool_)):
             raise TypeError(f"Can only be bool type, got {type(value)}.")
         self._is_water = bool(value)
+
+    @raster_attribute
+    def is_near_water(self) -> bool:
+        """是否靠近水体（water_type = 1）"""
+        return self.water_type == 1
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -290,7 +295,46 @@ class Env(BaseNature):
         arr = self._open_rasterio(self.ds.slope)
         self.dem.apply_raster(arr, attr_name="slope")
         arr = self._open_rasterio(self.ds.lim_h)
-        self.dem.apply_raster(arr, attr_name="lim_h")
+        self.dem.apply_raster(arr, attr_name="water_type")
+
+        # 设置完 DEM 后立即计算全局人口上限
+        self.calculate_global_hunter_limit()
+
+    def calculate_global_hunter_limit(self):
+        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量"""
+        try:
+            # 获取所有非水体栅格（water_type != -1）
+            non_water_cells = self.dem.cells_lst.select({"is_water": False})
+
+            # 使用配置中的 lim_h 值（每个栅格的承载力）
+            lim_h = self.params.get("lim_h", 31.93)
+
+            # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
+            self.global_hunter_limit = float(lim_h * len(non_water_cells))
+
+            # 将全局限制存储到模型参数中，供 Hunter 类访问
+            self.model.params.global_hunter_limit = self.global_hunter_limit
+        except Exception:
+            # 如果出错，设置默认值并静默失败
+            self.global_hunter_limit = 100000.0  # 较大的默认值，不会限制
+            self.model.params.global_hunter_limit = self.global_hunter_limit
+
+    def get_total_hunter_population(self) -> int:
+        """获取当前所有 Hunter 的总人口数"""
+        hunters = self.agents.select(agent_type="Hunter")
+        return hunters.array("size").sum() if len(hunters) > 0 else 0
+
+    def can_hunters_grow(self, additional_population: int = 0) -> bool:
+        """检查 Hunter 是否还能增长
+
+        Args:
+            additional_population: 要增加的额外人口数
+
+        Returns:
+            bool: 如果增加指定人口后不超过全局上限则返回 True
+        """
+        current_population = self.get_total_hunter_population()
+        return (current_population + additional_population) <= self.global_hunter_limit
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:

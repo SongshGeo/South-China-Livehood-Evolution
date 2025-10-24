@@ -149,4 +149,4 @@ ds:
   slope: data/hn_slo_10km1.tif
   asp: data/hn_asp_10km1.tif
   farmland: data/farmland.tif
-  lim_h: data/hg_popu.tif  # 修改最大的上限数据路径
+  lim_h: data/waterbody.tif  # 水体数据路径（-1=海，0=陆地，1=近水陆地）

@@ -34,15 +34,14 @@ class Hunter(SiteGroup):
         return self.params.max_size
 
     def is_near_water(self) -> bool:
-        """检查是否临近水体（相邻格子有水体）
+        """检查是否临近水体（当前格子 water_type = 1）
 
         Returns:
-            如果相邻格子（包括对角线）有水体，返回 True，否则返回 False
+            如果当前格子的 water_type = 1（近水陆地），返回 True，否则返回 False
         """
         if not self.on_earth:
             return False
-        cells = self.at.neighboring(radius=1, moore=True, include_center=False)
-        return any(cells.apply(lambda c: c.is_water))
+        return self.at.is_near_water
 
     @property
     def is_complex(self) -> bool:
@@ -55,7 +54,7 @@ class Hunter(SiteGroup):
 
     @alive_required
     def merge(self, other_hunter: Hunter) -> bool:
-        """狩猎采集者合并，保证人口守恒。
+        """狩猎采集者合并，保证人口守恒并检查全局人口上限。
 
         Parameters:
             other_hunter: 另一个狩猎采集者。
@@ -63,9 +62,26 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        # 合并后总人口 = 两个狩猎采集者人口之和（确保人口守恒）
-        other_hunter.size = other_hunter.size + self.size
+        # 计算合并后的人口
+        merged_size = other_hunter.size + self.size
+
+        # 检查全局人口上限
+        try:
+            env = self.model.nature
+            if hasattr(env, "can_hunters_grow") and hasattr(env, "global_hunter_limit"):
+                current_total = env.get_total_hunter_population()
+                if merged_size > current_total:  # 合并会增加总人口
+                    additional_population = merged_size - current_total
+                    if not env.can_hunters_grow(additional_population):
+                        # 如果超过全局上限，不进行合并
+                        return False
+        except (AttributeError, TypeError):
+            pass  # 如果环境还没初始化，跳过检查
+
+        # 进行正常合并（确保人口守恒）
+        other_hunter.size = merged_size
         self.die()
+        return True
 
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
@@ -80,6 +96,7 @@ class Hunter(SiteGroup):
             - 当无法成功分散时，返回空值。
         """
         if self.size >= self.max_size:
+            # 扩散不会增加总人口，所以不需要检查全局上限
             return super().diffuse(group_range=group_range)
         return None
 
@@ -183,6 +200,32 @@ class Hunter(SiteGroup):
         """狩猎采集者的损失，按概率减少人口。"""
         if self.random.random() < self.params.loss.prob:
             self.size *= 1 - self.params.loss.rate
+
+    @alive_required
+    def population_growth(self, growth_rate: Optional[float] = None) -> None:
+        """人口增长，检查全局人口上限"""
+        if growth_rate is None:
+            growth_rate = self.params.growth_rate
+
+        # 计算增长后的人口
+        new_size = self._size + self._size * growth_rate
+        growth_amount = int(new_size - self._size)
+
+        # 检查全局人口上限
+        if growth_amount > 0:
+            try:
+                env = self.model.nature
+                if hasattr(env, "can_hunters_grow") and hasattr(
+                    env, "global_hunter_limit"
+                ):
+                    if not env.can_hunters_grow(growth_amount):
+                        # 如果超过全局上限，不进行增长
+                        return
+            except (AttributeError, TypeError):
+                pass  # 如果环境还没初始化，跳过检查
+
+        # 进行正常增长
+        self.size = new_size
 
     def step(self):
         """step of a hunter."""
