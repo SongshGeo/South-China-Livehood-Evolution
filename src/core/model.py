@@ -190,15 +190,14 @@ class Model(MainModel):
         """每一步运行后，收集数据"""
         self.do_each("step", order=("nature", "human"))
         self.agents.shuffle_do("step")
+        # 应用全局 Hunter 人口上限控制（在所有 Hunter 执行完 step 后）
+        self.nature.apply_global_hunter_limit()
         self.datacollector.collect(self)
 
     def end(self):
         """模型运行结束后，将自动绘制狩猎采集者和农民的数量变化"""
         self.plot.dynamic()
         self.plot.heatmap()
-        # self.actors.plot.hist(
-        #     attr="size", savefig=self.outpath / f"repeat_{self.run_id}_hist.jpg"
-        # )
         self.export_conversion_data()
 
     @property

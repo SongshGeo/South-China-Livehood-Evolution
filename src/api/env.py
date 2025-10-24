@@ -177,11 +177,11 @@ class CompetingCell(PatchCell):
             return True
         raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, breed: SiteGroup | str) -> float:
+    def suitable_level(self, breed: type[SiteGroup]) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
-            breed (SiteGroup | str): 主体或主体类型名称。
+            breed (type[SiteGroup]): 主体类型。
 
         Returns:
             适合该类主体停留此处的适宜度。
@@ -189,15 +189,13 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if not isinstance(breed, str):
-            breed = breed.breed
-        if breed == "Hunter":
+        if breed == Hunter:
             return 1.0
-        if breed == "RiceFarmer":
+        if breed == RiceFarmer:
             return self.dem_suitable
-        if breed == "Farmer":
+        if breed == Farmer:
             return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
-        if breed == "SiteGroup":
+        if breed == SiteGroup:
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
@@ -317,24 +315,43 @@ class Env(BaseNature):
         except Exception:
             # 如果出错，设置默认值并静默失败
             self.global_hunter_limit = 100000.0  # 较大的默认值，不会限制
-            self.model.params.global_hunter_limit = self.global_hunter_limit
 
-    def get_total_hunter_population(self) -> int:
-        """获取当前所有 Hunter 的总人口数"""
-        hunters = self.agents.select(agent_type="Hunter")
-        return hunters.array("size").sum() if len(hunters) > 0 else 0
+    def apply_global_hunter_limit(self) -> None:
+        """应用全局 Hunter 人口上限控制
 
-    def can_hunters_grow(self, additional_population: int = 0) -> bool:
-        """检查 Hunter 是否还能增长
-
-        Args:
-            additional_population: 要增加的额外人口数
-
-        Returns:
-            bool: 如果增加指定人口后不超过全局上限则返回 True
+        在每个时间步结束时调用，如果总人口超过上限，随机减少 Hunter 的人口，
+        直到总人口降到上限以下。
         """
-        current_population = self.get_total_hunter_population()
-        return (current_population + additional_population) <= self.global_hunter_limit
+        hunters = self.agents.select(agent_type=Hunter)
+        if len(hunters) == 0:
+            return
+
+        current_population = hunters.array("size").sum()
+        if current_population <= self.global_hunter_limit:
+            return  # 未超过上限，不需要调整
+
+        # 计算需要减少的人口数
+        excess_population = current_population - self.global_hunter_limit
+
+        # 随机打乱 Hunter 列表
+        self.model.random.shuffle(hunters)
+
+        # 逐个减少 Hunter 的人口，直到达到上限
+        for hunter in hunters:
+            if excess_population <= 0:
+                break
+
+            # 计算当前 Hunter 可以减少的人口数
+            # 确保至少保留最小人口数（6）或让其死亡
+            reduction = min(excess_population, hunter.size - hunter.params.min_size)
+
+            if reduction > 0:
+                hunter.size -= reduction
+                excess_population -= reduction
+            elif hunter.size > 0:
+                # 如果已经接近最小值，直接让其死亡
+                excess_population -= hunter.size
+                hunter.die()
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:

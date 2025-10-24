@@ -11,11 +11,10 @@ from __future__ import annotations
 from numbers import Number
 from typing import Optional, Self, Tuple
 
-import numpy as np
 from abses import PatchCell, alive_required
 
 from src.api.farmer import Farmer
-from src.api.people import SiteGroup, search_cell
+from src.api.people import SiteGroup
 from src.api.rice_farmer import RiceFarmer
 
 
@@ -54,7 +53,7 @@ class Hunter(SiteGroup):
 
     @alive_required
     def merge(self, other_hunter: Hunter) -> bool:
-        """狩猎采集者合并，保证人口守恒并检查全局人口上限。
+        """狩猎采集者合并，保证人口守恒（不再检查全局人口上限，改为在 loss 时统一控制）。
 
         Parameters:
             other_hunter: 另一个狩猎采集者。
@@ -62,24 +61,8 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        # 计算合并后的人口
-        merged_size = other_hunter.size + self.size
-
-        # 检查全局人口上限
-        try:
-            env = self.model.nature
-            if hasattr(env, "can_hunters_grow") and hasattr(env, "global_hunter_limit"):
-                current_total = env.get_total_hunter_population()
-                if merged_size > current_total:  # 合并会增加总人口
-                    additional_population = merged_size - current_total
-                    if not env.can_hunters_grow(additional_population):
-                        # 如果超过全局上限，不进行合并
-                        return False
-        except (AttributeError, TypeError):
-            pass  # 如果环境还没初始化，跳过检查
-
-        # 进行正常合并（确保人口守恒）
-        other_hunter.size = merged_size
+        # 直接进行合并（确保人口守恒）
+        other_hunter.size = other_hunter.size + self.size
         self.die()
         return True
 
@@ -191,44 +174,22 @@ class Hunter(SiteGroup):
         # 如果没有指定当前的格子，就使用当前的格子
         if cell_now is None:
             cell_now = self.at
-        if new_cell := search_cell(self, cell_now, radius=radius):
+        if new_cell := self.search_cell(radius=radius):
             self.move.to(new_cell)
             return True
         return False
 
-    def loss(self) -> None:
-        """狩猎采集者的损失，按概率减少人口。"""
-        if self.random.random() < self.params.loss.prob:
-            self.size *= 1 - self.params.loss.rate
-
     @alive_required
     def population_growth(self, growth_rate: Optional[float] = None) -> None:
-        """人口增长，检查全局人口上限"""
+        """人口增长（不再检查全局人口上限，改为在 loss 时统一控制）"""
         if growth_rate is None:
             growth_rate = self.params.growth_rate
 
-        # 计算增长后的人口
+        # 直接进行增长，不检查全局上限
         new_size = self._size + self._size * growth_rate
-        growth_amount = int(new_size - self._size)
-
-        # 检查全局人口上限
-        if growth_amount > 0:
-            try:
-                env = self.model.nature
-                if hasattr(env, "can_hunters_grow") and hasattr(
-                    env, "global_hunter_limit"
-                ):
-                    if not env.can_hunters_grow(growth_amount):
-                        # 如果超过全局上限，不进行增长
-                        return
-            except (AttributeError, TypeError):
-                pass  # 如果环境还没初始化，跳过检查
-
-        # 进行正常增长
         self.size = new_size
 
     def step(self):
         """step of a hunter."""
         super().step()
-        self.loss()
         self.move_one()
