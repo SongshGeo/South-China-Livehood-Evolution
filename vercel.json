@@ -1,22 +1,7 @@
 {
-  "buildCommand": "pip install -r requirements-docs.txt && mkdocs build --clean",
-  "outputDirectory": "site",
-  "installCommand": "pip install --upgrade pip",
-  "framework": null,
-  "devCommand": "mkdocs serve",
-  "github": {
-    "enabled": true,
-    "silent": true
-  },
-  "routes": [
-    {
-      "src": "/en/(.*)",
-      "dest": "/en/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "buildCommand": "cd docs-docusaurus && npm ci && npm run build",
+  "outputDirectory": "docs-docusaurus/build",
+  "framework": "docusaurus",
+  "trailingSlash": true
 }
 

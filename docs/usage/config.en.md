@@ -54,7 +54,7 @@ Environment configuration, including parameters like carrying capacity and initi
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| lim_h | float | 31.93 | Carrying capacity (persons/100km²) |
+| lim_h | float | 31.93 | **Carrying capacity (persons/100km²)** |
 | init_hunters | float | 0.05 | Initial hunter ratio or count (<1: ratio, ≥1: count) |
 | init_farmers | int | 80 | Initial number of farmer agents (recommended: 60-100) |
 | init_rice_farmers | int | 350 | Initial number of rice farmer agents (recommended: 300-400) |
@@ -103,6 +103,7 @@ Hunter-gatherer configuration, including parameters like growth rate and movemen
 | min_size | int | 6 | Minimum group size; agents die below this |
 | **max_size** | int | 100 | **Maximum population for unit agent (normal case)** |
 | **max_size_water** | int | 500 | **Maximum population near water bodies** |
+| **global_limit** | float | Auto-calculated | **Global Hunter population limit = lim_h × non-water cells** |
 | new_group_size | list | [6, 31] | New group size range when diffusing |
 | convert_prob | dict | - | Conversion probabilities (to_farmer, to_rice) |
 | max_travel_distance | int | 5 | Maximum search distance when moving |
@@ -143,5 +144,5 @@ Database configuration, including parameters like database paths and types.
 | slo | str | - | Slope data path |
 | asp | str | - | Aspect data path |
 | farmland | str | - | Farmland data path |
-| lim_h | str | - | Carrying capacity data path |
+| lim_h | str | - | **Water body data path (-1=sea, 0=land, 1=near-water land)** |
 

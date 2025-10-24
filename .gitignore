@@ -165,6 +165,6 @@ multirun
 abses
 
 # 还是不上传数据了
-data
 CHANGELOG.d
 out
+.vercel

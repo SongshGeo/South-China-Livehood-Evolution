@@ -28,9 +28,9 @@ class CompetingCell(PatchCell):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.lim_h: float = 0.0
         self.slope: float = np.random.uniform(0, 30)
         self.elevation: float = np.random.uniform(0, 300)
+        self.water_type: int = 0  # -1=海，0=陆地，1=近水陆地
         self._is_water: Optional[bool] = None
 
     def _count(self, breed: str) -> int:
@@ -54,9 +54,9 @@ class CompetingCell(PatchCell):
 
     @raster_attribute
     def is_water(self) -> bool:
-        """是否是水体"""
+        """是否是水体（-1=海，0=陆地，1=近水陆地）"""
         if self._is_water is None:
-            return self.elevation <= 0 or np.isnan(self.elevation)
+            return self.water_type == -1  # 只有 -1 才是水体
         return bool(self._is_water)
 
     @is_water.setter
@@ -64,6 +64,11 @@ class CompetingCell(PatchCell):
         if not isinstance(value, (bool, np.bool_)):
             raise TypeError(f"Can only be bool type, got {type(value)}.")
         self._is_water = bool(value)
+
+    @raster_attribute
+    def is_near_water(self) -> bool:
+        """是否靠近水体（water_type = 1）"""
+        return self.water_type == 1
 
     @raster_attribute
     def is_arable(self) -> bool:
@@ -172,11 +177,11 @@ class CompetingCell(PatchCell):
             return True
         raise TypeError("Agent must be a valid People.")
 
-    def suitable_level(self, breed: SiteGroup | str) -> float:
+    def suitable_level(self, breed: type[SiteGroup]) -> float:
         """根据此处的主体类型，返回一个适宜其停留的水平值。
 
         Args:
-            breed (SiteGroup | str): 主体或主体类型名称。
+            breed (type[SiteGroup]): 主体类型。
 
         Returns:
             适合该类主体停留此处的适宜度。
@@ -184,15 +189,13 @@ class CompetingCell(PatchCell):
         Raises:
             TypeError: 如果输入的主体不是狩猎采集者或者农民，则会抛出TypeError异常。
         """
-        if not isinstance(breed, str):
-            breed = breed.breed
-        if breed == "Hunter":
+        if breed == Hunter:
             return 1.0
-        if breed == "RiceFarmer":
+        if breed == RiceFarmer:
             return self.dem_suitable
-        if breed == "Farmer":
+        if breed == Farmer:
             return self.dem_suitable * 0.5 + self.slope_suitable * 0.2
-        if breed == "SiteGroup":
+        if breed == SiteGroup:
             return 1.0
         raise TypeError("Agent must be Farmer or Hunter.")
 
@@ -290,7 +293,65 @@ class Env(BaseNature):
         arr = self._open_rasterio(self.ds.slope)
         self.dem.apply_raster(arr, attr_name="slope")
         arr = self._open_rasterio(self.ds.lim_h)
-        self.dem.apply_raster(arr, attr_name="lim_h")
+        self.dem.apply_raster(arr, attr_name="water_type")
+
+        # 设置完 DEM 后立即计算全局人口上限
+        self.calculate_global_hunter_limit()
+
+    def calculate_global_hunter_limit(self):
+        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量"""
+        try:
+            # 获取所有非水体栅格（water_type != -1）
+            non_water_cells = self.dem.cells_lst.select({"is_water": False})
+
+            # 使用配置中的 lim_h 值（每个栅格的承载力）
+            lim_h = self.params.get("lim_h", 31.93)
+
+            # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
+            self.global_hunter_limit = float(lim_h * len(non_water_cells))
+
+            # 将全局限制存储到模型参数中，供 Hunter 类访问
+            self.model.params.global_hunter_limit = self.global_hunter_limit
+        except Exception:
+            # 如果出错，设置默认值并静默失败
+            self.global_hunter_limit = 100000.0  # 较大的默认值，不会限制
+
+    def apply_global_hunter_limit(self) -> None:
+        """应用全局 Hunter 人口上限控制
+
+        在每个时间步结束时调用，如果总人口超过上限，随机减少 Hunter 的人口，
+        直到总人口降到上限以下。
+        """
+        hunters = self.agents.select(agent_type=Hunter)
+        if len(hunters) == 0:
+            return
+
+        current_population = hunters.array("size").sum()
+        if current_population <= self.global_hunter_limit:
+            return  # 未超过上限，不需要调整
+
+        # 计算需要减少的人口数
+        excess_population = current_population - self.global_hunter_limit
+
+        # 随机打乱 Hunter 列表
+        self.model.random.shuffle(hunters)
+
+        # 逐个减少 Hunter 的人口，直到达到上限
+        for hunter in hunters:
+            if excess_population <= 0:
+                break
+
+            # 计算当前 Hunter 可以减少的人口数
+            # 确保至少保留最小人口数（6）或让其死亡
+            reduction = min(excess_population, hunter.size - hunter.params.min_size)
+
+            if reduction > 0:
+                hunter.size -= reduction
+                excess_population -= reduction
+            elif hunter.size > 0:
+                # 如果已经接近最小值，直接让其死亡
+                excess_population -= hunter.size
+                hunter.die()
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:

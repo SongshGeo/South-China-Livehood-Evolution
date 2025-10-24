@@ -69,8 +69,10 @@ convert:
 
 **After**:
 - Normal case: `max_size = 100`
-- Near water: `max_size_water = 500` (has water in 8 neighboring cells)
+- Near water: `max_size_water = 500` (water_type = 1 cells)
+- **Global population limit**: `lim_h × non-water cells` (total Hunter population cannot exceed this)
 - No longer limited by individual cell capacity
+- **Water body data**: Use `water_type` (-1=sea, 0=land, 1=near-water land) instead of `lim_h` grid heterogeneity
 
 **Configuration**:
 ```yaml
@@ -93,6 +95,7 @@ Hunter:
 - Different agents cannot occupy same cell (one agent per cell rule)
 - Hunters still merge when encountering other hunters
 - Simpler, clearer movement logic
+- **`search_cell()` function simplified**: No longer uses suitability-weighted selection, changed to simple random selection
 
 #### 3.3 New Loss Mechanism
 
