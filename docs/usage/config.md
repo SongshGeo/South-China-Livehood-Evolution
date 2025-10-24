@@ -5,7 +5,27 @@ author: Shuang Song
 
 配置文件是模型运行的重要组成部分。模型运行时，会根据配置文件中的参数进行模拟。配置文件的格式为YAML，用户可以在配置文件中修改模型参数。
 
-配置文件的默认位置为`config/config.yaml`，用户也可以在运行模型时通过命令行参数指定配置文件的位置。例如：
+配置文件的默认位置为`config/config.yaml`，用户也可以在运行模型时通过命令行参数指定配置文件的位置。
+
+## 2.0 版本主要特性
+
+### 核心规则
+- **每格一主体**：每个格子只能有一个主体，严格遵守空间约束
+- **水体类型系统**：支持 -1（海）、0（陆地）、1（近水陆地）三种水体类型
+- **全局人口上限**：Hunter 人口有全局上限控制机制
+- **无竞争机制**：主体不能移动到已有其他主体的格子
+
+### 使用方式
+```bash
+# 基本运行
+python src
+
+# 使用 poetry 环境
+poetry run python src
+
+# 多情景运行测试
+poetry run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
+```
 
 ## 配置文件结构
 
@@ -39,14 +59,15 @@ author: Shuang Song
 
 ### model
 
-模型配置，包括模型参数，如竞争失败者的人口损失系数、断点检测方法等。
+模型配置，包括模型参数，如断点检测方法等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
 | save_plots | bool | True | 是否保存绘图 |
-| loss_rate | float | 0.5 | 竞争失败者的人口损失系数 |
 | n_bkps | int | 1 | [断点数量] |
 | detect_bkp_by | str | 'size' | [断点检测方法] |
+
+> **注意**：`loss_rate` 参数已在 2.0 版本中移除，因为不再有竞争机制。
 
 ### reports
 
@@ -76,7 +97,7 @@ author: Shuang Song
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| lim_h | float | 31.93 | 环境承载力（人/百平方公里） |
+| lim_h | float | 31.93 | **全局 Hunter 人口上限基础值（人/百平方公里）** |
 | init_hunters | float | 0.05 | 初始狩猎采集者比例或数量（<1时为比例，≥1时为数量） |
 | init_farmers | int | 80 | 初始普通农民主体数量（推荐范围 60-100） |
 | init_rice_farmers | int | 350 | 初始水稻农民主体数量（推荐范围 300-400） |
@@ -84,6 +105,8 @@ author: Shuang Song
 | lam_ricefarmer | float | 1 | 每步添加水稻农民的期望值（泊松分布参数） |
 | tick_farmer | int | 0 | 农民开始添加的时间步（0表示从一开始就有） |
 | tick_ricefarmer | int | 0 | 水稻农民开始添加的时间步（0表示从一开始就有） |
+| width | int | 10 | 网格宽度（玩具模型使用） |
+| height | int | 10 | 网格高度（玩具模型使用） |
 
 > **提示**：`tick_farmer` 和 `tick_ricefarmer` 现在默认为 0，表示从模型初始化时就创建这些主体，而不是在运行过程中才开始添加。
 
@@ -135,6 +158,7 @@ author: Shuang Song
 > - ❌ 已删除 `intensified_coefficient` 参数（不再有竞争机制）
 > - ✅ 新增 `max_size` 和 `max_size_water` 参数
 > - ✅ 新增 `loss` 参数，狩猎采集者现在也会经历随机损失
+> - ✅ **全局 Hunter 人口上限**：自动计算为 `lim_h × 非水体栅格数量`
 
 ### RiceFarmer
 
@@ -155,17 +179,21 @@ author: Shuang Song
 | capital_area | float | 0.002 | 人均耕地面积（平方公里） |
 | loss | dict | - | 损失机制（prob: 发生概率，rate: 损失比率） |
 
-### db
+### ds
 
-数据库配置，包括数据库参数，如数据库路径、数据库类型等。
+数据源配置，包括数据源参数，如数据路径等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
 | dem | str | - | 数字高程模型路径 |
-| slo | str | - | 土壤类型路径 |
-| asp | str | - | 坡度路径 |
+| slope | str | - | 坡度路径 |
+| asp | str | - | 坡向路径 |
 | farmland | str | - | 耕地路径 |
-| lim_h | str | - | 环境容量路径 |
+| lim_h | str | - | **水体数据路径（-1=海，0=陆地，1=近水陆地）** |
+
+> **重要变更**：
+> - `lim_h` 现在表示水体类型数据，而不是 Hunter 人口上限数据
+> - 支持三种水体类型：-1（海）、0（陆地）、1（近水陆地）
 
 <!-- Links -->
   [断点检测方法]: ../tech/breakpoint.md#断点检测方法
