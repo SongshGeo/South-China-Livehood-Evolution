@@ -44,7 +44,11 @@ install-docs:
 	poetry add --group docs mkdocs-glightbox
 
 test:
-	poetry run pytest -vs --clean-alluredir --alluredir tmp/allure_results --cov=src  --no-cov-on-fail
+	@if [ -x .venv/bin/python ]; then \
+		. .venv/bin/activate && python -m pytest -vs --clean-alluredir --alluredir tmp/allure_results --cov=src --no-cov-on-fail; \
+	else \
+		poetry run python -m pytest -vs --clean-alluredir --alluredir tmp/allure_results --cov=src --no-cov-on-fail; \
+	fi
 
 report:
 	poetry run allure serve tmp/allure_results
@@ -55,3 +59,16 @@ update-dependencies:
 clean:
 	rm repeat_*
 	rm docs/repeat_*
+
+# ==== UV-based CI helpers ====
+uv-setup:
+	uv venv --python 3.11 .venv --clear
+
+uv-geo:
+	. .venv/bin/activate && uv pip install --only-binary=:all: shapely==2.0.4 rasterio==1.4.3 geopandas==0.14.4 fiona==1.9.6 rtree pyproj
+
+uv-install:
+	. .venv/bin/activate && uv pip install -e .
+	. .venv/bin/activate && uv pip install pytest allure-pytest pytest-cov pytest-clarity pytest-sugar
+
+ci: uv-setup uv-geo uv-install test

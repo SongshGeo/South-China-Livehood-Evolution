@@ -2,7 +2,7 @@ defaults:
   - default
   - _self_
 
-root: /Users/songshgeo/Documents/VSCode/SC-20230710-SCE
+root: /Users/songshgeo/Documents/Codebase/Scholar/SC-20230710-SCE
 
 hydra:
   searchpath:
