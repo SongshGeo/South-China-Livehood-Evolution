@@ -333,25 +333,24 @@ class Env(BaseNature):
         # 计算需要减少的人口数
         excess_population = current_population - self.global_hunter_limit
 
-        # 随机打乱 Hunter 列表
-        self.model.random.shuffle(hunters)
-
-        # 逐个减少 Hunter 的人口，直到达到上限
-        for hunter in hunters:
+        # 按 ActorsList 的风格随机顺序执行减少逻辑
+        def _reduce_in_random_order(hunter: Hunter) -> None:
+            nonlocal excess_population
             if excess_population <= 0:
-                break
-
-            # 计算当前 Hunter 可以减少的人口数
-            # 确保至少保留最小人口数（6）或让其死亡
-            reduction = min(excess_population, hunter.size - hunter.params.min_size)
-
+                return
+            # 计算当前 Hunter 可以减少的人口数（不低于最小规模）
+            max_reducible = max(0, hunter.size - hunter.params.min_size)
+            reduction = min(excess_population, max_reducible)
             if reduction > 0:
                 hunter.size -= reduction
                 excess_population -= reduction
-            elif hunter.size > 0:
-                # 如果已经接近最小值，直接让其死亡
+                return
+            # 若已接近最小规模且仍需收缩，则直接让其死亡
+            if hunter.size > 0 and excess_population > 0:
                 excess_population -= hunter.size
                 hunter.die()
+
+        hunters.shuffle_do(_reduce_in_random_order)
 
     def _open_rasterio(self, source: str) -> np.ndarray:
         with rasterio.open(source) as dataset:
