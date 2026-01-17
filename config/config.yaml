@@ -22,12 +22,13 @@ exp:
   num_process: 5  # 并行运算的进程数
   plot_heatmap: 'bkp_farmer'  # 绘制热图的变量
   logging: all  # 记录所有日志（而不是 once）
+  save_data: true  # 是否保存数据
 
 log:
   level: DEBUG  # 日志级别: DEBUG, INFO, WARNING, ERROR
   file: true   # 是否写入日志文件
 
-reports:
+tracker:
   model:
     len_farmers: "farmers group ratio"
     len_hunters: "hunters group ratio"

@@ -58,9 +58,9 @@ poetry run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 | plot_heatmap | str | - | [绘制热图]的变量 |
 | logging | str | all | 记录日志的方式（all 或 once） |
 
-### reports
+### tracker
 
-决定了报告的输出内容，包括报告的名称、报告的变量等。变量命名规则为 `{report_type}_{group}_{variable_type}`，例如：
+决定了数据跟踪的输出内容，包括跟踪的名称、跟踪的变量等（符合新的 ABSESpy 规范，原 `reports` 已迁移到 `tracker`）。变量命名规则为 `{tracker_type}_{group}_{variable_type}`，例如：
 
 - `len_farmers`: 农民，团体数，占总人口比例
 - `num_farmers_n`: 农民，人口数，绝对人口数量

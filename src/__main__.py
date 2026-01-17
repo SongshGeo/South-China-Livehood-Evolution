@@ -8,12 +8,15 @@
 """
 运行一次实验
 """
+import logging
+
 import hydra
-from loguru import logger
 from omegaconf import DictConfig
 
 from src.api import Env
 from src.core import Model, MyExperiment
+
+logger = logging.getLogger(__name__)
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
@@ -47,14 +50,6 @@ def main(cfg: DictConfig | None = None) -> None:
     exp = MyExperiment(Model, cfg=cfg, nature_class=Env)
     exp.batch_run(repeats=cfg.exp.repeats, parallels=cfg.exp.num_process)
     logger.info(f"Experiment folder: {exp.folder}")
-    # exp.plot_all_dynamic(save=True)
-    # exp.plot_breakpoints(save=True)
-    # exp.summary().to_csv(exp.folder / "summary.csv")
-    # if heatmap := cfg.exp.get("plot_heatmap"):
-    #     try:
-    #         exp.plot_heatmap(heatmap, save=True)
-    #     except (ValueError, AttributeError, KeyError) as e:
-    #         logger.critical(f"Error: {e}")
 
 
 if __name__ == "__main__":

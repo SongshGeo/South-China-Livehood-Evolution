@@ -34,7 +34,7 @@ model:
   n_bkps: 1  # 断点数量
   detect_bkp_by: 'size'  # 断点检测依据
 
-reports:
+tracker:
   model:
     num_farmers: "farmers size ratio"
     num_hunters: "hunters size ratio"
