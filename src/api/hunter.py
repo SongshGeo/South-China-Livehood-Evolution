@@ -11,11 +11,10 @@ from __future__ import annotations
 from numbers import Number
 from typing import Optional, Self, Tuple
 
-import numpy as np
 from abses import PatchCell, alive_required
 
 from src.api.farmer import Farmer
-from src.api.people import SiteGroup, search_cell
+from src.api.people import SiteGroup
 from src.api.rice_farmer import RiceFarmer
 
 
@@ -34,15 +33,14 @@ class Hunter(SiteGroup):
         return self.params.max_size
 
     def is_near_water(self) -> bool:
-        """检查是否临近水体（相邻格子有水体）
+        """检查是否临近水体（当前格子 water_type = 1）
 
         Returns:
-            如果相邻格子（包括对角线）有水体，返回 True，否则返回 False
+            如果当前格子的 water_type = 1（近水陆地），返回 True，否则返回 False
         """
         if not self.on_earth:
             return False
-        cells = self.at.neighboring(radius=1, moore=True, include_center=False)
-        return any(cells.apply(lambda c: c.is_water))
+        return self.at.is_near_water
 
     @property
     def is_complex(self) -> bool:
@@ -55,7 +53,7 @@ class Hunter(SiteGroup):
 
     @alive_required
     def merge(self, other_hunter: Hunter) -> bool:
-        """狩猎采集者合并，保证人口守恒。
+        """狩猎采集者合并，保证人口守恒（不再检查全局人口上限，改为在 loss 时统一控制）。
 
         Parameters:
             other_hunter: 另一个狩猎采集者。
@@ -63,9 +61,10 @@ class Hunter(SiteGroup):
         Returns:
             是否被合并了。
         """
-        # 合并后总人口 = 两个狩猎采集者人口之和（确保人口守恒）
+        # 直接进行合并（确保人口守恒）
         other_hunter.size = other_hunter.size + self.size
         self.die()
+        return True
 
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
@@ -80,6 +79,7 @@ class Hunter(SiteGroup):
             - 当无法成功分散时，返回空值。
         """
         if self.size >= self.max_size:
+            # 扩散不会增加总人口，所以不需要检查全局上限
             return super().diffuse(group_range=group_range)
         return None
 
@@ -174,18 +174,22 @@ class Hunter(SiteGroup):
         # 如果没有指定当前的格子，就使用当前的格子
         if cell_now is None:
             cell_now = self.at
-        if new_cell := search_cell(self, cell_now, radius=radius):
+        if new_cell := self.search_cell(radius=radius):
             self.move.to(new_cell)
             return True
         return False
 
-    def loss(self) -> None:
-        """狩猎采集者的损失，按概率减少人口。"""
-        if self.random.random() < self.params.loss.prob:
-            self.size *= 1 - self.params.loss.rate
+    @alive_required
+    def population_growth(self, growth_rate: Optional[float] = None) -> None:
+        """人口增长（不再检查全局人口上限，改为在 loss 时统一控制）"""
+        if growth_rate is None:
+            growth_rate = self.params.growth_rate
+
+        # 直接进行增长，不检查全局上限
+        new_size = self._size + self._size * growth_rate
+        self.size = new_size
 
     def step(self):
         """step of a hunter."""
         super().step()
-        self.loss()
         self.move_one()

@@ -1,0 +1,10 @@
+# Vercel ignore file
+# This is a Python project, ignore Node.js files
+
+node_modules/
+package.json
+package-lock.json
+yarn.lock
+.npmrc
+.yarnrc
+

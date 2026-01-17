@@ -112,8 +112,12 @@ class SiteGroup(Actor):
         # 确保不超过当前人口
         size = min(random_size, self.size)
 
-        # 记录当前的位置
-        cell = self.at
+        # 先检查是否有可用的格子可以移动
+        available_cell = self._search_cell_from_position(self.at)
+        if available_cell is None:
+            # 如果没有可用的格子，diffuse 不发生
+            return None
+
         # 创建一个新的小队伍（先创建，确保即使原主体死亡，新主体也存在）
         cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
         new = self.model.agents.new(cls, singleton=True, size=size)
@@ -121,13 +125,9 @@ class SiteGroup(Actor):
         # 减少原有人口（确保人口守恒）
         self.size -= size  # 这里会触发死亡检查
 
-        # 新的人在周围寻找一个可以去的格子，并试图移动到那里
-        if new_cell := search_cell(new, cell=cell):
-            new.move.to(new_cell)
-            return new
-        # 如果走了很远，没有符合要求的格子，主体就会死亡
-        new.die()
-        return "Died"
+        # 新的人移动到找到的格子
+        new.move.to(available_cell)
+        return new
 
     def report(self) -> pd.Series:
         """汇报主体的属性。
@@ -147,34 +147,81 @@ class SiteGroup(Actor):
     def convert(self):
         """转化的行为。"""
 
+    def loss(self) -> None:
+        """通用的损失方法，按概率减少人口。"""
+        loss_params = self.params.get("loss", {})
+        if not loss_params:
+            return  # 如果没有损失参数，跳过
+
+        prob = loss_params.get("prob", 0.0)
+        rate = loss_params.get("rate", 0.0)
+
+        if prob > 0 and rate > 0 and self.random.random() < prob:
+            self.size *= 1 - rate
+
+    def search_cell(self, radius: int = 1) -> Optional[PatchCell]:
+        """在周围寻找一个新的地方，能够让迁徙的人过去
+
+        简化版本：没有竞争机制，只需要检查：
+        1. 格子是否适合该主体生存
+        2. 格子是否为空（没有其他主体）
+        """
+        if self.at is None:
+            raise TypeError(f"Agent {self} is not at any cell.")
+
+        # 找到周围的格子
+        cells = self.at.neighboring(
+            radius=radius, moore=False, include_center=False, annular=True
+        )
+
+        # 简单筛选：只检查能否生存且为空
+        available_cells = cells.select(lambda c: c.able_to_live(self))
+
+        # 如果有可用格子，随机选择一个
+        if len(available_cells) > 0:
+            return available_cells.random.choice()
+
+        # 扩大搜索范围
+        max_distance = self.params.get("max_travel_distance", 5)
+        if radius < max_distance:
+            return self.search_cell(radius=radius + 1)
+
+        return None
+
+    def _search_cell_from_position(
+        self, start_cell: PatchCell, radius: int = 1
+    ) -> Optional[PatchCell]:
+        """从指定位置搜索可用的格子（用于 diffuse 方法）"""
+        if start_cell is None:
+            return None
+
+        # 找到周围的格子
+        cells = start_cell.neighboring(
+            radius=radius, moore=False, include_center=False, annular=True
+        )
+
+        # 简单筛选：只检查能否生存且为空
+        available_cells = cells.select(lambda c: c.able_to_live(self))
+
+        # 如果有可用格子，随机选择一个
+        if len(available_cells) > 0:
+            return available_cells.random.choice()
+
+        # 扩大搜索范围
+        max_distance = self.params.get("max_travel_distance", 5)
+        if radius < max_distance:
+            return self._search_cell_from_position(start_cell, radius=radius + 1)
+
+        return None
+
     def step(self):
         """每一步的行为。"""
         self.population_growth()
         self.convert()
         self.diffuse()
+        self.loss()
 
     def loss_in_competition(self, at: Optional[PatchCell] = None) -> None:
         """在竞争中失败"""
         self.die()
         return at
-
-
-def search_cell(
-    agent: SiteGroup, cell: PatchCell, radius: int = 1, **kwargs
-) -> PatchCell:
-    """在周围寻找一个新的地方，能够让迁徙的人过去"""
-    if cell is None:
-        raise TypeError(f"Expect PatchCell, got {type(cell)}, r={radius}.")
-    # 先找到周围的格子
-    cells = cell.neighboring(
-        radius=radius, moore=False, include_center=False, annular=True
-    )
-    # 检查周围的格子是否符合当前主体的停留要求
-    selected_cells = cells.select(lambda c: c.able_to_live(agent))
-    # 如果有符合要求的格子，按适宜度加权随机选择
-    if len(selected_cells) > 0:
-        prob = selected_cells.apply(lambda c: c.suitable_level(agent))
-        return selected_cells.random.choice(prob=prob)
-    if radius < agent.params.get("max_travel_distance", 5):
-        return search_cell(agent, cell, radius=radius + 1, **kwargs)
-    return None
