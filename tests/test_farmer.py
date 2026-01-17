@@ -21,7 +21,20 @@ class TestFarmer:
     @pytest.fixture(name="cell")
     def mock_cell(self, layer: PatchModule) -> CompetingCell:
         """用于测试的，农民应该站在的地方"""
-        return layer.array_cells[2, 2]
+        cell = layer.array_cells[2, 2]
+        # Set cell and all neighbors to be arable for consistent test environment
+        cell.slope = 5
+        cell.elevation = 100
+        cell.is_water = False
+        # Set all neighbors to be arable as well
+        neighbors = cell.neighboring(
+            radius=1, moore=False, include_center=False, annular=True
+        )
+        for neighbor in neighbors:
+            neighbor.slope = 5
+            neighbor.elevation = 100
+            neighbor.is_water = False
+        return cell
 
     @pytest.fixture(name="farmer")
     def mock_farmer(self, model: MainModel, cell: CompetingCell) -> Farmer:
