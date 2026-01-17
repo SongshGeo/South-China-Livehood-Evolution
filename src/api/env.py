@@ -221,7 +221,12 @@ class CompetingCell(PatchCell):
                 return agent
 
             # 检查具体转化类型的开关
-            convert_type = f"{agent.breed.lower()}_to_{to.lower()}"
+            # 将完整类名映射到配置中的简短名称
+            breed_map = {"Farmer": "farmer", "Hunter": "hunter", "RiceFarmer": "rice"}
+            to_map = {"Farmer": "farmer", "Hunter": "hunter", "RiceFarmer": "rice"}
+            breed_short = breed_map.get(agent.breed, agent.breed.lower())
+            to_short = to_map.get(to, to.lower())
+            convert_type = f"{breed_short}_to_{to_short}"
             if not convert_config.get(convert_type, True):
                 return agent
         except (AttributeError, KeyError):

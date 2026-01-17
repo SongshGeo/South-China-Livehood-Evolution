@@ -36,17 +36,7 @@ Experiment configuration, including experiment name, number of repeats, processe
 | repeats | int | 1 | Number of repeats per parameter set |
 | num_process | int | 1 | Number of parallel processes |
 | plot_heatmap | str | - | Variable for heatmap plotting |
-
-### model
-
-Model configuration, including model parameters like population loss coefficient and breakpoint detection method.
-
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| save_plots | bool | True | Whether to save plots |
-| loss_rate | float | 0.5 | Population loss coefficient for competition losers (deprecated) |
-| n_bkps | int | 1 | Number of breakpoints |
-| detect_bkp_by | str | 'size' | Breakpoint detection method |
+| logging | str | all | Logging mode (all or once) |
 
 ### env
 
@@ -134,15 +124,13 @@ Rice farmer configuration, including parameters like growth rate and diffusion p
 | capital_area | float | 0.002 | Per capita arable land (km²) |
 | loss | dict | - | Loss mechanism (prob: probability, rate: loss ratio) |
 
-### db
+### ds
 
-Database configuration, including parameters like database paths and types.
+Data source configuration, including parameters like data paths.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | dem | str | - | Digital Elevation Model path |
-| slo | str | - | Slope data path |
-| asp | str | - | Aspect data path |
-| farmland | str | - | Farmland data path |
+| slope | str | - | Slope data path |
 | lim_h | str | - | **Water body data path (-1=sea, 0=land, 1=near-water land)** |
 

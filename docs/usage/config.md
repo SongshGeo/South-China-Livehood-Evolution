@@ -56,18 +56,7 @@ poetry run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 | repeats | int | 1 | 每组参数的重复次数 |
 | num_process | int | 1 | 并行运算的进程数 |
 | plot_heatmap | str | - | [绘制热图]的变量 |
-
-### model
-
-模型配置，包括模型参数，如断点检测方法等。
-
-| 参数名 | 类型 | 默认值 | 说明 |
-| :--- | :--- | :--- | :--- |
-| save_plots | bool | True | 是否保存绘图 |
-| n_bkps | int | 1 | [断点数量] |
-| detect_bkp_by | str | 'size' | [断点检测方法] |
-
-> **注意**：`loss_rate` 参数已在 2.0 版本中移除，因为不再有竞争机制。
+| logging | str | all | 记录日志的方式（all 或 once） |
 
 ### reports
 
@@ -187,8 +176,6 @@ poetry run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 | :--- | :--- | :--- | :--- |
 | dem | str | - | 数字高程模型路径 |
 | slope | str | - | 坡度路径 |
-| asp | str | - | 坡向路径 |
-| farmland | str | - | 耕地路径 |
 | lim_h | str | - | **水体数据路径（-1=海，0=陆地，1=近水陆地）** |
 
 > **重要变更**：

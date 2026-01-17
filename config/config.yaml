@@ -27,16 +27,6 @@ log:
   level: DEBUG  # 日志级别: DEBUG, INFO, WARNING, ERROR
   file: true   # 是否写入日志文件
 
-model:
-  save_plots: True  # 保存绘图
-  n_bkps: 1
-  # 识别断点的数据是依赖于：
-  # 1. 人口绝对数量：size
-  # 2. 人口相对比例：ratio
-  # 3. 人口群体数量：group
-  # 4. 人口群体比例：group_ratio
-  detect_bkp_by: 'size'
-
 reports:
   model:
     len_farmers: "farmers group ratio"
@@ -51,19 +41,6 @@ reports:
     num_farmers_n: "farmers size num"
     num_hunters_n: "hunters size num"
     num_rice_n: "rice size num"
-  final:
-    # 断点检测
-    bkp_farmer: "bkp_farmers"
-    bkp_rice: "bkp_rice"
-    bkp_hunters: "bkp_hunters"
-    # 断点检测前的人口增长率
-    pre_farmer: "pre_farmers"
-    pre_rice: "pre_rice"
-    pre_hunters: "pre_hunters"
-    # 断点检测后的人口增长率
-    post_farmer: "post_farmers"
-    post_rice: "post_rice"
-    post_hunters: "post_hunters"
 
 env:
   # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
@@ -146,6 +123,4 @@ RiceFarmer:
 ds:
   dem: data/hn_dem_10km1.tif
   slope: data/hn_slo_10km1.tif
-  asp: data/hn_asp_10km1.tif
-  farmland: data/farmland.tif
   lim_h: data/waterbody.tif  # 水体数据路径（-1=海，0=陆地，1=近水陆地）
