@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --job-name=sce_grid_search
-#SBATCH --time=24:00:00
+#SBATCH --time=150:00:00
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.err
 #SBATCH --mem=16G
