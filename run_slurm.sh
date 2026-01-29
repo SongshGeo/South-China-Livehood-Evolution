@@ -41,7 +41,8 @@ uv sync --no-dev
 # Run the parameter grid search
 # This will create 25 parameter combinations (5x5), each repeated 5 times = 125 total runs
 echo "Starting parameter grid search..."
-uv run python src -m env.lam_farmer=2,4,6,8,10 env.lam_ricefarmer=0.1,0.2,0.3,0.4,0.5
+# uv run python src -m env.lam_farmer=2,4,6,8,10 env.lam_ricefarmer=0.1,0.2,0.3,0.4,0.5
+uv run python src -m convert.farmer_to_hunter=true,false convert.hunter_to_farmer=true,false convert.hunter_to_rice=true,false
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
