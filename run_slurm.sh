@@ -39,10 +39,12 @@ echo "Syncing dependencies with uv..."
 uv sync --no-dev
 
 # Run the parameter grid search
-# This will create 25 parameter combinations (5x5), each repeated 5 times = 125 total runs
+# This will create parameter combinations over convert flags and ds datasets
 echo "Starting parameter grid search..."
 # uv run python src -m env.lam_farmer=2,4,6,8,10 env.lam_ricefarmer=0.1,0.2,0.3,0.4,0.5
-uv run python src -m convert.farmer_to_hunter=true,false convert.hunter_to_farmer=true,false convert.hunter_to_rice=true,false
+uv run python src -m \
+  ds.dem=data/ohndem10.tif,data/ohn_value1.tif \
+  ds.slope=data/ohnslo10.tif,data/ohn_value0.tif
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
