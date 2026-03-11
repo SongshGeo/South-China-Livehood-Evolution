@@ -42,13 +42,7 @@ uv sync --no-dev
 # This will create parameter combinations over convert flags and ds datasets
 echo "Starting parameter grid search..."
 # uv run python src -m env.lam_farmer=2,4,6,8,10 env.lam_ricefarmer=0.1,0.2,0.3,0.4,0.5
-uv run python src -m\
-Farmer.loss.prob=0.01,0.05,\
-Farmer.loss.rate=0.05,0.01,\
-Hunter.loss.prob=0.05,0.01,\
-Hunter.loss.rate=0.01,0.05,\
-RiceFarmer.loss.prob=0.05,0.01,\
-RiceFarmer.loss.rate=0.01,0.05
+uv run python src -m Farmer.loss.prob=0.01,0.05 Farmer.loss.rate=0.05,0.01 Hunter.loss.prob=0.05,0.01 Hunter.loss.rate=0.01,0.05 RiceFarmer.loss.prob=0.05,0.01 RiceFarmer.loss.rate=0.01,0.05
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
