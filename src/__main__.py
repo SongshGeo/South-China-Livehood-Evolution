@@ -12,6 +12,7 @@ import logging
 
 import hydra
 from omegaconf import DictConfig
+from twist_academic import notify
 
 from src.api import Env
 from src.core import Model, MyExperiment
@@ -53,4 +54,6 @@ def main(cfg: DictConfig | None = None) -> None:
 
 
 if __name__ == "__main__":
+    notify("华南农业实验开始运行")
     main()
+    notify("华南农业实验结束")
