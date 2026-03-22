@@ -55,5 +55,10 @@ def main(cfg: DictConfig | None = None) -> None:
 
 if __name__ == "__main__":
     notify("华南农业实验开始运行")
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger.error(f"实验运行失败: {e}")
+        notify(f"华南农业实验运行失败: {e}")
+        raise e
     notify("华南农业实验结束")
