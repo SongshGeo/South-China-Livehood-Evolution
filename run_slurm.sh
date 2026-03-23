@@ -41,8 +41,7 @@ uv sync --no-dev
 # Run the parameter grid search using Hydra scenarios (multirun)
 echo "Starting parameter grid search over 4 loss scenarios..."
 
-uv run python src -m \
-  scenario=hunter1_farmer1,hunter1_farmer2,hunter2_farmer1,hunter2_farmer2
+uv run python src -m Farmer.max_travel_distance=5,10,20 RiceFarmer.max_travel_distance=5,10,20 Hunter.max_travel_distance=5,10,20
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
