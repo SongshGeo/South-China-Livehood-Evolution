@@ -61,4 +61,5 @@ if __name__ == "__main__":
         logger.error(f"实验运行失败: {e}")
         notify(f"华南农业实验运行失败: {e}")
         raise e
-    notify("华南农业实验结束")
+    finally:
+        notify("华南农业实验结束")
