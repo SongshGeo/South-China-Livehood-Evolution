@@ -41,7 +41,7 @@ uv sync --no-dev
 # Run the parameter grid search using Hydra scenarios (multirun)
 echo "Starting parameter grid search over 4 loss scenarios..."
 
-uv run python src -m Farmer.diffuse_prob=0.05,0.1,0.2 RiceFarmer.diffuse_prob=0.05,0.1,0.2 Hunter.diffuse_prob=0.05,0.1,0.2
+uv run python src -m Farmer.diffuse_prob=0.05,0.1,0.2 RiceFarmer.diffuse_prob=0.05,0.1,0.2
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
