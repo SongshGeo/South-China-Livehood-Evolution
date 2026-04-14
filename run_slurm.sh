@@ -38,10 +38,14 @@ cd "$SLURM_SUBMIT_DIR" || cd "$(dirname "$0")"
 echo "Syncing dependencies with uv..."
 uv sync --no-dev
 
-# Run the parameter grid search using Hydra scenarios (multirun)
-echo "Starting parameter grid search over 4 loss scenarios..."
+# Run the parameter grid search using Hydra multirun
+# 扫描 hunter↔farmer / hunter→rice 三条转化路径的概率，每条 {0.0, 0.05, 0.1} → 3^3 = 27 组
+echo "Starting 3^3 convert_prob grid search (27 combinations)..."
 
-uv run python src -m Farmer.diffuse_prob=0.05,0.1,0.2 RiceFarmer.diffuse_prob=0.05,0.1,0.2
+uv run python src -m \
+    Farmer.convert_prob.to_hunter=0.0,0.05,0.1 \
+    Hunter.convert_prob.to_farmer=0.0,0.05,0.1 \
+    Hunter.convert_prob.to_rice=0.0,0.05,0.1
 
 echo "End Time: $(date)"
 echo "Job completed successfully"
