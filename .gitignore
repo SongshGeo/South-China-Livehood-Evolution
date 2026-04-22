@@ -168,3 +168,4 @@ abses
 CHANGELOG.d
 out
 .vercel
+reports/*.png

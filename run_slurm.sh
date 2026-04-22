@@ -5,6 +5,8 @@
 #SBATCH --error=logs/%x-%j.err
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
+#SBATCH --mail-user=song@gea.mpg.de
+#SBATCH --mail-type=END,FAIL
 
 # Print job information
 echo "Job ID: $SLURM_JOB_ID"

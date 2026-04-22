@@ -17,6 +17,7 @@ dependencies = [
     "abses>=0.11.0",
     "shapely==2.0.4",
     "twist-academic>=0.2.1",
+    "matplotkit>=0.3.0",
 ]
 
 [tool.poetry]
