@@ -49,6 +49,16 @@ def main(cfg: DictConfig | None = None) -> None:
         AttributeError: 热力图绘制出现问题时可能引发。
     """
     exp = MyExperiment(Model, cfg=cfg, nature_class=Env)
+
+    expected = [
+        exp.outpath / f"{i}_tracking.csv" for i in range(1, cfg.exp.repeats + 1)
+    ]
+    if all(p.exists() for p in expected):
+        logger.info(
+            f"All {cfg.exp.repeats} repeats already complete in {exp.outpath}; skipping."
+        )
+        return
+
     exp.batch_run(repeats=cfg.exp.repeats, parallels=cfg.exp.num_process)
     logger.info(f"Experiment folder: {exp.folder}")
 
