@@ -13,21 +13,12 @@ import os
 
 import hydra
 from omegaconf import DictConfig
-from twist_academic import notify
+from twist_academic import maybe_notify
 
 from src.api import Env
 from src.core import Model, MyExperiment
 
 logger = logging.getLogger(__name__)
-
-
-def _maybe_notify(msg: str) -> None:
-    # SLURM array task 会把 33 个 task 各自通知 3 次（开始/异常/结束），过于嘈杂。
-    # 检测到 SLURM_ARRAY_TASK_ID 或显式 SCE_NO_NOTIFY=1 就静音；SBATCH 自带的
-    # --mail-type=END,FAIL 邮件仍会处理失败/完成的关键信号。
-    if os.environ.get("SLURM_ARRAY_TASK_ID") or os.environ.get("SCE_NO_NOTIFY"):
-        return
-    notify(msg)
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
@@ -74,12 +65,12 @@ def main(cfg: DictConfig | None = None) -> None:
 
 
 if __name__ == "__main__":
-    _maybe_notify("华南农业实验开始运行")
+    maybe_notify("华南农业实验开始运行")
     try:
         main()
     except Exception as e:
         logger.error(f"实验运行失败: {e}")
-        _maybe_notify(f"华南农业实验运行失败: {e}")
+        maybe_notify(f"华南农业实验运行失败: {e}")
         raise e
     finally:
-        _maybe_notify("华南农业实验结束")
+        maybe_notify("华南农业实验结束")
