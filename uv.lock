@@ -66,7 +66,7 @@ requires-dist = [
     { name = "ruptures", specifier = ">=1.1.9" },
     { name = "seaborn" },
     { name = "shapely", specifier = "==2.0.4" },
-    { name = "twist-academic", specifier = "==0.3.0" },
+    { name = "twist-academic", specifier = ">=0.3.0" },
     { name = "urllib3", specifier = "<2.0" },
 ]
 
