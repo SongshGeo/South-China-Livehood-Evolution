@@ -21,11 +21,16 @@ the fixes now landing on `dev`. Two consequences, both to be cleared by one re-r
    all (F14), so they reproduce in distribution only. `methods.md` and
    `si_odd_protocol.md` say so explicitly; delete those sentences once the sweeps are
    re-run under the seeded code.
-2. Any fix that changes model behaviour invalidates the stored numbers and needs the
-   figures rebuilt. Track such fixes here as they land.
+2. **The stored numbers are stale.** Fixes that change model behaviour have landed
+   since they were generated, so the figures must be rebuilt:
+   - **F1 / #28** — farming breeds drew mortality twice per step; now once. This
+     halves the expected per-step mortality of both farming breeds. Arithmetic only:
+     the expected per-step survival multiplier moves from 0.999 to 0.9995, which
+     compounds to ≈1.28× over 500 steps. The realised effect has not been measured
+     and the direction is not asserted here — the re-run is the measurement.
 
-Nothing else in this ledger is affected: the fixes landing so far do not alter the
-population dynamics.
+Until the sweeps are re-run, `methods.md` and `si_odd_protocol.md` describe the
+**current code**, which is not the code that produced the current figures.
 
 ---
 
@@ -71,8 +76,8 @@ Derived landscape counts at initialisation: `is_arable` 2 620 cells,
    - `SiteGroup.step` (`people.py:217-222`): `population_growth` → `convert` →
      `diffuse` → `loss`.
    - `Hunter.step` (`hunter.py:192-195`): the above, then `move_one`.
-   - `Farmer.step` (`farmer.py:140-142`): the above, then **`loss` a second time**
-     (finding F1). `RiceFarmer` inherits `Farmer.step`.
+   - `Farmer` and `RiceFarmer` inherit `SiteGroup.step` unchanged. `Farmer` used to
+     override it to call `loss` a second time (finding F1, now fixed).
 3. `nature.apply_global_hunter_limit()` (`env.py:324-358`) — regional forager ceiling.
 4. `datacollector.collect(self)` — recording happens **after** all updates.
 
@@ -139,7 +144,7 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 110 passing, covering agents, environment, conversion thresholds, seed
+- Unit tests: 114 passing, covering agents, environment, conversion thresholds, seed
   reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
@@ -154,11 +159,23 @@ Deterministic: population growth (`people.py:85`), intensification
 
 Each was verified by execution or by a call-graph trace, not by reading alone.
 
-**F1. Farmers and paddy farmers apply mortality twice per step; foragers once.**
-`SiteGroup.step` calls `self.loss()` (`people.py:222`) and `Farmer.step` calls it
-again (`farmer.py:142`). Verified: two invocations per `Farmer.step`. Two independent
-Bernoulli draws at `loss.prob`, so the realised per-step survival differs from the
-single draw both documents described. `RiceFarmer` inherits this. **[ASK] intended?**
+**F1. Farmers and paddy farmers applied mortality twice per step — FIXED.**
+`SiteGroup.step` called `self.loss()` (`people.py:222`) and `Farmer.step` called it
+again (`farmer.py:142`), giving two independent Bernoulli draws at `loss.prob` per
+tick for both farming breeds while foragers got one.
+
+Git history settles the "[ASK] intended?" that stood here: `e66a0ec` added
+`Farmer.step` → `super().step(); self.loss()` at a time when `SiteGroup.step`
+contained **no** `loss()` call, so farmers correctly lost once. The later refactor
+`beedcf5` ("streamline population management") added `self.loss()` to
+`SiteGroup.step` to give foragers a mortality mechanism, without removing the
+farmer-side call. A leftover, not a modelling choice.
+
+Fixed by deleting the `Farmer.step` override entirely (it then held nothing but
+`super().step()`); `RiceFarmer`, which inherited it, is fixed with it.
+`tests/test_people.py::TestStepSchedule` locks all four breeds to one draw per step.
+**This changed model behaviour: the stored runs and Figures 2–5 predate the fix and
+must be regenerated — see "Pending re-run" at the top.**
 
 **F2. Five conversion paths exist, not six.** `Hunter`→`Farmer`, `Hunter`→`RiceFarmer`,
 `Farmer`→`Hunter`, `Farmer`→`RiceFarmer`, `RiceFarmer`→`Farmer`. There is no
@@ -254,15 +271,16 @@ Findings that need a decision or a code change are filed on GitHub. F2, F9–F12
 documentation defects and are already fixed in `methods.md` / `si_odd_protocol.md`;
 F7 is confirmed intended behaviour and needs no change.
 
-| Finding | Issue | Title |
-|---|---|---|
-| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` |
-| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 |
-| F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG |
-| F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 |
-| F6 | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 |
-| F6 | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 |
-| F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except |
-| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 |
-| §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 |
-| §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 |
+| Finding | Issue | Title | Status |
+|---|---|---|---|
+| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; needs re-run |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | open — confirmed, author chose to leave as-is |
+| F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
+| F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
+| F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | open |
+| F6 | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | open |
+| F6 | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | open |
+| F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | open |
+| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | open — confirmed intended (people per cell) |
+| §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 | open — confirmed abstract, no calendar time |
+| §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 | open |

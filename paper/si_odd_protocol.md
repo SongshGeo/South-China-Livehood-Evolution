@@ -23,8 +23,11 @@ tested ranges, and their provenance are collected in Table \ref{tbl:parameters}.
 The model produces main-text Figures 2–5.
 
 Where the implemented behaviour differs from what a reader would naturally assume,
-this description reports the implemented behaviour, because it is what produced the
-results. Those places are marked and collected in section IV.
+this description reports the implemented behaviour, so that the description matches
+the code that can be run. Those places are marked and collected in section IV.
+Figures 2–5 were generated before the mortality submodel was corrected to one draw
+per step; they are being regenerated, and this description follows the corrected
+code rather than the version that produced them.
 
 ---
 
@@ -96,8 +99,8 @@ One step (`Model.step`) executes the following ordered sequence.
    - (c) **Colonization** (`diffuse`): a farming group attempts to split off a
      colony with probability `diffuse_prob`; a forager group attempts to split
      only when it is at `max_size`.
-   - (d) **Mortality** (`loss`): a Bernoulli loss event. `Farmer` and `RiceFarmer`
-     execute this step **twice** per tick, `Hunter` once.
+   - (d) **Mortality** (`loss`): a Bernoulli loss event, executed once per tick by
+     every breed.
    - (e) **Movement** (`move_one`, `Hunter` only): a mobile forager steps to a
      random suitable empty cell within `max_travel_distance`.
 3. **Regional forager ceiling** (`apply_global_hunter_limit`). If the summed
@@ -370,9 +373,9 @@ over `Farmer.convert_prob.to_hunter` ∈ [0, 0.02] (step 0.002) ×
 **Mortality.** With probability `loss.prob` a group's `size` is scaled by
 (1 − `loss.rate`). Foragers face frequent small losses (`Hunter.loss.prob` = 0.05,
 `Hunter.loss.rate` = 0.01); farmers face rarer larger losses (`Farmer.loss.prob` =
-`RiceFarmer.loss.prob` = 0.01, rate 0.05). The two farming breeds execute this
-submodel **twice per step** and foragers once, so a farming group draws two
-independent loss trials per tick. A group driven below `min_size` dies.
+`RiceFarmer.loss.prob` = 0.01, rate 0.05). Every breed executes this submodel
+**once per step**, so each group draws exactly one loss trial per tick. A group
+driven below `min_size` dies.
 
 **Forager carrying capacity.** The total forager population is bounded by
 `global_hunter_limit` = `env.lim_h` × (number of modelled cells), with
@@ -411,12 +414,11 @@ heatmaps; it does not feed Figures 2–5.
 ## IV. Additional elements (ODD+D)
 
 **Implemented behaviour that departs from the natural reading.** These are recorded
-so that a reimplementation reproduces the published results rather than an idealised
-model. (i) `Farmer` and `RiceFarmer` execute the mortality submodel twice per step,
-`Hunter` once. (ii) Immigrant paddy groups are placed using the rainfed-arable mask,
-so some are seeded on cells that fail the paddy slope criterion. (iii) A colony split
-loses the parent's residual population when that residual falls below `min_size`.
-(iv) A group-merging routine exists in the code but is never called.
+so that a reimplementation reproduces this model rather than an idealised one.
+(i) Immigrant paddy groups are placed using the rainfed-arable mask, so some are
+seeded on cells that fail the paddy slope criterion. (ii) A colony split loses the
+parent's residual population when that residual falls below `min_size`. (iii) A
+group-merging routine exists in the code but is never called.
 
 **Model testing and validation.** Validation is pattern-oriented. The model is
 judged by whether it reproduces the qualitative patterns named in I.i — a
@@ -425,7 +427,7 @@ rather than by point prediction of specific historical events. No independent
 dataset was available for validation, so calibration and validation are not
 separated: the parameters are sourced from the literature and the patterns are
 qualitative. The core submodels (agent state transitions, conversion thresholds,
-mortality, and boundary cases) are covered by 110 unit tests. No global
+mortality, and boundary cases) are covered by 114 unit tests. No global
 variance-based sensitivity analysis was run; the sweeps are one- and two-factor
 grids around the mechanism of interest.
 

@@ -67,10 +67,11 @@ sequence.
    each livelihood.
 
 Growth is deterministic; immigration, conversion, colonization, mortality, movement,
-and trimming are all stochastic. Farming groups draw mortality twice per step and
-forager groups once, so a farming group faces the more frequent hazard at equal
-$p_{\text{loss}}$. Population is conserved when a colony splits off, except that a
-parent left below $N_{\min}$ is removed along with its remainder.
+and trimming are all stochastic. Every group draws mortality once per step whatever
+its livelihood, so livelihoods differ in mortality only through the probability
+$p_{\text{loss}}$ of a loss event and the fraction lost when one occurs. Population
+is conserved when a colony splits off, except that a parent left below $N_{\min}$ is
+removed along with its remainder.
 
 The region starts full of foragers and empty of farmers. Half the land cells carry a
 forager group at $t=0$, together holding about 76% of the regional ceiling $K_H$, so

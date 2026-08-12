@@ -9,10 +9,11 @@
 """测试基本主体类，包括其规模的设置，以及衍生。"""
 
 from typing import Tuple
+from unittest.mock import MagicMock
 
 import pytest
 
-from src.api import SiteGroup
+from src.api import Farmer, Hunter, RiceFarmer, SiteGroup
 
 
 class TestGroup:
@@ -95,3 +96,34 @@ class TestGroup:
             assert people.size == expected_size
         new_size = getattr(new_group, "size", None)
         assert new_size == expected_new_size
+
+
+class TestStepSchedule:
+    """每个品种每步的行为序列。"""
+
+    @pytest.mark.parametrize(
+        "breed",
+        [SiteGroup, Farmer, RiceFarmer, Hunter],
+        ids=["site_group", "farmer", "rice_farmer", "hunter"],
+    )
+    def test_step_applies_loss_exactly_once(self, model, breed):
+        """回归 #28：每个品种一步只做一次损失抽样。
+
+        起因与修复经过见 `paper/model-inventory.md` 的 F1。农民与狩猎采集者的相对
+        存活是模型的核心机制，所以两者的抽样次数必须一致。
+        """
+        # Arrange：把这一步里除 loss 之外的行为都换成空操作，只数损失抽样的次数
+        agent = model.agents.new(breed, singleton=True)
+        agent.population_growth = MagicMock()
+        agent.convert = MagicMock()
+        agent.diffuse = MagicMock()
+        if isinstance(agent, Hunter):
+            # 只有狩猎采集者的 step 会移动
+            agent.move_one = MagicMock()
+        agent.loss = MagicMock()
+
+        # Act
+        agent.step()
+
+        # Assert
+        assert agent.loss.call_count == 1

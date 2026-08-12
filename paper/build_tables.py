@@ -641,7 +641,7 @@ def build() -> None:
             ],
             [
                 "Farmer.loss.prob / .rate",
-                "Rainfed mortality, drawn twice per step",
+                "Rainfed mortality, drawn once per step",
                 f"{F.loss.prob} / {F.loss.rate}",
                 "—",
                 exp,
@@ -649,7 +649,7 @@ def build() -> None:
             ],
             [
                 "RiceFarmer.loss.prob / .rate",
-                "Paddy mortality, drawn twice per step",
+                "Paddy mortality, drawn once per step",
                 f"{R.loss.prob} / {R.loss.rate}",
                 "—",
                 exp,
