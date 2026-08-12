@@ -172,14 +172,14 @@ intent. **[ASK] were any results reported from this arm?**
 `min_size`, destroying that remainder. Both documents claimed exact conservation under
 splitting and merging.
 
-**F7. No cell is ever water at runtime.** `is_water` tests `water_type == -1`
-(`env.py:59`), but the water raster only ever supplies 0 (land, 5 771 cells) and 1
-(near-water land, 1 064 cells); its nodata value is 65535, which marks sea and
-out-of-frame cells that ABSESpy drops from the grid entirely. Measured: `is_water` is
-False for all 6 835 cells. So the sea class described in both documents is never
-instantiated, the "not water" clause in both arability predicates is always satisfied,
-and the ceiling denominator "non-water cells" is simply all cells. Only the
-near-water distinction is live, and it acts solely through `Hunter.max_size_water`.
+**F7. Water is modelled as a land property, not as terrain (confirmed by author, not
+a defect).** `is_water` tests `water_type == -1`, which the input never supplies: the
+sea is the water layer's nodata value and is masked out with the rest of the frame,
+so all 6835 modelled cells are land. Water's effect enters through carrying capacity
+instead, via the 1064 near-water cells (`water_type` = 1) that raise
+`Hunter.max_size` from 100 to `Hunter.max_size_water` = 500. Consequences to state in
+the write-up: the "not water" clause of both arability predicates is always satisfied,
+and the ceiling denominator is the full 6835 cells.
 
 **F8. `lim_h` units are ambiguous.** The code multiplies `lim_h` by a cell **count**
 (`env.py:316`), so 35 is people per cell; a cell is ≈ 78 km², giving ≈ 45 people per
@@ -209,3 +209,24 @@ an inclusive bound. Immaterial to results; stated precisely in the revision.
 wraps its body in a bare `except Exception` and falls back to 100 000
 (`env.py:320-322`), which is below the true ceiling of 239 225 and would silently
 change the model's behaviour rather than fail. Not triggered in the runs checked.
+
+---
+
+## Tracked issues
+
+Findings that need a decision or a code change are filed on GitHub. F2, F9–F12 were
+documentation defects and are already fixed in `methods.md` / `si_odd_protocol.md`;
+F7 is confirmed intended behaviour and needs no change.
+
+| Finding | Issue | Title |
+|---|---|---|
+| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 |
+| F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG |
+| F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 |
+| F6 | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 |
+| F6 | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 |
+| F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except |
+| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 |
+| §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 |
+| §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 |

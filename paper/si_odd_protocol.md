@@ -276,14 +276,17 @@ change during a run. The model uses **no dynamic external drivers** such as a
 climate, vegetation, or population series; this is a modelling choice, and it means
 that every trend in the output is generated internally.
 
-The water layer supplies two classes over the modelled grid, land (5771 cells) and
-near-water land (1064 cells); sea and out-of-frame cells are the layer's nodata
-value and are dropped from the grid rather than entering it as water. In effect,
-therefore, no modelled cell is open water: the "not water" clause of both arability
-predicates is always satisfied, foragers may occupy any modelled cell, and the
-ceiling denominator is the full 6835 cells. The one live effect of the water layer is
-that near-water cells raise the forager per-group capacity from
-`Hunter.max_size` = 100 to `Hunter.max_size_water` = 500.
+Water enters the model as a productivity property of land, not as impassable
+terrain. The sea lies outside the modelled grid by construction: it is the water
+layer's nodata value and is masked out with the rest of the frame, so every one of
+the 6835 modelled cells is land. Over that land the layer supplies two classes,
+inland (5771 cells) and near-water (1064 cells), and the distinction acts through
+carrying capacity: a near-water cell supports a forager group of
+`Hunter.max_size_water` = 500 against `Hunter.max_size` = 100 inland, which
+represents the richer aquatic and riparian resources such cells offer. Because no
+modelled cell is itself water, the "not water" clause of the two arability predicates
+is always satisfied in practice, and the denominator of the regional forager ceiling
+is the full 6835 cells.
 
 In the terrain experiment (Figure 4) the elevation and slope surfaces are each
 replaced, independently, by a spatially uniform raster, giving a 2 × 2 factorial:
@@ -397,8 +400,7 @@ model. (i) `Farmer` and `RiceFarmer` execute the mortality submodel twice per st
 so some are seeded on cells that fail the paddy slope criterion. (iii) The Poisson
 immigration counts draw from a global random stream rather than the seeded one.
 (iv) A colony split loses the parent's residual population when that residual falls
-below `min_size`. (v) No modelled cell is open water, for the reason given in
-III.iii. (vi) A group-merging routine exists in the code but is never called.
+below `min_size`. (v) A group-merging routine exists in the code but is never called.
 
 **Model testing and validation.** Validation is pattern-oriented. The model is
 judged by whether it reproduces the qualitative patterns named in I.i — a
