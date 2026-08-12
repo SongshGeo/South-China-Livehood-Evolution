@@ -1,12 +1,26 @@
-# Supplementary Information — Model description (ODD+D protocol)
+---
+title: "Supplementary Information — Model description (ODD+D)"
+acronym: "SCE"
+date: "2026-08-12"
+csl: "nature"
+# TODO before first export: authors, affiliations, and a mybib.bib for the
+# literature cited in the parameter provenance (Table S4).
+---
+
+```{=latex}
+%% Supplementary numbering: prefix figures and tables with "S".
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+```
 
 This description follows the ODD+D protocol (Overview, Design concepts, Details,
 and human Decision-making; Müller et al. 2013), an extension of ODD for
 agent-based models that make behavioural decisions. It is written for
 replication, so it names the implementation parameters directly, in
 monospace; the main-text Methods gives the same quantities as mathematical
-symbols, and Table S0 maps one onto the other. Baseline values, tested ranges, and
-their rationale are collected in Table S1. The model produces main-text Figures 2–5.
+symbols, and Table \ref{tbl:symbol-map} maps one onto the other. Baseline values,
+tested ranges, and their provenance are collected in Table \ref{tbl:parameters}.
+The model produces main-text Figures 2–5.
 
 Where the implemented behaviour differs from what a reader would naturally assume,
 this description reports the implemented behaviour, because it is what produced the
@@ -203,21 +217,18 @@ scarce near-flat cells.
 
 ### II.x Stochasticity
 
-The model is stochastic throughout, and every random source is listed here with the
-reason it is random rather than fixed.
+The model is stochastic throughout. Table \ref{tbl:stochasticity} lists every random
+source with the reason it is random rather than fixed; the ones authors most often
+omit — initial placement, activation order, and the order in which groups absorb the
+ceiling adjustment — are among them.
 
-| Source | Why random |
-|---|---|
-| Immigrant counts, `Poisson(env.lam_farmer)` and `Poisson(env.lam_ricefarmer)` | arrivals from outside the region are unmodelled, so their timing is represented as a rate rather than a schedule |
-| Immigrant and colony destination cell (uniform over eligible cells) | the model has no theory of site preference within the eligible set |
-| Initial forager placement over land cells | no data fix which cells were occupied at the start |
-| Initial and colony group sizes (uniform within bounds) | the sources give ranges, not point values |
-| Conversion trials (`convert_prob`) | the decision to change livelihood is treated as a propensity, not a determinate response |
-| Colonization trial (`diffuse_prob`) | as above, for the decision to send out a colony |
-| Mortality trial (`loss.prob`, `loss.rate`) | shocks such as crop failure and disease are exogenous to the model |
-| Forager movement target | no theory of directional preference |
-| Activation order, reshuffled each step | avoids an artefact from a fixed order under asynchronous updating |
-| Trimming order at the regional ceiling | no theory of which groups absorb the shortfall |
+```xlsx-table
+file: SCE_Tables.xlsx
+sheet: Table S1
+caption: Every source of randomness in the model, with the reason each is random rather than fixed.
+label: tbl:stochasticity
+skip_n: 1
+```
 
 Growth, intensification, and the size of the ceiling adjustment are deterministic.
 Because of these sources, every parameter combination is run in replicate
@@ -331,15 +342,17 @@ Bernoulli draw at its probability succeeds; the group's `size` and its `source`
 label are preserved. A global switch (`convert.enabled`) and per-path switches
 (`convert.farmer_to_hunter`, `convert.hunter_to_farmer`, `convert.hunter_to_rice`,
 `convert.farmer_to_rice`, `convert.rice_to_farmer`) can disable any path. There are
-**five** directed paths; there is no paddy-to-forager path.
+**five** directed paths, set out in Table \ref{tbl:conversion-paths}; there is no
+paddy-to-forager path.
 
-| Path | Conditions | Probability (default) | Tested range |
-|---|---|---|---|
-| `Farmer` → `Hunter` (f2h) | `size` ≤ `convert_threshold.to_hunter` (100) | `Farmer.convert_prob.to_hunter` = 0.1 | 0–0.1 |
-| `Hunter` → `Farmer` (h2f) | a `Farmer` neighbour; cell `is_arable` | `Hunter.convert_prob.to_farmer` = 0.05 | 0–0.15 |
-| `Farmer` → `RiceFarmer` | `size` ≥ `convert_threshold.to_rice` (200); cell `is_rice_arable` | `Farmer.convert_prob.to_rice` = 0.05 | — |
-| `Hunter` → `RiceFarmer` | a `RiceFarmer` neighbour; cell `is_rice_arable` | `Hunter.convert_prob.to_rice` = 0.05 | — |
-| `RiceFarmer` → `Farmer` | `size` < `convert_threshold.to_farmer` (200) | `RiceFarmer.convert_prob.to_farmer` = 1.0 | — |
+```xlsx-table
+file: SCE_Tables.xlsx
+sheet: Table S2
+caption: The five directed conversion paths, with the conditions and probability gating each; only the two paths linking rainfed farmers and foragers are swept.
+label: tbl:conversion-paths
+skip_n: 1
+notes: Conditions are evaluated first; the probability is a Bernoulli draw taken only when they hold. A dash marks a path held at its default in every experiment.
+```
 
 A forager evaluates the rainfed path first and the paddy path only if the first
 fails; a rainfed farmer evaluates the forager path first and the paddy path only if
@@ -425,66 +438,28 @@ replicates for the fine conversion grid).
 
 ---
 
-## Table S0. Symbol ↔ parameter mapping
+Table \\ref{tbl:symbol-map} maps the main-text symbols onto the implementation
+parameter names one for one, and Table \\ref{tbl:parameters} lists every parameter
+with its provenance.
 
-| Symbol (main text) | Parameter (code) | Default | Meaning |
-|---|---|---|---|
-| $T$ | `time.end` | 500 | steps per run |
-| $A$ | — (derived) | 6835 | modelled land cells |
-| $N$ | `size` | — | group population |
-| $N_{\min}$ | `min_size` | 6 | minimum viable group size |
-| $N_{\max}$ | `max_size` | 3142 / 6283 | per-group capacity (rainfed / paddy) |
-| $r_F$ | `Farmer.growth_rate` | 0.005 | rainfed growth rate |
-| $r_R$ | `RiceFarmer.growth_rate` | 0.006 | paddy growth rate |
-| $r_H$ | `Hunter.growth_rate` | 0.001 | forager growth rate |
-| $\lambda_F$ | `env.lam_farmer` | 3 | rainfed immigration intensity |
-| $\lambda_R$ | `env.lam_ricefarmer` | 0.1 | paddy immigration intensity |
-| $p_{F\to H}$ | `Farmer.convert_prob.to_hunter` | 0.1 | rainfed → forager |
-| $p_{H\to F}$ | `Hunter.convert_prob.to_farmer` | 0.05 | forager → rainfed |
-| $k_H$ | `env.lim_h` | 35 | forager capacity per cell |
-| $K_H$ | `global_hunter_limit` | 239 225 | regional forager ceiling |
-| $a$ | `area` | 2 km | cultivated radius |
-| $c$ | `capital_area` | 0.004 / 0.002 km² | land per person (rainfed / paddy) |
-| $\kappa$ | `complexity` | 0.1 | intensification factor |
-| $s_t$ | — (derived) | — | agricultural share of total population |
+```xlsx-table
+file: SCE_Tables.xlsx
+sheet: Table S3
+caption: One-to-one mapping between the main-text symbols and the implementation parameter names, so that the two descriptions of the model cannot drift apart.
+label: tbl:symbol-map
+skip_n: 1
+```
 
-## Table S1. Full parameter list
+```xlsx-table
+file: SCE_Tables.xlsx
+sheet: Table S4
+caption: Every model parameter with its baseline value, the range over which it was swept, and whether the value is taken from the literature or set by expert judgement.
+label: tbl:parameters
+skip_n: 1
+longtable: true
+notes: Provenance is one of *Literature*, *Expert judgement*, or *Derived*. A parameter marked *Expert judgement* has no empirical source; it is named as such rather than given an implied one.
+```
 
-Sources: **[lit]** from the cited literature, **[exp]** expert judgement with no
-empirical source, **[der]** derived from other parameters.
-
-| Parameter | Meaning | Default (range tested) | Source |
-|---|---|---|---|
-| `time.end` | steps per run | 500 | [exp] |
-| `exp.repeats` | replicates per combination | 5 | [exp] |
-| `min_size` | minimum viable group size | 6 | [lit] Binford 2001; Kelly 2013 |
-| `Farmer.growth_rate` / `RiceFarmer.growth_rate` / `Hunter.growth_rate` | growth rates | 0.005 / 0.006 / 0.001 | [exp] |
-| `Farmer.area` / `RiceFarmer.area` | initial cultivated radius | 2 km | [lit] Shelach 1999; Wu et al. 2023 |
-| `Farmer.capital_area` | land per person, rainfed | 0.004 km² | [lit] Qiao 2010, adjusted |
-| `RiceFarmer.capital_area` | land per person, paddy | 0.002 km² | [exp] |
-| `Farmer.max_size` / `RiceFarmer.max_size` | per-group farming capacity | ≈ 3142 / ≈ 6283 | [der] |
-| `complexity` (both farming breeds) | intensification factor | 0.1 | [exp] |
-| `env.lam_farmer` / `env.lam_ricefarmer` | immigration intensity | 3 / 0.1 (2–10; 0.1–0.5) | [exp] |
-| `env.tick_farmer` / `env.tick_ricefarmer` | first step at which each stream may arrive | 0 / 0 | [exp] |
-| `init_size` (Farmer / RiceFarmer / Hunter) | initial group size range | 60–100 / 300–400 / 6–100 | [exp]; farming values unused at baseline |
-| `new_group_size` (Farmer / RiceFarmer / Hunter) | immigrant and colony size | 30–60 / 200–300 / 6–50 | [exp] |
-| `diffuse_prob` | colonization probability | 0.05 | [exp] |
-| `max_travel_distance` | colonization and movement range | 5 cells | [exp] |
-| `Farmer.convert_prob.to_hunter` (f2h) | rainfed → forager | 0.1 (0–0.1; fine 0–0.02) | [exp] |
-| `Hunter.convert_prob.to_farmer` (h2f) | forager → rainfed | 0.05 (0–0.15) | [exp] |
-| `Farmer.convert_prob.to_rice` | rainfed → paddy | 0.05 | [exp] |
-| `Hunter.convert_prob.to_rice` | forager → paddy | 0.05 | [exp] |
-| `RiceFarmer.convert_prob.to_farmer` | paddy → rainfed | 1.0 | [exp] |
-| `convert_threshold.to_hunter` / `.to_rice` / `.to_farmer` | size thresholds | 100 / 200 / 200 | [exp] |
-| `Hunter.max_size` / `Hunter.max_size_water` | per-group forager capacity | 100 / 500 | [lit] Kelly 2013: 171 |
-| `Hunter.is_complex` | forager sedentism threshold | 100 | [lit] Kelly 2013: 171 |
-| `env.lim_h` | forager carrying capacity per cell | 35 (15, 25, 35) | [lit] Binford 2001; Tallavaara et al. 2017 |
-| `Farmer.loss.prob` / `.rate` | farmer mortality, applied twice per step | 0.01 / 0.05 | [exp] |
-| `RiceFarmer.loss.prob` / `.rate` | paddy mortality, applied twice per step | 0.01 / 0.05 | [exp] |
-| `Hunter.loss.prob` / `.rate` | forager mortality, applied once per step | 0.05 / 0.01 | [exp] |
-| `env.init_hunters` | initial forager cover | 0.5 (50% of land cells) | [exp] |
-| `env.init_farmers` / `env.init_rice_farmers` | initial farmers | 0 / 0 | [exp] |
-| `convert.enabled` and five path switches | conversion on/off controls | all on | — |
 
 *Reference: Müller B. et al. (2013) Describing human decisions in agent-based
 models — ODD+D, an extension of the ODD protocol. Environmental Modelling &

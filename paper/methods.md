@@ -1,4 +1,11 @@
-# Methods
+---
+title: "Methods — livelihood competition and the spread of farming in prehistoric South China"
+acronym: "SCE"
+date: "2026-08-12"
+csl: "nature"
+# TODO before first export: authors, affiliations, and a mybib.bib for the
+# literature cited in the parameter provenance (Table S4).
+---
 
 ## Agent-based model
 
@@ -146,20 +153,16 @@ immigration counts, which consume a global random stream; runs are therefore
 reproducible in distribution rather than exactly. The full parameter set, all
 submodels, and the design concepts are specified in the Supplementary Information.
 
-## Table 1. Key parameters
+Baseline values and the range swept for each parameter named above are given in
+Table \ref{tbl:key-params}. Foragers grow an order of magnitude more slowly than
+either farming livelihood, so the suppression the model produces comes from the
+space foragers hold rather than from how fast they reproduce.
 
-| Symbol | Meaning | Default (range tested) |
-|---|---|---|
-| $T$ | steps per run, 5 replicates each | 500 |
-| $A$ | modelled land cells (≈ 78 km² each) | 6835 |
-| $r_F, r_R, r_H$ | growth rates (rainfed, paddy, forager) | 0.005, 0.006, 0.001 |
-| $\lambda_F, \lambda_R$ | immigration intensity (rainfed, paddy) | 3, 0.1 (2–10; 0.1–0.5) |
-| $p_{F\to H}$ (f2h) | rainfed $\to$ forager conversion | 0.1 (0–0.1) |
-| $p_{H\to F}$ (h2f) | forager $\to$ rainfed conversion | 0.05 (0–0.15) |
-| $k_H$ | forager carrying capacity per cell | 35 (15, 25, 35) |
-| $c$ | land per person (rainfed, paddy) | 0.004, 0.002 km² |
-| $\kappa$ | intensification factor | 0.1 |
-| — | initial forager cover / initial farmers | 50% of land cells / none |
-
-*Full parameter list, thresholds, submodel equations, and design concepts:
-Supplementary Information (ODD+D).*
+```xlsx-table
+file: SCE_Tables.xlsx
+sheet: Table 1
+caption: Baseline values and swept ranges for the parameters that govern how fast farming spreads; the two conversion probabilities are the only ones swept at fine resolution.
+label: tbl:key-params
+skip_n: 1
+notes: Growth rates and probabilities are per step. A dash marks a parameter held fixed across all experiments. The full parameter list, with provenance for every value, is Table S4.
+```

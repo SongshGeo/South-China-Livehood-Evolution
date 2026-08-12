@@ -34,6 +34,8 @@ dev = [
     "flake8==7.3.0",
     "isort==7.0.0",
     "pre-commit>=3.5",
+    # Builds the manuscript table workbook (paper/figs/SCE_Tables.xlsx).
+    "openpyxl>=3.1",
 ]
 notebook = [
     "ipykernel>=6.25.1",

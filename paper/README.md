@@ -18,7 +18,34 @@ Manuscript prose for the South China livelihood-evolution study.
   design-concept subsections, initialisation, input data, and the full parameter
   list (Table S1).
 
-Both follow the `project-to-paper` conventions for ABM writing
+## Tables live in the workbook, not in the prose
+
+Every table the manuscript needs is a sheet in the one workbook,
+`figs/SCE_Tables.xlsx`; the prose carries only an `xlsx-table` block pointing at
+the sheet, and refers to it as `Table \ref{tbl:…}`. Never write a markdown table
+into `methods.md` or `si_odd_protocol.md` — it would carry hand-typed numbers
+whose only copy is the prose, and it would be typeset outside the house style.
+
+| Sheet | Label | In |
+|---|---|---|
+| `Table 1` | `tbl:key-params` | Methods |
+| `Table S1` | `tbl:stochasticity` | SI, Design concepts |
+| `Table S2` | `tbl:conversion-paths` | SI, Submodels |
+| `Table S3` | `tbl:symbol-map` | SI, end |
+| `Table S4` | `tbl:parameters` | SI, end |
+
+The `_index` sheet registers each table's label, caption, and the source of its
+numbers. Rebuild the workbook with `uv run python build_tables.py` from the
+repository root: it reads defaults from the composed Hydra config, landscape
+counts from the input rasters, and swept ranges from `run_slurm.sh`, so no value
+is retyped. Edit the script, not the spreadsheet — a hand-edit is lost on the
+next rebuild. Formulas are never written into cells: the export reads cached
+values, so a formula renders blank in the PDF with no error.
+
+`model-inventory.md` keeps its markdown tables. It is a working ledger, not a
+manuscript, and is never exported.
+
+Both manuscript files follow the `project-to-paper` conventions for ABM writing
 (`references/abm-writing.md`): a two-layer split where the **main text uses
 mathematical symbols** ($\lambda_F$, $p_{F\to H}$, $k_H$, …) and the **SI ODD+D
 uses the implementation parameter names** (`env.lam_farmer`,
