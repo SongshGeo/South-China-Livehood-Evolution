@@ -97,6 +97,34 @@ class TestGroup:
         new_size = getattr(new_group, "size", None)
         assert new_size == expected_new_size
 
+    @pytest.mark.parametrize(
+        "initial_size, colony_size, expected_lost",
+        [
+            (20, 15, 5),
+            (20, 14, 0),
+            (20, 20, 0),
+        ],
+        ids=["remainder_below_min_size", "remainder_at_min_size", "colony_takes_all"],
+    )
+    def test_diffuse_leaks_the_parent_remainder(
+        self, people: SiteGroup, initial_size, colony_size, expected_lost
+    ):
+        """分裂时母体残余低于 min_size 会随母体一起消失（issue #32）。
+
+        这不是设计意图而是 size setter 的副作用，量级上界是每次 `min_size - 1` 人。
+        锁住它是为了让“不守恒”这件事有据可查，而不是靠一次性的手工测量。
+        """
+        # Arrange：夹具已把主体放在 [3, 3]；group_range 取闭区间以固定新小队规模
+        people.size = initial_size
+        people.min_size = 6
+
+        # Act
+        new_group = people.diffuse((colony_size, colony_size))
+
+        # Assert：母体存活时人口相加，母体死亡时它的残余就是漏掉的部分
+        survivors = new_group.size + (people.size if people.alive else 0)
+        assert initial_size - survivors == expected_lost
+
 
 class TestStepSchedule:
     """每个品种每步的行为序列。"""

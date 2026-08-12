@@ -59,7 +59,7 @@ One cell holds at most one group (`max_agents = 1`, `env.py:27`), enforced in
 | Extent | 104.4–121.3°E, 19.2–29.1°N | raster bounds |
 | Run length | `time.end` = 500 steps | `config/config.yaml:67` |
 | Replicates | `exp.repeats` = 5 | `config/config.yaml:25` |
-| **What one step means in real time** | **[ASK] not in code.** No calendar, no time driver, no unit anywhere in config or code | — |
+| **What one step means in real time** | **Nothing — deliberately.** No calendar, no time driver, no unit anywhere in config or code; confirmed by the author as an abstract generation-scale interval (#36) | — |
 
 Derived landscape counts at initialisation: `is_arable` 2 620 cells,
 `is_rice_arable` 885 cells, `is_near_water` 1 064 cells, `is_water` **0 cells**
@@ -89,22 +89,22 @@ reading), `config/config.yaml` unless noted. Swept ranges come from
 
 | Parameter | Default | Swept | Source of value |
 |---|---|---|---|
-| `env.lim_h` | 35 per cell | {15, 25, 35} | comment cites Binford 2001 as 31.93 per 100 km² — **[ASK]** unit mismatch, see F8 |
+| `env.lim_h` | 35 per cell | {15, 25, 35} | **[exp]** people per cell, confirmed by the author; Binford 2001's 31.93 per 100 km² is an order-of-magnitude reference only, see F8 |
 | `env.init_hunters` | 0.5 | — | — |
 | `env.init_farmers` / `init_rice_farmers` | 0 / 0 | — | — |
 | `env.lam_farmer` / `lam_ricefarmer` | 3 / 0.1 | 2–10 / 0.1–0.5 | — |
 | `env.tick_farmer` / `tick_ricefarmer` | 0 / 0 | — | — |
-| `Farmer.growth_rate` | 0.005 | — | inline comment says "0.1~0.25", which contradicts the value — **[ASK]** |
-| `RiceFarmer.growth_rate` | 0.006 | — | as above |
-| `Hunter.growth_rate` | 0.001 | — | **[ASK]** no source given |
+| `Farmer.growth_rate` | 0.005 | — | **[exp]** per step; the contradictory "0.1~0.25" comment is removed (#37) |
+| `RiceFarmer.growth_rate` | 0.006 | — | **[exp]** per step, as above |
+| `Hunter.growth_rate` | 0.001 | — | **[exp]** no source; marked as such in the config |
 | `min_size` (all breeds) | 6 | — | Binford 2001; Kelly 2013 |
 | `Farmer.area` / `RiceFarmer.area` | 2 km | — | Shelach 1999; Wu et al. 2023 |
 | `Farmer.capital_area` | 0.004 km²/person | — | Qiao 2010, halved for South China productivity |
-| `RiceFarmer.capital_area` | **0.002** km²/person | — | **[ASK]** no source given; differs from Farmer |
+| `RiceFarmer.capital_area` | **0.002** km²/person | — | **[exp]** half of `Farmer`'s, on the reasoning that paddy yields more per unit area; the factor of 2 itself is unsourced (#37) |
 | `Farmer.init_size` / `RiceFarmer` / `Hunter` | [60,100] / [300,400] / [0,100] | — | farmer values unused at baseline (`init_farmers`=0) |
 | `new_group_size` F / R / H | [30,60] / [200,300] / [6,50] | — | — |
-| `diffuse_prob` (F, R) | 0.05 | — | **[ASK]** no source |
-| `complexity` (F, R) | 0.1 | — | **[ASK]** no source |
+| `diffuse_prob` (F, R) | 0.05 | — | **[exp]** no source; marked as such in the config |
+| `complexity` (F, R) | 0.1 | — | **[exp]** no source; marked as such in the config |
 | `Farmer.convert_prob.to_hunter` (f2h) | 0.1 | 0–0.02 step 0.002 (fine); 0–0.1 (coarse) | — |
 | `Hunter.convert_prob.to_farmer` (h2f) | 0.05 | 0–0.15 step 0.015 (fine) | — |
 | `Farmer.convert_prob.to_rice` | 0.05 | — | — |
@@ -113,7 +113,7 @@ reading), `config/config.yaml` unless noted. Swept ranges come from
 | `convert_threshold.to_hunter` / `.to_rice` / `.to_farmer` | 100 / 200 / 200 | — | — |
 | `Hunter.max_size` / `max_size_water` | 100 / 500 | — | Kelly 2013:171 for sedentism |
 | `Hunter.is_complex` | 100 | — | Kelly 2013:171 |
-| `max_travel_distance` | 5 cells | — | **[ASK]** no source |
+| `max_travel_distance` | 5 cells | — | **[exp]** no source; marked as such in the config |
 | `Hunter.loss` prob/rate | 0.05 / 0.01 | — (a nominal 4-scenario arm existed but was inert; removed, F5) | — |
 | `Farmer.loss`, `RiceFarmer.loss` prob/rate | 0.01 / 0.05 | as above | — |
 | `convert.enabled` + 5 path switches | all true | on/off contrast | — |
@@ -144,7 +144,7 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 120 passing, covering agents, environment, conversion thresholds, seed
+- Unit tests: 123 passing, covering agents, environment, conversion thresholds, seed
   reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
@@ -186,7 +186,24 @@ paddy→forager path (`rice_farmer.py:16-20`). The config carries exactly five s
 `add_farmers` reads the `is_arable` raster regardless of breed (`env.py:456`), whereas
 `add_initial_farmers` correctly branches on breed (`env.py:414-417`). Since
 paddy-arable ⊂ rainfed-arable (885 of 2 620 cells), most immigrant paddy groups land
-on cells where `able_to_live` would have refused them. **[ASK] intended?**
+on cells where `able_to_live` would have refused them.
+
+Measured over 10 seeded replicates (baseline config, seeds 1–10, 30 steps each, now
+reproducible since F14): **22 of 71 surviving paddy groups (31.0%)** sat on cells
+failing the paddy slope test. As a share of paddy population per replicate the mean is
+**31.1%** (median 34.2%), but the spread is wide — 0.0% to 52.8% — so no single number
+characterises it; one replicate in ten had no misplaced group at all.
+
+Misplacement is not transient. A paddy group only converts back to `Farmer` below
+`convert_threshold.to_farmer` = 200, while immigrants arrive at `new_group_size`
+200–300 and then grow, so most never cross back. `able_to_live` is consulted only when
+searching for a cell (`people.py:184,210`), never as a recurring survival check, so a
+misplaced group is never evicted either.
+
+**Author's decision: leave the code as is** and describe the behaviour honestly. The
+SI already does, in I.iii, III.iii and section IV item (i). Note the consequence for
+Figure 5: the `env.lam_ricefarmer` sweep mixes the paddy mechanism with a
+contribution from paddy groups living where paddy cannot be grown.
 
 **F4. Immigration was not seed-reproducible — FIXED.** `np.random.poisson` (then at
 `env.py:454`) drew from the global NumPy stream rather than the model's seeded
@@ -264,7 +281,15 @@ and the ceiling denominator is the full 6835 cells.
 **F8. `lim_h` units are ambiguous.** The code multiplies `lim_h` by a cell **count**
 (`env.py:316`), so 35 is people per cell; a cell is ≈ 78 km², giving ≈ 45 people per
 100 km². The config comment sources the value from Binford 2001 as 31.93 people per
-**100 km²**. The two readings differ by a factor of about 2.2. **[ASK] which is meant?**
+**100 km²**. The two readings differ by a factor of about 2.2.
+
+**Answered by the author: people per cell is what is meant.** 35 is an expert
+judgement at the right order of magnitude, not a conversion of Binford's density, and
+no area conversion is intended. The code is unchanged; `config.yaml` now states the
+unit explicitly and labels the literature figures as an order-of-magnitude reference,
+and Table S1 already carried "people per cell". The stale `31.93` default in
+`calculate_global_hunter_limit` — the areal density used as a per-cell fallback, which
+is where the confusion came from — is gone with F13.
 
 **F9. Foragers start near the ceiling.** Initialisation places 3 417 forager groups
 totalling ≈ 180 848 people against a ceiling of 239 225: the region begins at ~76%
@@ -312,13 +337,13 @@ F7 is confirmed intended behaviour and needs no change.
 | Finding | Issue | Title | Status |
 |---|---|---|---|
 | F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; needs re-run |
-| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | open — confirmed, author chose to leave as-is |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **closed, code unchanged** — confirmed real (31% of paddy groups over 10 replicates), documented in the SI by decision |
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
 | F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |
-| F6b | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | open — confirmed, 0.013% of population |
+| F6b | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | **closed, code unchanged** — ≤ `min_size − 1` per event, farming breeds only; docstring corrected and behaviour pinned by tests |
 | F6a | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | **fixed** — removed |
 | F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | **fixed** |
-| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | open — confirmed intended (people per cell) |
-| §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 | open — confirmed abstract, no calendar time |
-| §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 | open |
+| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | **closed, code unchanged** — people per cell, confirmed; unit stated in config |
+| §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 | **closed, code unchanged** — abstract by design; misleading comments removed |
+| §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 | **closed** — every behavioural parameter tagged [lit]/[exp] in the config, with a legend; contradictory comments removed |

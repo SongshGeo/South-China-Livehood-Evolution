@@ -4,6 +4,11 @@ defaults:
 
 root: /Users/songshgeo/Documents/Codebase/Scholar/SC-20230710-SCE
 
+# 参数出处标记（issue #37）：
+#   [lit] 取自文献，出处写在同一行或紧邻的注释里
+#   [exp] 专家判断，没有文献出处
+# 未标记的是模型运行设定（输出、并行、日志等），不是行为参数。
+
 # Base seed for the experiment. Every replicate derives its own seed from this one
 # (Experiment._get_seed), so a run reproduces exactly from its config plus repeat id.
 # Set to null to draw from OS entropy instead.
@@ -13,6 +18,8 @@ hydra:
   searchpath:
     - pkg://abses.conf
 
+# 转化机制的总开关与五条通路开关。全开是基线；Figure 3 的"关闭转化"对照把它们关掉。
+# 这些是实验设定而非行为参数，因此不带 [lit]/[exp] 标记。
 convert:
   enabled: true  # Global switch for conversion mechanism
   hunter_to_farmer: true
@@ -49,79 +56,94 @@ tracker:
     num_rice_n: "rice size num"
 
 env:
-  # 1 亚热带常绿阔叶林类型=1042.57人/32.65百平方公里（31.93人/百平方公里）、海岸常绿阔叶林类型=2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）海岸地带可以参考即有考古发掘材料设置人口局限较高的地块；2 参考已有全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料；
-  lim_h: 35  # 全局狩猎采集者人口上限，平均每个非水体栅格承载35人
-  init_hunters: 0.5  # 初始设置50%的地块有狩猎采集者
-  init_farmers: 0  # 初始普通农民主体数量 (60-100)
-  init_rice_farmers: 0  # 初始水稻农民主体数量 (300-400)
-  lam_farmer: 3  # 添加农民数量的期望
-  lam_ricefarmer: 0.1  # 添加水稻农民数量的期望
-  tick_farmer: 0  # 从一开始就有农民
-  tick_ricefarmer: 0  # 从一开始就有水稻农民
+  # lim_h 的单位是【人/格】，不是人/百平方公里。代码里直接乘以格子数量：
+  #   global_hunter_limit = lim_h × 非水体格子数 = 35 × 6835 = 239225
+  # 本研究区一格约 78 km²，所以 35 人/格 ≈ 45 人/百平方公里。下面文献给的是面积
+  # 密度，仅作量级参照，未做面积换算——取值 35 是这个量级下的专家判断。
+  # 参考：亚热带常绿阔叶林 1042.57人/32.65百平方公里（31.93人/百平方公里）、
+  # 海岸常绿阔叶林 2892.17人/72.72百平方公里（39.77人/百平方公里）（Binford 2001: 143）；
+  # 海岸地带可参考已有考古发掘材料设置人口上限较高的地块；
+  # 另参考全球狩猎采集者人口上限计算结果（Tallavaara et al. 2017 及补充材料）。
+  lim_h: 35  # 每个非水体栅格承载的人数（人/格）[exp] 量级参照 Binford 2001
+  init_hunters: 0.5  # 初始设置50%的地块有狩猎采集者 [exp]
+  init_farmers: 0  # 初始普通农民主体数量；基线为 0，农业全部来自移民 [exp]
+  init_rice_farmers: 0  # 初始水稻农民主体数量；同上 [exp]
+  lam_farmer: 3  # 每步新增农民群体数的泊松期望 [exp] 实验因子（Figure 4）
+  lam_ricefarmer: 0.1  # 每步新增水稻农民群体数的泊松期望 [exp] 实验因子（Figure 5）
+  tick_farmer: 0  # 从一开始就有农民 [exp]
+  tick_ricefarmer: 0  # 从一开始就有水稻农民 [exp]
 
   # 对于玩具模型，可以设置宽度高度
   width: 10
   height: 10
 
-# 时间配置，运行到多少步结束
+# 时间配置，运行到多少步结束。
+# 【时间步的含义】模型没有定义一步对应多少现实时间：没有时间驱动、没有起止年代、
+# 没有单位。所有结果都以步数报告，解释为抽象的世代尺度区间。上面各 growth_rate
+# 因此也只能理解为"每步"，无法与文献里按年/按代的增长率直接对照。见 issue #36。
 time:
   end: 500
 
 Farmer:
-  area: 2
   # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
-  growth_rate: 0.005  # 0.1~0.25
-  min_size: 6  # 最小为6（Binford 2001； Kelly 2013）
-  init_size: [60, 100]  # 初始农民的人口规模范围
+  area: 2  # 可利用耕地半径 km [lit] Shelach 1999; Wu et al. 2023
+  # 每步增长率。模型的时间步是抽象的，没有对应到日历年（见 issue #36），
+  # 所以这个值无法与"每年/每代"的文献增长率直接对照。
+  growth_rate: 0.005  # [exp]
+  min_size: 6  # 最小为6（Binford 2001；Kelly 2013）[lit]
+  init_size: [60, 100]  # 初始农民的人口规模范围 [exp]
   # 在满足一定人口数量后，每时间单位有x几率向外扩散30-60人的农业殖民队
-  new_group_size: [30, 60]
-  diffuse_prob: 0.05
-  complexity: 0.1  # 复杂化后人口增加速率下降多少
-  convert_prob:
+  new_group_size: [30, 60]  # [exp]
+  diffuse_prob: 0.05  # [exp]
+  complexity: 0.1  # 复杂化后人口增加速率下降多少 [exp]
+  convert_prob:  # [exp] 本模型的核心实验因子（f2h）
     to_hunter: 0.1
     to_rice: 0.05
-  convert_threshold:
+  convert_threshold:  # [exp]
     to_hunter: 100  # 超过100人之后就不再转化成狩猎采集
     to_rice: 200  # 超过200人才可以转化成水稻农民
-  max_travel_distance: 5  # 最远移动距离
-  capital_area: 0.004
-  loss:
+  max_travel_distance: 5  # 最远移动距离 [exp]
+  capital_area: 0.004  # 人均耕地 km²（乔玉 2010，按华南生产力调整）[lit]
+  loss:  # [exp] 每步一次伯努利抽样：以 prob 概率损失 rate 比例的人口
     prob: 0.01
     rate: 0.05
 
 Hunter:
-  init_size: [0, 100]  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
-  convert_prob:
+  # 最初大小是多少，第一个数是最小值，第二个数是最大值。但注意设置最小值若小于群体能够生存的最小值的情况下，这个值也会自动变成理论最小值。即对于狩猎采集者而言，设置0的话，也会变成 min_size 的参数值 6。
+  init_size: [0, 100]  # [exp]
+  convert_prob:  # [exp]；本模型的核心实验因子（h2f）
     to_farmer: 0.05
     to_rice: 0.05
-  new_group_size: [6, 50]
-  growth_rate: 0.001
-  min_size: 6  # 最小为6（Binford 2001；Kelly 2013）
-  max_size: 100  # 单位主体人口最大值
-  max_size_water: 500  # 临近水体时的最大值
-  max_travel_distance: 5
-  is_complex: 100  # 超过多少之后狩猎采集者不再移动
-  loss:
+  new_group_size: [6, 50]  # [exp]
+  growth_rate: 0.001  # 每步增长率；步长无日历含义 [exp]
+  min_size: 6  # 最小为6（Binford 2001；Kelly 2013）[lit]
+  max_size: 100  # 单位主体人口最大值（Kelly 2013: 171）[lit]
+  max_size_water: 500  # 临近水体时的最大值（Kelly 2013: 171）[lit]
+  max_travel_distance: 5  # [exp]
+  is_complex: 100  # 超过多少之后狩猎采集者不再移动（Kelly 2013: 171）[lit]
+  loss:  # [exp] 每步一次伯努利抽样
     prob: 0.05
     rate: 0.01
 
 RiceFarmer:
-  area: 2
   # 假定每格只能拥有一个独立的农民群体（华南史前遗址间最近距离平均值为广西9.13km，广东6.43km。排除多出现于晚期复杂社会的相邻聚落结构，早期农业人群扩散时的遗址间距只会更高，因此使用该假设Wu et al. 2023），其所能利用的耕地限定在周围2公里范围内（Shelach, 1999）
-  growth_rate: 0.006  # 0.1~0.25
-  min_size: 6  # 最小为6，意味着小于这个会直接死掉，不影响小于200会转换成普通农民的逻辑
-  init_size: [300, 400]  # 初始水稻农民的人口规模范围
+  area: 2  # 可利用耕地半径 km [lit] Shelach 1999; Wu et al. 2023
+  growth_rate: 0.006  # 每步增长率，同 Farmer 说明；步长无日历含义 [exp]
+  min_size: 6  # 最小为6，意味着小于这个会直接死掉，不影响小于200会转换成普通农民的逻辑 [lit] Binford 2001; Kelly 2013
+  init_size: [300, 400]  # 初始水稻农民的人口规模范围 [exp]
   # 在满足一定人口数量后，每时间单位有x几率向外扩散200-300人的农业殖民队
-  new_group_size: [200, 300]
-  diffuse_prob: 0.05
-  complexity: 0.1  # 复杂化后人口增加速率下降多少
-  convert_prob:
+  new_group_size: [200, 300]  # [exp]
+  diffuse_prob: 0.05  # [exp]
+  complexity: 0.1  # 复杂化后人口增加速率下降多少 [exp]
+  convert_prob:  # [exp]
     to_farmer: 1  # 满足 threshold 就一定会转换
-  convert_threshold:
+  convert_threshold:  # [exp]
     to_farmer: 200
-  max_travel_distance: 5  # 最远移动距离
-  capital_area: 0.002
-  loss:
+  max_travel_distance: 5  # 最远移动距离 [exp]
+  # 水稻单位面积产量高于旱作，因此人均耕地取 Farmer 的一半。
+  # 【注意】2 倍这个具体比值目前没有文献支撑，见 issue #37。
+  capital_area: 0.002  # 人均耕地 km² [exp]
+  loss:  # [exp] 每步一次伯努利抽样
     prob: 0.01
     rate: 0.05
 
