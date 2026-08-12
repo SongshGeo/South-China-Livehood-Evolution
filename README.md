@@ -168,7 +168,7 @@ All documentation sources live under `docs-docusaurus/` — Chinese in `docs/`, 
 |------|----------|
 | `src/` | Model source (`api/` agents, `core/` model, `workflow/` analysis and plotting) |
 | `tests/` | pytest suite |
-| `config/` | Hydra configuration and scenario files |
+| `config/` | Hydra configuration |
 | `reports/` | Analysis and figure notebooks |
 | `paper/` | Manuscript material: Methods, ODD+D protocol, references |
 | `docs-docusaurus/` | Documentation site (single source of truth) |

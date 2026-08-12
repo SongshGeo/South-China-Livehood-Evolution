@@ -427,7 +427,7 @@ rather than by point prediction of specific historical events. No independent
 dataset was available for validation, so calibration and validation are not
 separated: the parameters are sourced from the literature and the patterns are
 qualitative. The core submodels (agent state transitions, conversion thresholds,
-mortality, and boundary cases) are covered by 114 unit tests. No global
+mortality, and boundary cases) are covered by 118 unit tests. No global
 variance-based sensitivity analysis was run; the sweeps are one- and two-factor
 grids around the mechanism of interest.
 

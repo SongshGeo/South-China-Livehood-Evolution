@@ -114,7 +114,7 @@ reading), `config/config.yaml` unless noted. Swept ranges come from
 | `Hunter.max_size` / `max_size_water` | 100 / 500 | — | Kelly 2013:171 for sedentism |
 | `Hunter.is_complex` | 100 | — | Kelly 2013:171 |
 | `max_travel_distance` | 5 cells | — | **[ASK]** no source |
-| `Hunter.loss` prob/rate | 0.05 / 0.01 | 4 nominal scenarios, **all inert** (F5) | — |
+| `Hunter.loss` prob/rate | 0.05 / 0.01 | — (a nominal 4-scenario arm existed but was inert; removed, F5) | — |
 | `Farmer.loss`, `RiceFarmer.loss` prob/rate | 0.01 / 0.05 | as above | — |
 | `convert.enabled` + 5 path switches | all true | on/off contrast | — |
 
@@ -144,7 +144,7 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 114 passing, covering agents, environment, conversion thresholds, seed
+- Unit tests: 118 passing, covering agents, environment, conversion thresholds, seed
   reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
@@ -212,11 +212,28 @@ adding a top-level `seed` to `config/config.yaml` and passing it through as
 commit. This finding came out of the issue audit and never had its own issue number
 in the original F1–F13 sweep.
 
-**F5. The four loss scenarios are inert.** `config/scenario/*.yaml` carry no
-`# @package _global_` directive, so Hydra merges them under `cfg.scenario.*` and they
-never reach `cfg.Hunter.loss`. Verified: all four scenario selections compose to
-identical loss parameters. The comment at `config.yaml:4-6` states the opposite
-intent. **[ASK] were any results reported from this arm?**
+**F5. The four loss scenarios were inert — ARM REMOVED.** `config/scenario/*.yaml`
+carried no `# @package _global_` directive, so Hydra merged them under
+`cfg.scenario.*` and they never reached `cfg.Hunter.loss`. Verified: all four
+scenario selections composed to identical loss parameters, namely the inline values
+in `config.yaml`. The comment in the `defaults` list stated the opposite intent.
+
+The "[ASK] were any results reported from this arm?" is answered: **no.** Of 383 run
+directories under `out/`, only 8 carry a `scenario=` override, all under
+`out/south_china_evolution/2026-03-22/`. `reports/manuscript_figures.ipynb` reads
+2026-04-14 (baseline and conversion-off), 2026-01-18 (`lam`), 2026-03-10 (`lim_h`),
+2026-03-09 (terrain) and the `grid_*` sweeps — none of them touch 2026-03-22. So the
+four nominally distinct runs really were parameter-identical, but nothing in the
+manuscript rests on them.
+
+The author chose to drop the arm rather than repair it. `config/scenario/` and the
+`defaults` entry are deleted; the loss parameters now come solely from the inline
+blocks in `config.yaml`, whose values are unchanged, so every published run's
+parameters are unaffected. `tests/test_config.py` pins the composed baseline loss
+values and asserts no `scenario` key survives composition. Note the scope of that
+second check: it is name-specific, so it would not catch an inert group introduced
+under a different name — the values assertion is the general guard. The 8 orphaned
+run directories are left in place; they feed nothing.
 
 **F6. Group merging is dead code; splitting does not strictly conserve population.**
 `Hunter.merge` (`hunter.py:55-67`) is never called anywhere in `src/` or `tests/`. In
@@ -277,7 +294,7 @@ F7 is confirmed intended behaviour and needs no change.
 | F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | open — confirmed, author chose to leave as-is |
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
-| F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | open |
+| F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |
 | F6 | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | open |
 | F6 | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | open |
 | F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | open |

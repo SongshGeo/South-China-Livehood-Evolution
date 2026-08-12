@@ -1,10 +1,6 @@
 defaults:
   - default
   - _self_
-  # Loss paired scenarios; must be listed after _self_ so these files override
-  # Hunter/Farmer/RiceFarmer.loss in this file. Override via CLI, e.g.
-  # scenario=hunter1_farmer1,hunter1_farmer2,...
-  - scenario: hunter1_farmer1
 
 root: /Users/songshgeo/Documents/Codebase/Scholar/SC-20230710-SCE
 
