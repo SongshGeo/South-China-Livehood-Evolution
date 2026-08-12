@@ -1,9 +1,3 @@
----
-title: 模型时序图
-author: Shuang Song
-date: 2025-10-20
----
-
 # 模型详细时序图
 
 本文档通过时序图详细说明华南生计演变模型的运行流程。
@@ -602,7 +596,7 @@ sequenceDiagram
 
 ### 查看时序图
 
-1. 启动文档服务器：`poetry run mkdocs serve`
+1. 启动文档服务器：`cd docs-docusaurus && npm run start`
 2. 访问此页面查看完整的交互式时序图
 3. 可以缩放、导出 SVG/PNG
 

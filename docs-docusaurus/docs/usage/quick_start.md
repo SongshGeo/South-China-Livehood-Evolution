@@ -2,22 +2,23 @@
 
 本模型的主要工作流程已经集成完毕。用户可以在命令行中运行模型。
 
-- [快速开始](#快速开始)
-  - [环境配置](#环境配置)
-  - [运行模型](#运行模型)
-  - [数据输出与分析](#数据输出与分析)
-    - [多次实验](#多次实验)
-    - [单次实验](#单次实验)
+## 2.0 版本核心规则
+
+- **每格一主体**：每个格子只能有一个主体，严格遵守空间约束
+- **水体类型系统**：支持 -1（海）、0（陆地）、1（近水陆地）三种水体类型
+- **全局人口上限**：Hunter 人口有全局上限控制机制
+- **无竞争机制**：主体不能移动到已有其他主体的格子
 
 ## 环境配置
 
-> [!note]
-> 本模型依赖`Python > 3.9`或以上版本，请先安装好`Python`，并安装好`poetry`或`pip`。
+:::note
+本模型需要 Python 3.11，依赖由 [uv](https://docs.astral.sh/uv/) 管理。请先安装 `uv`（macOS/Linux：`curl -LsSf https://astral.sh/uv/install.sh | sh`）。
+:::
 
 首先将本模型克隆到本地，注意替换`<your folder name>`为你喜欢的文件夹名称：
 
 ```bash
-git clone https://github.com/SongshGeo/SC-20230710-SCE.git <your folder name>
+git clone https://github.com/SongshGeo/South-China-Livehood-Evolution.git <your folder name>
 ```
 
 然后在终端进入模型所在文件夹：
@@ -28,47 +29,63 @@ cd <your folder name>
 
 安装依赖：
 
-**选项1**: 使用`poetry`安装依赖：
-
 ```bash
-make setup
+# 运行时 + 开发依赖
+uv sync
+
+# 如果还要跑 reports/ 下的 notebook
+uv sync --all-groups
 ```
 
-**选项2**: 使用`pip`安装依赖：
-
-```bash
-pip install -r requirements.txt
-```
+`uv sync` 会按 `uv.lock` 创建 `.venv` 并以可编辑方式安装本项目。
 
 ## 运行模型
 
-您可以修改[配置文件]中的参数，让实验结果更符合您的预期，或进行多组实验。参数名称一般都很直观，您可以根据需要进行修改。请注意保持参数名称前的缩进，不要轻易修改参数名，并小心保持YAML格式的正确性。
-
-为了方便进行多组实验，您可以创建多个配置文件，而不是在一个文件中反复修改。例如，您可以在项目目录下的`config`文件夹中创建一个新的配置文件`config_2.yaml`。然后在运行模型时，选择对应的参数文件：
+### 基本运行
 
 ```bash
-python main.py --config-name config_2
+uv run python src
 ```
 
-如果您的配置文件位于不同的文件夹中，可以指定完整路径：
+### 多情景运行测试
 
 ```bash
-python main.py --config-name config/custom/config_2
+uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 ```
 
-您还可以在运行时覆盖特定的参数值：
+### 参数覆盖
+
+您可以在运行时覆盖特定的参数值：
 
 ```bash
-python main.py --config-name config_2 model.parameter1=new_value
+# 覆盖单个参数
+uv run python src env.init_farmers=100
+
+# 覆盖多个参数
+uv run python src env.init_farmers=100 env.init_rice_farmers=400
 ```
 
-您还可以在指定配置文件后，指定参数进行**批量运行的实验**：
+### 批量实验
+
+批量运行实验时，所有参数的笛卡尔积组合都会被运行：
 
 ```bash
-python main.py --config-name config_2 model.parameter1=v1,v2,v3 model.parameter2=a1,a2
+# 批量实验示例
+uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 ```
 
-批量运行实验时，所有参数的笛卡尔积组合都会被运行。即如上例所示，如果 `model.parameter1` 有3个取值，`model.parameter2` 有2个取值，那么最终会运行 `3 * 2 = 6` 组参数实验，而且每次实验都会进行 `exp.repeat` 次重复实验（默认为5次）。
+如果 `init_hunters` 有3个取值，`env.lam_farmer` 有3个取值，那么最终会运行 `3 * 3 = 9` 组参数实验，而且每次实验都会进行 `exp.repeats` 次重复实验（默认为5次）。
+
+### 配置文件
+
+您可以修改[配置文件]中的参数，让实验结果更符合您的预期。典型的参数包括：
+
+- `env.init_farmers`: 初始普通农民数量
+- `env.init_rice_farmers`: 初始水稻农民数量
+- `env.init_hunters`: 初始 Hunter 比例
+- `time.end`: 模型运行时间步数
+- `Hunter.max_size`: Hunter 最大人口数
+- `Hunter.max_size_water`: Hunter 在近水陆地的最大人口数
 
 ## 数据输出与分析
 
@@ -100,5 +117,5 @@ python main.py --config-name config_2 model.parameter1=v1,v2,v3 model.parameter2
 **祝您使用愉快！**
 
 <!-- Links -->
-[配置文件]: ./config.md
-[GitHub]: https://github.com/SongshGeo/SC-20230710-SCE
+[配置文件]: /docs/usage/config
+[GitHub]: https://github.com/SongshGeo/South-China-Livehood-Evolution

@@ -1,7 +1,4 @@
----
-title: Configuration File
-author: Shuang Song
----
+# Configuration File
 
 Configuration files are an essential part of model execution. The model runs simulations based on parameters in the configuration file. Configuration files use YAML format, and users can modify model parameters in the configuration file.
 
@@ -45,7 +42,7 @@ Environment configuration, including parameters like carrying capacity and initi
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | lim_h | float | 31.93 | **Carrying capacity (persons/100km²)** |
-| init_hunters | float | 0.05 | Initial hunter ratio or count (<1: ratio, ≥1: count) |
+| init_hunters | float | 0.05 | Initial hunter ratio or count (`<1`: ratio, `≥1`: count) |
 | init_farmers | int | 80 | Initial number of farmer agents (recommended: 60-100) |
 | init_rice_farmers | int | 350 | Initial number of rice farmer agents (recommended: 300-400) |
 | lam_farmer | float | 1 | Expected value for adding farmers per step (Poisson parameter) |

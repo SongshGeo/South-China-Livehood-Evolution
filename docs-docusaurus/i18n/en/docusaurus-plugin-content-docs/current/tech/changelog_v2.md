@@ -1,9 +1,3 @@
----
-title: Model Refactoring Changelog (v2.0)
-author: Shuang Song
-date: 2025-10-20
----
-
 # Model Refactoring Changelog (v2.0)
 
 This document records the major logical modifications made to the model on October 20, 2025.
@@ -216,8 +210,8 @@ The following features were mentioned in this refactoring but not implemented; m
 
 ## Reference Documentation
 
-- [Configuration Guide](../usage/config.en.md)
-- [Workflow](../usage/workflow.en.md)
-- [Hunter API](../api/hunter.md)
-- [Environment API](../api/env.md)
+- [Configuration Guide](../usage/config.md)
+- [Workflow](../usage/workflow.md)
+- [Hunter API](/docs/api/hunter)
+- [Environment API](/docs/api/env)
 

@@ -145,6 +145,52 @@ print(farmer_data.describe())
 - `growth_rate`: 人口增长率
 - `area`: 耕地面积
 
+## 2.0 版本规则要点
+
+### 每个时间步的工作流程
+1. **环境更新**：`nature.step()`
+2. **主体行为**：所有主体执行 `step()` 方法
+3. **全局控制**：应用全局 Hunter 人口上限
+4. **数据收集**：收集当前时间步的数据
+
+### 断点检测
+- 支持多种检测依据：`size`、`ratio`、`group`、`group_ratio`
+- 自动计算断点前后的增长率
+- 支持断点前后的数据分析
+
+## 配置示例
+
+```yaml
+model:
+  save_plots: True  # 保存绘图
+  n_bkps: 1  # 断点数量
+  detect_bkp_by: 'size'  # 断点检测依据
+
+tracker:
+  model:
+    num_farmers: "farmers size ratio"
+    num_hunters: "hunters size ratio"
+    num_rice: "rice size ratio"
+  final:
+    bkp_farmer: "bkp_farmers"
+    pre_farmer: "pre_farmers"
+    post_farmer: "post_farmers"
+```
+
+断点与增长率的取用方式：
+
+```python
+model = Model()
+model.run()
+
+bkp = model.detect_breakpoints("farmers")
+pre_rate, post_rate = model.calc_rate("farmers")
+
+data = model.datacollector.get_model_vars_dataframe()
+model.plot.dynamic()  # 动态图
+model.plot.heatmap()  # 热图
+```
+
 ## 注意事项
 
 1. 模型继承自 `abses.MainModel`，具有所有基础模型功能

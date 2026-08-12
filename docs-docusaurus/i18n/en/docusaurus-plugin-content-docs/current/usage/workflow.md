@@ -1,7 +1,4 @@
----
-title: Model Workflow
-author: Shuang Song
----
+# Model Workflow
 
 A typical agent-based model experiment has the structure shown below, with [Experiment Process] on the left and [Model Process] on the right.
 
@@ -38,8 +35,9 @@ Add initial agents of all three types:
 
 3. **Rice Farmers**: Created in random rice-arable cells based on `env.init_rice_farmers` parameter (default 350). Each rice farmer's initial population is randomly selected from the `RiceFarmer.init_size` range (default 300-400).
 
-> [!important]
-> **Important Change**: All three agent types are now created at initialization. No need to wait for specific time steps. `tick_farmer` and `tick_ricefarmer` parameters default to 0.
+:::important
+**Important Change**: All three agent types are now created at initialization. No need to wait for specific time steps. `tick_farmer` and `tick_ricefarmer` parameters default to 0.
+:::
 
 ### Step
 
@@ -72,11 +70,12 @@ Sequentially **randomly** select all agents and execute their `step` methods:
 - **Movement**: Non-settled hunters (population ≤ `is_complex`) actively search for and move to more suitable locations
 - **Merger**: When encountering other hunters, they merge; merged population = sum of both (population conservation)
 
-> [!warning]
-> **Important Rule Changes**:
-> - ❌ **Competition mechanism removed**: No competition between different agent types
-> - ✅ **One agent per cell**: Only one agent (any type) allowed per cell
-> - ✅ **Population conservation**: Diffusion and merger operations strictly conserve total population
+:::warning
+**Important Rule Changes**:
+- ❌ **Competition mechanism removed**: No competition between different agent types
+- ✅ **One agent per cell**: Only one agent (any type) allowed per cell
+- ✅ **Population conservation**: Diffusion and merger operations strictly conserve total population
+:::
 
 #### Death Check
 

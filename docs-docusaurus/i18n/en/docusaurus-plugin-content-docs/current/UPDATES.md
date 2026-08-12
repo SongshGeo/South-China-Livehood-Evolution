@@ -1,9 +1,3 @@
----
-title: Model Updates
-author: Shuang Song
-date: 2025-10-20
----
-
 # Model Updates (v2.0)
 
 ## Quick Overview
@@ -74,10 +68,10 @@ All changes have been thoroughly tested:
 
 ```bash
 # Run test suite
-poetry run pytest tests/ -v
+uv run pytest tests/ -v
 
 # Run model
-poetry run python -m src time.end=20 exp.repeats=1
+uv run python -m src time.end=20 exp.repeats=1
 ```
 
 Expected results:
@@ -87,9 +81,9 @@ Expected results:
 
 ## 📚 Detailed Documentation
 
-- **Changelog**: [changelog_v2.en.md](tech/changelog_v2.en.md) - Detailed change descriptions
-- **Configuration**: [config.en.md](usage/config.en.md) - Complete parameter documentation
-- **Workflow**: [workflow.en.md](usage/workflow.en.md) - Updated model process
+- **Changelog**: [changelog_v2.md](tech/changelog_v2.md) - Detailed change descriptions
+- **Configuration**: [config.md](usage/config.md) - Complete parameter documentation
+- **Workflow**: [workflow.md](usage/workflow.md) - Updated model process
 
 ## 🔄 Major API Changes
 
@@ -167,9 +161,9 @@ Currently, no critical issues are known. If you encounter problems:
 
 If you have questions, please refer to:
 
-1. [Complete Documentation](index.en.md)
-2. [Configuration Guide](usage/config.en.md)
-3. [Changelog](tech/changelog_v2.en.md)
+1. [Complete Documentation](intro.md)
+2. [Configuration Guide](usage/config.md)
+3. [Changelog](tech/changelog_v2.md)
 
 Or contact: songshgeo[at]gmail.com
 

@@ -1,9 +1,3 @@
----
-title: Model Sequence Diagrams
-author: Shuang Song
-date: 2025-10-20
----
-
 # Model Detailed Sequence Diagrams
 
 This document illustrates the running process of the South China Livelihood Evolution Model through sequence diagrams.
@@ -288,7 +282,7 @@ These sequence diagrams are written in Mermaid syntax and will be automatically 
 
 ### Viewing Diagrams
 
-1. Start documentation server: `poetry run mkdocs serve`
+1. Start documentation server: `cd docs-docusaurus && npm run start`
 2. Visit this page to view complete interactive sequence diagrams
 3. Can zoom, export to SVG/PNG
 
@@ -317,7 +311,7 @@ Directly edit the Mermaid code blocks in this file; changes update automatically
 
 ## Reference Documentation
 
-- [Workflow](../usage/workflow.en.md) - Text description
-- [Changelog](changelog_v2.en.md) - Detailed changes
-- [Configuration](../usage/config.en.md) - Parameter descriptions
+- [Workflow](../usage/workflow.md) - Text description
+- [Changelog](changelog_v2.md) - Detailed changes
+- [Configuration](../usage/config.md) - Parameter descriptions
 

@@ -1,7 +1,4 @@
----
-title: 主体基类
-author: Shuang Song
----
+# 主体基类
 
 ## 主体基类
 

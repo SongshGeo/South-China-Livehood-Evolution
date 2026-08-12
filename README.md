@@ -1,9 +1,8 @@
 # 华南生计演变模型 / South China Livelihood Evolution Model
 
-[![Tests](https://github.com/SongshGeo/SC-20230710-SCE/actions/workflows/test.yml/badge.svg)](https://github.com/SongshGeo/SC-20230710-SCE/actions/workflows/test.yml)
-[![Documentation](https://github.com/SongshGeo/SC-20230710-SCE/actions/workflows/gh_page.yml/badge.svg)](https://github.com/SongshGeo/SC-20230710-SCE/actions/workflows/gh_page.yml)
+[![Docs](https://github.com/SongshGeo/South-China-Livehood-Evolution/actions/workflows/docusaurus-pages.yml/badge.svg)](https://github.com/SongshGeo/South-China-Livehood-Evolution/actions/workflows/docusaurus-pages.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
-[![Poetry](https://img.shields.io/badge/poetry-managed-blue)](https://python-poetry.org/)
+[![uv](https://img.shields.io/badge/uv-managed-blue)](https://docs.astral.sh/uv/)
 
 [中文](#中文) | [English](#english)
 
@@ -22,59 +21,68 @@
 - 🎛️ 灵活控制：独立的转化机制开关
 - 📐 严格守恒：扩散和合并过程的人口守恒
 
-### 🆕 最新更新 (v2.0 - 2025-10-20)
+### 🆕 最新更新 (v2.0)
 
-本次重构完成了8项重大模型逻辑修改：
+本次重构完成了 8 项重大模型逻辑修改：
 
 | 修改 | 描述 |
 |------|------|
 | ✅ 初始化优化 | 所有主体类型从开始就存在 |
-| ✅ 转化开关 | 可独立控制6种转化路径 |
+| ✅ 转化开关 | 可独立控制 6 种转化路径 |
 | ❌ 删除竞争 | 移除主体间竞争机制 |
 | ✅ 人口守恒 | 严格保证扩散/合并守恒 |
-| ✅ Hunter改进 | 新的人口上限规则 + 损失机制 |
+| ✅ Hunter 改进 | 新的人口上限规则 + 损失机制 |
 | ✅ 每格唯一 | 一个格子只能有一个主体 |
 
-详见 [更新说明](docs/UPDATES.md) 和 [变更日志](docs/tech/changelog_v2.md)
+详见[更新说明](https://south-china-livehood-evolution.vercel.app/docs/UPDATES)和[变更日志](https://south-china-livehood-evolution.vercel.app/docs/tech/changelog_v2)。
 
 ### 🚀 快速开始
 
+依赖由 [uv](https://docs.astral.sh/uv/) 管理，声明在 `pyproject.toml`、锁定在 `uv.lock`。
+
 ```bash
-# 安装依赖
-poetry install
+# 安装运行时 + 开发依赖
+uv sync
+# 需要 Jupyter 时，额外装上 notebook 依赖组
+uv sync --all-groups
 
 # 运行测试
-poetry run pytest tests/
+make test
 
 # 运行模型
-poetry run python -m src time.end=20 exp.repeats=1
+uv run python -m src time.end=20 exp.repeats=1
 
-# 查看文档
-poetry run mkdocs serve
-# 访问 http://127.0.0.1:8000
+# 本地预览文档
+cd docs-docusaurus && npm ci && npm run start
 ```
 
 ### 📚 文档
 
-- 🌐 **在线文档**: [GitHub Pages](https://songshgeo.github.io/SC-20230710-SCE/) *(即将部署)*
-- 📖 **本地文档**: `poetry run mkdocs serve`
+- 🌐 **在线文档**: <https://south-china-livehood-evolution.vercel.app>
+- 📖 **本地预览**: `cd docs-docusaurus && npm run start`
 - 🇨🇳 **中文文档**: 默认语言
 - 🇬🇧 **英文文档**: 点击语言选择器切换
 
-### ✅ 项目状态
+文档源文件全部位于 `docs-docusaurus/`，中文在 `docs/`、英文在 `i18n/en/`。
 
-- **代码**: ✅ 全部重构完成
-- **测试**: ✅ 84/84 通过
-- **文档**: ✅ 中英双语
-- **部署**: ✅ GitHub Actions 配置完成
+### 🗂️ 目录结构
+
+| 路径 | 内容 |
+|------|------|
+| `src/` | 模型源码（`api/` 主体、`core/` 模型、`workflow/` 分析与绘图） |
+| `tests/` | pytest 测试 |
+| `config/` | Hydra 配置与情景文件 |
+| `reports/` | 分析与出图 notebook |
+| `paper/` | 手稿相关：Methods、ODD+D 协议、参考文献 |
+| `docs-docusaurus/` | 文档站点（唯一文档来源） |
 
 ### 🛠️ 技术栈
 
 - Python 3.11
-- ABSESpy 0.8.5 (Agent-Based Modeling Framework)
+- ABSESpy 0.11 (Agent-Based Modeling Framework)
 - Hydra (Configuration Management)
-- MkDocs Material (Documentation)
-- Poetry (Dependency Management)
+- Docusaurus (Documentation)
+- uv (Dependency Management)
 
 ### 📝 引用
 
@@ -85,7 +93,7 @@ poetry run mkdocs serve
   author = {Song, Shuang},
   title = {South China Livelihood Evolution Model},
   year = {2025},
-  url = {https://github.com/SongshGeo/SC-20230710-SCE}
+  url = {https://github.com/SongshGeo/South-China-Livehood-Evolution}
 }
 ```
 
@@ -110,7 +118,7 @@ An agent-based model simulating prehistoric livelihood evolution in South China.
 - 🎛️ Flexible control: independent conversion mechanism switches
 - 📐 Strict conservation: population conservation in diffusion and merger
 
-### 🆕 Latest Update (v2.0 - 2025-10-20)
+### 🆕 Latest Update (v2.0)
 
 This refactoring completed 8 major model logic modifications:
 
@@ -123,46 +131,55 @@ This refactoring completed 8 major model logic modifications:
 | ✅ Hunter Improvements | New population limits + loss mechanism |
 | ✅ One Per Cell | Only one agent allowed per cell |
 
-See [Updates](docs/UPDATES.en.md) and [Changelog](docs/tech/changelog_v2.en.md) for details.
+See [Updates](https://south-china-livehood-evolution.vercel.app/en/docs/UPDATES) and [Changelog](https://south-china-livehood-evolution.vercel.app/en/docs/tech/changelog_v2) for details.
 
 ### 🚀 Quick Start
 
+Dependencies are managed by [uv](https://docs.astral.sh/uv/), declared in `pyproject.toml` and pinned in `uv.lock`.
+
 ```bash
-# Install dependencies
-poetry install
+# Install runtime + dev dependencies
+uv sync
+# Add the notebook group when you need Jupyter
+uv sync --all-groups
 
 # Run tests
-poetry run pytest tests/
+make test
 
-# Run model
-poetry run python -m src time.end=20 exp.repeats=1
+# Run the model
+uv run python -m src time.end=20 exp.repeats=1
 
-# View documentation
-poetry run mkdocs serve
-# Visit http://127.0.0.1:8000
+# Preview the docs locally
+cd docs-docusaurus && npm ci && npm run start
 ```
 
 ### 📚 Documentation
 
-- 🌐 **Online Docs**: [GitHub Pages](https://songshgeo.github.io/SC-20230710-SCE/) *(coming soon)*
-- 📖 **Local Docs**: `poetry run mkdocs serve`
+- 🌐 **Online Docs**: <https://south-china-livehood-evolution.vercel.app>
+- 📖 **Local Preview**: `cd docs-docusaurus && npm run start`
 - 🇨🇳 **Chinese**: Default language
 - 🇬🇧 **English**: Switch via language selector
 
-### ✅ Project Status
+All documentation sources live under `docs-docusaurus/` — Chinese in `docs/`, English in `i18n/en/`.
 
-- **Code**: ✅ Fully refactored
-- **Tests**: ✅ 84/84 passing
-- **Documentation**: ✅ Bilingual (Chinese/English)
-- **Deployment**: ✅ GitHub Actions configured
+### 🗂️ Layout
+
+| Path | Contents |
+|------|----------|
+| `src/` | Model source (`api/` agents, `core/` model, `workflow/` analysis and plotting) |
+| `tests/` | pytest suite |
+| `config/` | Hydra configuration and scenario files |
+| `reports/` | Analysis and figure notebooks |
+| `paper/` | Manuscript material: Methods, ODD+D protocol, references |
+| `docs-docusaurus/` | Documentation site (single source of truth) |
 
 ### 🛠️ Tech Stack
 
 - Python 3.11
-- ABSESpy 0.8.5 (Agent-Based Modeling Framework)
+- ABSESpy 0.11 (Agent-Based Modeling Framework)
 - Hydra (Configuration Management)
-- MkDocs Material (Documentation)
-- Poetry (Dependency Management)
+- Docusaurus (Documentation)
+- uv (Dependency Management)
 
 ### 📝 Citation
 
@@ -173,7 +190,7 @@ If you use this model, please cite:
   author = {Song, Shuang},
   title = {South China Livelihood Evolution Model},
   year = {2025},
-  url = {https://github.com/SongshGeo/SC-20230710-SCE}
+  url = {https://github.com/SongshGeo/South-China-Livehood-Evolution}
 }
 ```
 
@@ -192,10 +209,3 @@ If you use this model, please cite:
 ## Acknowledgments
 
 This model is built with [ABSESpy](https://github.com/ABSESpy/ABSESpy), a Python framework for agent-based modeling.
-
-- [模型工作流](docs/api/model.md)
-- [农民主体方法](docs/api/farmer.md)
-- [狩猎采集者主体方法](docs/api/hunter.md)
-- [斑块与环境](docs/api/env.md)
-# Trigger build
-# Trigger Vercel deployment

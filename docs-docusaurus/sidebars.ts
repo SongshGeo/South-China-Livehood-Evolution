@@ -15,6 +15,7 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro',
+    'UPDATES',
     {
       type: 'category',
       label: '使用指南',
@@ -23,6 +24,8 @@ const sidebars: SidebarsConfig = {
         'usage/workflow',
         'usage/config',
         'usage/plots',
+        'usage/usage_guide',
+        'output_data_guide',
       ],
     },
     {
@@ -33,6 +36,7 @@ const sidebars: SidebarsConfig = {
         'api/hunter',
         'api/farmer',
         'api/env',
+        'api/people',
       ],
     },
     {
@@ -42,6 +46,7 @@ const sidebars: SidebarsConfig = {
         'tech/changelog_v2',
         'tech/sequence_diagram',
         'tech/breakpoint',
+        'tech/deployment',
       ],
     },
   ],

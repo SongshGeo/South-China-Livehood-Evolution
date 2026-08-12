@@ -1,7 +1,4 @@
----
-title: 断点检测
-author: Shuang Song
----
+# 断点检测
 
 ## 断点检测方法
 

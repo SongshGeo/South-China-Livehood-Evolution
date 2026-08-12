@@ -11,7 +11,7 @@ This model currently includes the following main features:
 5. Flexible conversion mechanism control with independent switches for different conversion types.
 6. Strict population conservation for diffusion and merger processes.
 
-> **Latest Update (v2.0)**: The model underwent major refactoring, removing competition mechanisms, adding conversion control switches, and optimizing initialization. See [Changelog](tech/changelog_v2.en.md) for details.
+> **Latest Update (v2.0)**: The model underwent major refactoring, removing competition mechanisms, adding conversion control switches, and optimizing initialization. See [Changelog](tech/changelog_v2.md) for details.
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ This model currently includes the following main features:
 ## Method Documentation
 
 - [Model Workflow](api/model.md)
-- [Sequence Diagrams](tech/sequence_diagram.en.md) - 🆕 Visual Process Flows
+- [Sequence Diagrams](tech/sequence_diagram.md) - 🆕 Visual Process Flows
 - [Farmer Agent Methods](api/farmer.md)
 - [Hunter Agent Methods](api/hunter.md)
 - [Patches and Environment](api/env.md)
@@ -35,8 +35,8 @@ This model currently includes the following main features:
 
 <!-- Links -->
 [Quick Start]: usage/quick_start.md
-[Model Workflow]: usage/workflow.en.md
-[Configuration]: usage/config.en.md
+[Model Workflow]: usage/workflow.md
+[Configuration]: usage/config.md
 [Data Analysis]: usage/plots.md
 [Shuang Song]: https://cv.songshgeo.com/
 

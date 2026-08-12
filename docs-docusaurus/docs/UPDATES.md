@@ -1,9 +1,3 @@
----
-title: 模型更新说明
-author: Shuang Song
-date: 2025-10-20
----
-
 # 模型更新说明 (v2.0)
 
 ## 快速概览
@@ -74,10 +68,10 @@ RiceFarmer:
 
 ```bash
 # 运行测试套件
-poetry run pytest tests/ -v
+uv run pytest tests/ -v
 
 # 运行模型
-poetry run python -m src time.end=20 exp.repeats=1
+uv run python -m src time.end=20 exp.repeats=1
 ```
 
 预期结果：
@@ -167,7 +161,7 @@ Hunter:
 
 如有问题，请参考：
 
-1. [完整文档](index.md)
+1. [完整文档](./intro.md)
 2. [配置说明](usage/config.md)
 3. [变更日志](tech/changelog_v2.md)
 
