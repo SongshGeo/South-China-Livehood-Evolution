@@ -1,0 +1,15 @@
+Hunter:
+  loss:
+    prob: 0.01
+    rate: 0.05
+
+Farmer:
+  loss:
+    prob: 0.01
+    rate: 0.05
+
+RiceFarmer:
+  loss:
+    prob: 0.01
+    rate: 0.05
+

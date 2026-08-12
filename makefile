@@ -72,3 +72,17 @@ uv-install:
 	. .venv/bin/activate && uv pip install pytest allure-pytest pytest-cov pytest-clarity pytest-sugar
 
 ci: uv-setup uv-geo uv-install test
+
+fetch-geany-data:
+	@command -v rsync >/dev/null 2>&1 || { echo "Error: rsync is not installed"; exit 1; }
+	@mkdir -p ./out/
+	@echo "Fetching data from geany server..."
+	@rsync -avzP --progress --partial geany:/u/songsh/CodeBase/South-China-Livehood-Evolution/out/ ./out/ || { \
+		echo "Error: Failed to fetch data from geany server"; \
+		echo "Please check:"; \
+		echo "  1. Network connectivity"; \
+		echo "  2. SSH access to geany server"; \
+		echo "  3. Remote path exists"; \
+		exit 1; \
+	}
+	@echo "Data fetch completed successfully"

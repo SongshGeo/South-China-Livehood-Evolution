@@ -9,9 +9,11 @@
 运行一次实验
 """
 import logging
+import os
 
 import hydra
 from omegaconf import DictConfig
+from twist_academic import maybe_notify
 
 from src.api import Env
 from src.core import Model, MyExperiment
@@ -48,9 +50,27 @@ def main(cfg: DictConfig | None = None) -> None:
         AttributeError: 热力图绘制出现问题时可能引发。
     """
     exp = MyExperiment(Model, cfg=cfg, nature_class=Env)
+
+    expected = [
+        exp.outpath / f"{i}_tracking.csv" for i in range(1, cfg.exp.repeats + 1)
+    ]
+    if all(p.exists() for p in expected):
+        logger.info(
+            f"All {cfg.exp.repeats} repeats already complete in {exp.outpath}; skipping."
+        )
+        return
+
     exp.batch_run(repeats=cfg.exp.repeats, parallels=cfg.exp.num_process)
     logger.info(f"Experiment folder: {exp.folder}")
 
 
 if __name__ == "__main__":
-    main()
+    maybe_notify("华南农业实验开始运行")
+    try:
+        main()
+    except Exception as e:
+        logger.error(f"实验运行失败: {e}")
+        maybe_notify(f"华南农业实验运行失败: {e}")
+        raise e
+    finally:
+        maybe_notify("华南农业实验结束")
