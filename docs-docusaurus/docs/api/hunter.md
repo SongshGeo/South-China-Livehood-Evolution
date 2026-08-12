@@ -121,32 +121,12 @@ hunter.loss()  # 5% 概率减少到90
 
 **行为**:
 - 搜索周围更好的格子
-- 可能与其他 Hunter 合并
-- 移动到合适的非水体格子
+- 移动到合适的非水体格子（每格最多一个主体，已占据的格子会被拒绝）
 
 **示例**:
 ```python
 hunter = Hunter(size=80)  # 非定居型
 hunter.move_one()  # 尝试移动到更好的位置
-```
-
-### `merge(other_hunter: Hunter)`
-与其他 Hunter 合并。
-
-**参数**:
-- `other_hunter`: 要合并的另一个 Hunter
-
-**行为**:
-- 人口守恒: `size = self.size + other_hunter.size`
-- 当前 Hunter 死亡
-- 其他 Hunter 获得合并后的人口
-
-**示例**:
-```python
-hunter1 = Hunter(size=50)
-hunter2 = Hunter(size=30)
-hunter1.merge(hunter2)
-# hunter1 死亡，hunter2 的人口变为 80
 ```
 
 ## 配置参数
@@ -196,7 +176,6 @@ print(f"是否临近水体: {hunter.is_near_water()}")
 4. **扩散**: 当人口超过阈值时自动扩散
 5. **损失**: 随机减少人口
 6. **移动**: 非定居型会尝试移动到更好的位置
-7. **合并**: 可能与其他 Hunter 合并
 
 ## 特殊行为
 
@@ -207,10 +186,6 @@ print(f"是否临近水体: {hunter.is_near_water()}")
 ### 复杂化
 - 人口超过阈值时成为复杂狩猎采集者
 - 复杂化影响移动和扩散行为
-
-### 合并机制
-- 移动时可能遇到其他 Hunter
-- 自动合并，保持人口守恒
 
 ## 2.0 版本规则要点
 
@@ -255,7 +230,7 @@ env.apply_global_hunter_limit()
 
 1. Hunter 不能在水体 (`is_water=True`) 上生存
 2. 转化行为受全局转化开关控制
-3. 扩散时保持人口守恒
+3. 扩散时人口基本守恒，但母体残余低于 `min_size` 时会随母体一起消失
 4. 移动只对非定居型有效
-5. 合并时当前主体会死亡
+5. 模型不含合并机制：每格最多一个主体，两个 Hunter 不会同处一格
 6. 水体附近的最大人口限制更高

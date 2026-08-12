@@ -11,7 +11,7 @@ This update is a major refactoring of the model, focusing on **simplifying logic
 | ✅ Initialization | All agent types present from start | More realistic |
 | ✅ Conversion Switches | Independent control of 6 conversion paths | Easier comparative experiments |
 | ❌ Remove Competition | Removed inter-agent competition | Clearer logic |
-| ✅ Population Conservation | Strict conservation in diffusion/merger | More accurate |
+| ✅ Population Conservation | Diffusion mostly conserves (a parent below `min_size` is removed with its remainder); no merging | More accurate |
 | ✅ Hunter Improvements | New population limits + loss mechanism | More reasonable behavior |
 | ✅ One Agent Per Cell | Only one agent allowed per cell | Clear spatial rules |
 
@@ -94,6 +94,7 @@ Expected results:
 Hunter.compete()
 Hunter.loss_in_competition()
 Hunter.moving()
+Hunter.merge()  # never called; one group per cell makes merging impossible
 ```
 
 ### Modified Methods
@@ -102,9 +103,8 @@ Hunter.moving()
 # ✅ Current implementation
 Hunter.max_size  # Returns 100 or 500 (near water)
 Hunter.loss()  # New loss mechanism
-Hunter.merge()  # Strict population conservation
 
-SiteGroup.diffuse()  # Strict population conservation
+SiteGroup.diffuse()  # Mostly conserves; a parent below min_size is removed with its remainder
 ```
 
 ### New Methods

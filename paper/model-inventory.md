@@ -144,7 +144,7 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 118 passing, covering agents, environment, conversion thresholds, seed
+- Unit tests: 120 passing, covering agents, environment, conversion thresholds, seed
   reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
@@ -235,12 +235,22 @@ second check: it is name-specific, so it would not catch an inert group introduc
 under a different name — the values assertion is the general guard. The 8 orphaned
 run directories are left in place; they feed nothing.
 
-**F6. Group merging is dead code; splitting does not strictly conserve population.**
-`Hunter.merge` (`hunter.py:55-67`) is never called anywhere in `src/` or `tests/`. In
-`diffuse`, the parent's `self.size -= size` passes through the size setter
-(`people.py:36-43`), which kills the parent outright if the remainder falls below
-`min_size`, destroying that remainder. Both documents claimed exact conservation under
-splitting and merging.
+**F6a. Group merging was dead code — REMOVED.** `Hunter.merge` (`hunter.py:55-67`)
+was never called anywhere in `src/` or `tests/`. It could not have fired even if it
+had been called from the movement logic: `max_agents = 1` and `able_to_live` refuses
+an occupied cell, so two foragers never share a cell and no occasion to merge arises.
+Deleted, along with `SiteGroup.loss_in_competition` (`people.py:224-227`), the other
+call-less remnant of the removed competition mechanism. The SI no longer describes a
+merging routine at all; it states that groups do not merge and why.
+
+**F6b. Splitting does not strictly conserve population — see #32.** In `diffuse`,
+the parent's `self.size -= size` passes through the size setter (`people.py:36-43`),
+which kills the parent outright if the remainder falls below `min_size`, destroying
+that remainder. Bounds derivable from the code alone: at most `min_size − 1` = 5
+people per event, and only for farming breeds — a forager only splits at `max_size`
+(100, or 500 near water) and its colony is at most `new_group_size` = 50, so its
+remainder is always ≥ 50 and it can never trigger the leak. The docstring claiming
+conservation is the defect, not the arithmetic.
 
 **F7. Water is modelled as a land property, not as terrain (confirmed by author, not
 a defect).** `is_water` tests `water_type == -1`, which the input never supplies: the
@@ -275,10 +285,21 @@ documents described it as "real versus homogenised".
 `step >= max_step - last` with `last = 50` (`src/workflow/figures.py:260-278`),
 an inclusive bound. Immaterial to results; stated precisely in the revision.
 
-**F13. A silent fallback can disable the ceiling.** `calculate_global_hunter_limit`
-wraps its body in a bare `except Exception` and falls back to 100 000
-(`env.py:320-322`), which is below the true ceiling of 239 225 and would silently
-change the model's behaviour rather than fail. Not triggered in the runs checked.
+**F13. A silent fallback could have disabled the ceiling — FIXED.**
+`calculate_global_hunter_limit` wrapped its body in a bare `except Exception` and
+fell back to 100 000 (`env.py:320-322`). The comment called that "a large default
+that will not constrain", but the true ceiling is 239 225, so the fallback was less
+than half of it — it would have tightened the forager ceiling, not lifted it, and
+silently. Worse, `lim_h` = 15 is a swept value in Figure 4 and 15 × 6835 = 102 525
+sits within 3% of the magic number, so a triggered fallback would have been nearly
+invisible in the results.
+
+Never triggered in any run checked (measured `global_hunter_limit` = 239 225 = 35 ×
+6835 throughout). Fixed by removing the `try`/`except` so an initialisation-time
+configuration or data fault fails loudly. `lim_h` is now required rather than
+defaulted: its old default, 31.93, was the **areal density** from Binford 2001 being
+used as a **per-cell** value, which is exactly the unit confusion of F8.
+`tests/test_env.py::TestGlobalHunterLimit` covers both the value and the raise.
 
 ---
 
@@ -295,9 +316,9 @@ F7 is confirmed intended behaviour and needs no change.
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
 | F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |
-| F6 | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | open |
-| F6 | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | open |
-| F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | open |
+| F6b | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | open — confirmed, 0.013% of population |
+| F6a | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | **fixed** — removed |
+| F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | **fixed** |
 | F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | open — confirmed intended (people per cell) |
 | §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 | open — confirmed abstract, no calendar time |
 | §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 | open |

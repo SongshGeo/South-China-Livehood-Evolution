@@ -194,8 +194,8 @@ suitable cell, so a cell held by a forager is unavailable to a farmer and the
 reverse. Conversion is a contact interaction, since a forager adopts farming only
 next to an existing farming group. There is no direct conflict, predation, trade, or
 resource transfer between groups; an earlier competition mechanism was removed from
-the model. A group-merging routine exists in the code but is never invoked, so no
-merging occurs.
+the model. Groups do not merge: because a cell holds at most one group, two groups
+never occupy the same cell, so there is no occasion for merging.
 
 ### II.viii Collectives
 
@@ -417,8 +417,7 @@ heatmaps; it does not feed Figures 2–5.
 so that a reimplementation reproduces this model rather than an idealised one.
 (i) Immigrant paddy groups are placed using the rainfed-arable mask, so some are
 seeded on cells that fail the paddy slope criterion. (ii) A colony split loses the
-parent's residual population when that residual falls below `min_size`. (iii) A
-group-merging routine exists in the code but is never called.
+parent's residual population when that residual falls below `min_size`.
 
 **Model testing and validation.** Validation is pattern-oriented. The model is
 judged by whether it reproduces the qualitative patterns named in I.i — a
@@ -427,7 +426,7 @@ rather than by point prediction of specific historical events. No independent
 dataset was available for validation, so calibration and validation are not
 separated: the parameters are sourced from the literature and the patterns are
 qualitative. The core submodels (agent state transitions, conversion thresholds,
-mortality, and boundary cases) are covered by 118 unit tests. No global
+mortality, and boundary cases) are covered by 120 unit tests. No global
 variance-based sensitivity analysis was run; the sweeps are one- and two-factor
 grids around the mechanism of interest.
 

@@ -305,23 +305,29 @@ class Env(BaseNature):
         # 设置完 DEM 后立即计算全局人口上限
         self.calculate_global_hunter_limit()
 
-    def calculate_global_hunter_limit(self):
-        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量"""
-        try:
-            # 获取所有非水体栅格（water_type != -1）
-            non_water_cells = self.dem.cells_lst.select({"is_water": False})
+    def calculate_global_hunter_limit(self) -> None:
+        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量。
 
-            # 使用配置中的 lim_h 值（每个栅格的承载力）
-            lim_h = self.params.get("lim_h", 31.93)
+        Note:
+            初始化期算不出承载力就应当直接失败：这个上限决定狩猎采集者对空间的
+            占据强度，也就是农业被压制的直接原因，静默兜底只会产出一批参数被悄悄
+            改过的结果。`lim_h` 因此是必需参数——取不到就让 OmegaConf 抛
+            `ConfigKeyError`（`KeyError` 的子类），而不是回退到某个默认值。
 
-            # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
-            self.global_hunter_limit = float(lim_h * len(non_water_cells))
+        Raises:
+            KeyError: 配置里没有 `env.lim_h`。
+        """
+        # 获取所有非水体栅格（water_type != -1）
+        non_water_cells = self.dem.cells_lst.select({"is_water": False})
 
-            # 将全局限制存储到模型参数中，供 Hunter 类访问
-            self.model.params.global_hunter_limit = self.global_hunter_limit
-        except Exception:
-            # 如果出错，设置默认值并静默失败
-            self.global_hunter_limit = 100000.0  # 较大的默认值，不会限制
+        # 每个栅格的承载力，单位是人/格（见 config.yaml 的说明）
+        lim_h = self.params["lim_h"]
+
+        # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
+        self.global_hunter_limit = float(lim_h * len(non_water_cells))
+
+        # 将全局限制存储到模型参数中，供 Hunter 类访问
+        self.model.params.global_hunter_limit = self.global_hunter_limit
 
     def apply_global_hunter_limit(self) -> None:
         """应用全局 Hunter 人口上限控制

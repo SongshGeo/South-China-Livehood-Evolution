@@ -9,7 +9,7 @@ This model currently includes the following main features:
 3. Supports dynamic processes like population growth, migration, and conversion.
 4. Provides various data visualization methods (heatmaps, trend charts, etc.).
 5. Flexible conversion mechanism control with independent switches for different conversion types.
-6. Strict population conservation for diffusion and merger processes.
+6. Diffusion mostly conserves population (a parent left below `min_size` is removed with its remainder); the model has no merging mechanism.
 
 > **Latest Update (v2.0)**: The model underwent major refactoring, removing competition mechanisms, adding conversion control switches, and optimizing initialization. See [Changelog](tech/changelog_v2.md) for details.
 

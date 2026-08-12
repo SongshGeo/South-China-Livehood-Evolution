@@ -87,7 +87,7 @@ Hunter:
 
 **Impact**:
 - Different agents cannot occupy same cell (one agent per cell rule)
-- Hunters still merge when encountering other hunters
+- ~~Hunters still merge when encountering other hunters~~ (incorrect as written: one group per cell means two hunters never share a cell, so merging never occurred; `merge()` has been removed)
 - Simpler, clearer movement logic
 - **`search_cell()` function simplified**: No longer uses suitability-weighted selection, changed to simple random selection
 
@@ -106,7 +106,11 @@ Hunter:
 
 **Implementation**: Each time step, loss occurs with `prob` probability, reducing population by `rate` ratio
 
-#### 3.4 Merger Mechanism Improvement
+#### 3.4 Merger Mechanism Improvement (mechanism since removed)
+
+> **Postscript**: `merge()` was never called from anywhere, and the one-group-per-cell
+> rule made merging impossible. The method has been deleted; this section is kept as
+> a historical record only.
 
 **Before**:
 ```python
@@ -131,7 +135,7 @@ size = other_hunter.size + self.size  # Strict population conservation
 Added check logic in `CompetingCell.able_to_live()` method
 
 #### Exception
-- Hunters can still merge (moving to cell with another hunter triggers merger)
+- ~~Hunters can still merge~~ (incorrect as written: the one-group-per-cell rule makes it impossible; `merge()` has been removed)
 - Agents checking their own position not subject to this restriction
 
 ### 5. Population Conservation Guarantee

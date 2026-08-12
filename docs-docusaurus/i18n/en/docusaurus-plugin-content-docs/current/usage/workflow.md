@@ -68,13 +68,13 @@ Sequentially **randomly** select all agents and execute their `step` methods:
 ##### Hunter-Specific Behaviors
 
 - **Movement**: Non-settled hunters (population ≤ `is_complex`) actively search for and move to more suitable locations
-- **Merger**: When encountering other hunters, they merge; merged population = sum of both (population conservation)
+- **No merging**: a cell holds at most one group, so two hunters never share a cell and no merging occurs
 
 :::warning
 **Important Rule Changes**:
 - ❌ **Competition mechanism removed**: No competition between different agent types
 - ✅ **One agent per cell**: Only one agent (any type) allowed per cell
-- ✅ **Population conservation**: Diffusion and merger operations strictly conserve total population
+- ⚠️ **Population conservation**: diffusion mostly conserves population, but a parent left below `min_size` is removed along with its remainder
 :::
 
 #### Death Check

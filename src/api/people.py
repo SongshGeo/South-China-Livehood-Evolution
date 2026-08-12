@@ -220,8 +220,3 @@ class SiteGroup(Actor):
         self.convert()
         self.diffuse()
         self.loss()
-
-    def loss_in_competition(self, at: Optional[PatchCell] = None) -> None:
-        """在竞争中失败"""
-        self.die()
-        return at

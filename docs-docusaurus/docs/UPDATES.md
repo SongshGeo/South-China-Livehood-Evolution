@@ -11,7 +11,7 @@
 | ✅ 初始化优化 | 所有主体类型从开始就存在 | 更符合实际情况 |
 | ✅ 转化开关 | 可独立控制6种转化路径 | 便于对比实验 |
 | ❌ 删除竞争 | 移除主体间竞争机制 | 逻辑更清晰 |
-| ✅ 人口守恒 | 严格保证扩散/合并守恒 | 数值更准确 |
+| ✅ 人口守恒 | 扩散基本守恒（母体残余低于 `min_size` 时随母体消失）；模型不含合并 | 数值更准确 |
 | ✅ Hunter 改进 | 新的人口上限规则 + 损失机制 | 行为更合理 |
 | ✅ 每格唯一 | 一个格子只能有一个主体 | 空间规则明确 |
 
@@ -94,6 +94,7 @@ uv run python -m src time.end=20 exp.repeats=1
 Hunter.compete()
 Hunter.loss_in_competition()
 Hunter.moving()
+Hunter.merge()  # 从未被调用；每格最多一个主体，合并不可能发生
 ```
 
 ### 修改的方法
@@ -102,9 +103,8 @@ Hunter.moving()
 # ✅ 现在的实现
 Hunter.max_size  # 返回 100 或 500（临近水体）
 Hunter.loss()  # 新增损失机制
-Hunter.merge()  # 严格人口守恒
 
-SiteGroup.diffuse()  # 严格人口守恒
+SiteGroup.diffuse()  # 人口基本守恒，母体残余低于 min_size 时随母体消失
 ```
 
 ### 新增的方法

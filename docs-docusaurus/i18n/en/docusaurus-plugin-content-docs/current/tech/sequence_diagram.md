@@ -82,10 +82,7 @@ sequenceDiagram
             H->>H: move_one()
             opt Not settled (size <= 100)
                 H->>Cell: Search better cell
-                opt Meet another Hunter
-                    H->>H: merge(other_hunter)
-                    Note over H: Conservation: size = size1 + size2
-                end
+                Note over H,Cell: One group per cell; an occupied cell is refused
             end
         else Farmer selected
             Model->>F: step()

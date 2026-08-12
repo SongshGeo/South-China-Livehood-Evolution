@@ -10,6 +10,7 @@ import os
 import pytest
 from abses import MainModel
 from hydra import compose, initialize
+from omegaconf import OmegaConf
 
 from src.api.env import BaseNature, CompetingCell, Env, Farmer, Hunter
 
@@ -225,3 +226,49 @@ class TestEnvironmentSettings:
         model.nature.setup_is_water(how="all")
         model.nature.add_hunters(0.6)
         assert len(model.agents) == 1
+
+
+class TestGlobalHunterLimit:
+    """全局狩猎采集者承载力上限。
+
+    这个上限决定狩猎采集者对空间的占据强度，也就是农业被压制的直接原因，而且是
+    Figure 4 的实验因子之一。它曾被包在一个裸 `except Exception` 里，出错就静默改成
+    100000——比真实上限（35 × 6835 = 239225）还低一半有余（issue #34）。
+    """
+
+    @staticmethod
+    def _tiny_env(parameters):
+        """一个只有 2×3 个陆地格子的极简环境。
+
+        模块名必须是 `env`，否则 `self.params` 取不到 `cfg.env` 下的参数。
+        """
+
+        class TinyEnv(Env):
+            """跳过栅格读取，只保留承载力计算这一段。"""
+
+            def setup_dem(self):
+                self.dem = self.create_module(
+                    shape=(2, 3),
+                    resolution=1,
+                    cell_cls=CompetingCell,
+                    major_layer=True,
+                )
+                self.calculate_global_hunter_limit()
+
+        # MainModel 构造时就会走 Env.initialize() → setup_dem()，无需再手动调用
+        model = MainModel(parameters=parameters, nature_class=TinyEnv)
+        return model.nature
+
+    def test_ceiling_is_lim_h_times_land_cells(self):
+        """上限就是 lim_h × 陆地格子数，没有别的项。"""
+        nature = self._tiny_env(cfg)
+
+        assert nature.global_hunter_limit == cfg.env.lim_h * 6
+
+    def test_missing_lim_h_raises_rather_than_capping_silently(self):
+        """回归 #34：取不到 lim_h 必须抛错，不能悄悄换成一个魔数。"""
+        without_lim_h = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True))
+        del without_lim_h.env.lim_h
+
+        with pytest.raises(KeyError):
+            self._tiny_env(without_lim_h)
