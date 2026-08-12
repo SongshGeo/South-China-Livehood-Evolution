@@ -6,8 +6,7 @@
 # Website: https://cv.songshgeo.com/
 
 
-"""测试基本主体类，包括其规模的设置，以及衍生。
-"""
+"""测试基本主体类，包括其规模的设置，以及衍生。"""
 
 from typing import Tuple
 

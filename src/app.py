@@ -46,7 +46,9 @@ class ToyEnv(Env):
         shape = height, width
         arable_ratio = self.p.get("arable_ratio", 0.1)  # 默认可耕地比例为10%
         water_ratio = self.p.get("water_ratio", 0.2)  # 水体比例
-        rice_arable_ratio = self.p.get("rice_arable_ratio", 0.05)  # 水稻可耕地比例，默认为5%
+        rice_arable_ratio = self.p.get(
+            "rice_arable_ratio", 0.05
+        )  # 水稻可耕地比例，默认为5%
 
         # 计算水稻可耕地在可耕地中的比例，限制最大为0.7（70%）
         rice_in_arable_ratio = min(0.2, rice_arable_ratio / max(arable_ratio, 0.001))
@@ -122,12 +124,18 @@ class ToyEnv(Env):
                 if cell.is_only_arable:
                     actual_only_arable += 1
 
-        notes.append(f"实际可耕地数量: {actual_arable} ({actual_arable / total_cells:.2%})")
-        notes.append(f"实际水稻可耕地数量: {actual_rice} ({actual_rice / total_cells:.2%})")
+        notes.append(
+            f"实际可耕地数量: {actual_arable} ({actual_arable / total_cells:.2%})"
+        )
+        notes.append(
+            f"实际水稻可耕地数量: {actual_rice} ({actual_rice / total_cells:.2%})"
+        )
         notes.append(
             f"实际仅普通可耕地数量: {actual_only_arable} ({actual_only_arable / total_cells:.2%})"
         )
-        notes.append(f"水稻可耕地占可耕地比例: {actual_rice / max(actual_arable, 1):.2%}")
+        notes.append(
+            f"水稻可耕地占可耕地比例: {actual_rice / max(actual_arable, 1):.2%}"
+        )
 
 
 class ToyModel(Model):
