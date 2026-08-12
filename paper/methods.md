@@ -148,10 +148,13 @@ The model is implemented in Python (3.11) on an agent-based modelling framework
 (ABSESpy 0.11). Model structure is separated from parameters, so sweeps are run by
 changing configuration only. Each combination is run as an independent batch of five
 replicates, and each replicate writes the population and group-count time series
-that feed the figures. Replicate draws are seeded except for the Poisson
-immigration counts, which consume a global random stream; runs are therefore
-reproducible in distribution rather than exactly. The full parameter set, all
-submodels, and the design concepts are specified in the Supplementary Information.
+that feed the figures. Every replicate derives its own seed from a single base seed
+recorded in the configuration, and every random draw in the model consumes that
+seeded stream, so a replicate reproduces exactly given its configuration, its
+position in the sweep, and its repeat index. The runs reported here were produced
+before the base seed was introduced and therefore reproduce in distribution rather
+than exactly. The full parameter set, all submodels, and the design concepts are
+specified in the Supplementary Information.
 
 Baseline values and the range swept for each parameter named above are given in
 Table \ref{tbl:key-params}. Foragers grow an order of magnitude more slowly than

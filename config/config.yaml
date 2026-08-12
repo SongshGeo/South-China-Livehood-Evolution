@@ -8,6 +8,11 @@ defaults:
 
 root: /Users/songshgeo/Documents/Codebase/Scholar/SC-20230710-SCE
 
+# Base seed for the experiment. Every replicate derives its own seed from this one
+# (Experiment._get_seed), so a run reproduces exactly from its config plus repeat id.
+# Set to null to draw from OS entropy instead.
+seed: 42
+
 hydra:
   searchpath:
     - pkg://abses.conf

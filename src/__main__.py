@@ -49,7 +49,10 @@ def main(cfg: DictConfig | None = None) -> None:
         ValueError: 热力图绘制出现问题时可能引发。
         AttributeError: 热力图绘制出现问题时可能引发。
     """
-    exp = MyExperiment(Model, cfg=cfg, nature_class=Env)
+    # `seed` 是 Experiment.__init__ 的具名参数；若混进 **kwargs 会被转发给模型
+    # 构造函数，replicate 就仍然拿不到种子。这里刻意用 cfg.seed 而非 cfg.get("seed")：
+    # 配置缺了这个键应当直接报错，而不是悄悄退回不可复现的运行。
+    exp = MyExperiment(Model, cfg=cfg, seed=cfg.seed, nature_class=Env)
 
     expected = [
         exp.outpath / f"{i}_tracking.csv" for i in range(1, cfg.exp.repeats + 1)

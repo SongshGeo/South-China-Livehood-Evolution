@@ -12,6 +12,23 @@ Recovered against commit on `dev` at the time of writing; ABSESpy 0.11.5, Python
 
 ---
 
+## ⚠️ Pending re-run
+
+The stored runs under `out/` — and therefore Figures 2–5 — were produced **before**
+the fixes now landing on `dev`. Two consequences, both to be cleared by one re-run:
+
+1. **No stored run is exactly reproducible.** They were generated with no base seed at
+   all (F14), so they reproduce in distribution only. `methods.md` and
+   `si_odd_protocol.md` say so explicitly; delete those sentences once the sweeps are
+   re-run under the seeded code.
+2. Any fix that changes model behaviour invalidates the stored numbers and needs the
+   figures rebuilt. Track such fixes here as they land.
+
+Nothing else in this ledger is affected: the fixes landing so far do not alter the
+population dynamics.
+
+---
+
 ## 1. Entities
 
 | Entity | Class | State variables | Source |
@@ -104,26 +121,26 @@ Global forager ceiling = 35 × 6 835 = **239 225** (measured).
 
 | Source | Call | RNG |
 |---|---|---|
-| Immigrant counts (Poisson) | `env.py:454` | **global NumPy** — not the seeded model RNG (F4) |
-| Immigrant cell choice | `env.py:465-469` | model RNG |
-| Immigrant size | `env.py:472-473` | model RNG |
-| Initial forager placement | `env.py:392` | model RNG |
+| Immigrant counts (Poisson) | `env.py:457` | model RNG (`model.rng`) — was global NumPy until F4/F14 were fixed |
+| Immigrant cell choice | `env.py:468-472` | model RNG |
+| Immigrant size | `env.py:475-476` | model RNG |
+| Initial forager placement | `env.py:394` | model RNG |
 | Initial group size | `people.py:78` | model RNG |
 | Activation order each step | `model.py:209` `shuffle_do` | model RNG |
 | Conversion Bernoulli trials | `hunter.py:122,151`; `farmer.py:90,99`; `rice_farmer.py:19` | model RNG |
 | Colonisation trial and colony size | `farmer.py:123`; `people.py:111` | model RNG |
 | Colonisation / movement target cell | `people.py:182,208` | model RNG |
 | Mortality Bernoulli | `people.py:159`; `farmer.py:137` | model RNG |
-| Forager trimming order at the ceiling | `env.py:358` `shuffle_do` | model RNG |
-| Cell `slope`/`elevation` constructor defaults | `env.py:31-32` | global NumPy — overwritten by rasters, so inert |
+| Forager trimming order at the ceiling | `env.py:360` `shuffle_do` | model RNG |
+| Cell `slope`/`elevation` constructor defaults | `env.py:31-34` | constants (0.0) — overwritten by rasters |
 
 Deterministic: population growth (`people.py:85`), intensification
 (`farmer.py:128-133`), the ceiling amount itself.
 
 ## 6. Existing evidence
 
-- Unit tests: 105 passing, covering agents, environment, conversion thresholds, and
-  the figure builders (`tests/`, `make test`).
+- Unit tests: 110 passing, covering agents, environment, conversion thresholds, seed
+  reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
 - No independent validation dataset; evaluation is pattern-oriented by design.
@@ -154,10 +171,29 @@ paddy→forager path (`rice_farmer.py:16-20`). The config carries exactly five s
 paddy-arable ⊂ rainfed-arable (885 of 2 620 cells), most immigrant paddy groups land
 on cells where `able_to_live` would have refused them. **[ASK] intended?**
 
-**F4. Immigration is not seed-reproducible.** `np.random.poisson` (`env.py:454`) draws
-from the global NumPy stream rather than the model's seeded generator. Every other
-draw is seeded. The previous draft's claim that "a run reproduces given its parameters
-and seed" is therefore too strong.
+**F4. Immigration was not seed-reproducible — FIXED.** `np.random.poisson` (then at
+`env.py:454`) drew from the global NumPy stream rather than the model's seeded
+generator. Now `self.model.rng.poisson` at `env.py:457`. Note that F4 alone never explained the
+irreproducibility: see F14, which showed that no seed was ever set in the first
+place. Both were fixed together; `tests/test_reproducibility.py` locks the behaviour.
+
+**F14. No seed was ever set for any run — FIXED.** `src/__main__.py` constructed
+`MyExperiment(Model, cfg=cfg, nature_class=Env)` without a `seed`, so ABSESpy's
+`Experiment._base_seed` stayed `None` and `_get_seed()` returned `None` for every
+replicate, leaving mesa to seed from OS entropy. Measured before the fix:
+
+```
+Experiment._base_seed = None
+_get_seed(1..5) = [None, None, None, None, None]
+```
+
+So *nothing* was seeded, not merely the Poisson draw of F4. Both `methods.md` and
+`si_odd_protocol.md` claimed "replicate draws are seeded except for the Poisson
+immigration counts", which was false in the more permissive direction. Fixed by
+adding a top-level `seed` to `config/config.yaml` and passing it through as
+`Experiment`'s named `seed` argument; both documents were corrected in the same
+commit. This finding came out of the issue audit and never had its own issue number
+in the original F1–F13 sweep.
 
 **F5. The four loss scenarios are inert.** `config/scenario/*.yaml` carry no
 `# @package _global_` directive, so Hydra merges them under `cfg.scenario.*` and they

@@ -28,8 +28,10 @@ class CompetingCell(PatchCell):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.slope: float = np.random.uniform(0, 30)
-        self.elevation: float = np.random.uniform(0, 300)
+        # 占位值，随后被 setup_dem 的栅格覆盖；用常量而非随机数，避免未被覆盖的
+        # 格子带上不受种子控制的状态
+        self.slope: float = 0.0
+        self.elevation: float = 0.0
         self.water_type: int = 0  # -1=海，0=陆地，1=近水陆地
         self._is_water: Optional[bool] = None
 
@@ -451,7 +453,8 @@ class Env(BaseNature):
         if self.time.tick < self.params.get(tick_key, 0):
             farmers_num = 0
         else:
-            farmers_num = np.random.poisson(self.params.get(lam_key, 0))
+            # 走模型的 seeded 生成器，而不是全局 NumPy 流，否则整条移民序列不可复现
+            farmers_num = self.model.rng.poisson(self.params.get(lam_key, 0))
         # 从可耕地、没有主体的里面选
         arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
         arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])

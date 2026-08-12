@@ -257,10 +257,14 @@ The model is implemented in Python 3.11 on the ABSESpy agent-based modelling
 framework (0.11). A hierarchical Hydra configuration (`config/`) stores the
 baseline parameters and defines the sweeps, so model structure and parameters are
 separated and a sweep changes configuration only. Each combination runs as an
-independent batch of `exp.repeats` = 5 replicates. All random draws use the
-framework's seeded generators **except the Poisson immigration counts**, which
-consume the global NumPy stream; a run therefore reproduces in distribution rather
-than exactly. Each replicate writes a full time series (`<run>_tracking.csv`) of
+independent batch of `exp.repeats` = 5 replicates. A base seed in the configuration
+(`seed`) fixes the whole batch: each replicate derives a distinct seed from it
+(`base + 1000 × job_id + run_id`, where `job_id` is the combination's position in the
+sweep), and every random draw — including the Poisson immigration counts — uses the
+resulting seeded generators. A replicate therefore reproduces **exactly** given its
+configuration, sweep position, and repeat index. The runs reported here predate the
+introduction of the base seed and so reproduce in distribution rather than exactly.
+Each replicate writes a full time series (`<run>_tracking.csv`) of
 summed `size` and group count per breed, which is the sole input to the analysis.
 Code and configuration are version-controlled; sweeps are dispatched as SLURM job
 arrays (`run_slurm.sh`).
@@ -410,10 +414,9 @@ heatmaps; it does not feed Figures 2–5.
 so that a reimplementation reproduces the published results rather than an idealised
 model. (i) `Farmer` and `RiceFarmer` execute the mortality submodel twice per step,
 `Hunter` once. (ii) Immigrant paddy groups are placed using the rainfed-arable mask,
-so some are seeded on cells that fail the paddy slope criterion. (iii) The Poisson
-immigration counts draw from a global random stream rather than the seeded one.
-(iv) A colony split loses the parent's residual population when that residual falls
-below `min_size`. (v) A group-merging routine exists in the code but is never called.
+so some are seeded on cells that fail the paddy slope criterion. (iii) A colony split
+loses the parent's residual population when that residual falls below `min_size`.
+(iv) A group-merging routine exists in the code but is never called.
 
 **Model testing and validation.** Validation is pattern-oriented. The model is
 judged by whether it reproduces the qualitative patterns named in I.i — a
@@ -422,14 +425,14 @@ rather than by point prediction of specific historical events. No independent
 dataset was available for validation, so calibration and validation are not
 separated: the parameters are sourced from the literature and the patterns are
 qualitative. The core submodels (agent state transitions, conversion thresholds,
-mortality, and boundary cases) are covered by 105 unit tests. No global
+mortality, and boundary cases) are covered by 110 unit tests. No global
 variance-based sensitivity analysis was run; the sweeps are one- and two-factor
 grids around the mechanism of interest.
 
-**Model replication.** The model structure and its parameters are separated, so any
-reported run reproduces from its configuration up to the immigration stream noted
-above. The code and configurations are version-controlled and the sweep scripts are
-included.
+**Model replication.** The model structure and its parameters are separated, and the
+base seed is part of the configuration, so a run reproduces exactly from its
+configuration, sweep position, and repeat index. The code and configurations are
+version-controlled and the sweep scripts are included.
 
 **Computational requirements.** Each replicate is a single-process run of 500
 steps. Sweeps are embarrassingly parallel across parameter combinations and
