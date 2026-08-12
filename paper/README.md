@@ -2,6 +2,12 @@
 
 Manuscript prose for the South China livelihood-evolution study.
 
+- `model-inventory.md` — **reconnaissance ledger**, written before the prose. A
+  factual record of entities, scales, schedule, parameters, stochasticity, and
+  existing evidence, every entry carrying a `file:line`. Its "Findings" section
+  lists the places where the code and an earlier draft disagreed, and the open
+  questions that only the author can settle (marked `[ASK]`). Re-derive it before
+  editing the two documents below; they are downstream of it.
 - `methods.md` — **main-text Methods**. Concise and overview-level: model
   purpose, landscape and agents, the core processes, and the four simulation
   experiments organised by figure (Figure 2–5), plus a compact key-parameter

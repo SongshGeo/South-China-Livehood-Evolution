@@ -3,10 +3,14 @@
 This description follows the ODD+D protocol (Overview, Design concepts, Details,
 and human Decision-making; Müller et al. 2013), an extension of ODD for
 agent-based models that make behavioural decisions. It is written for
-replication, so it names the implementation parameters directly (in
-`monospace`); the main-text Methods gives the same quantities as mathematical
-symbols. Baseline values, tested ranges, and their rationale are collected in
-Table S1. The model produces main-text Figures 2–5.
+replication, so it names the implementation parameters directly, in
+monospace; the main-text Methods gives the same quantities as mathematical
+symbols, and Table S0 maps one onto the other. Baseline values, tested ranges, and
+their rationale are collected in Table S1. The model produces main-text Figures 2–5.
+
+Where the implemented behaviour differs from what a reader would naturally assume,
+this description reports the implemented behaviour, because it is what produced the
+results. Those places are marked and collected in section IV.
 
 ---
 
@@ -23,31 +27,41 @@ candidate mechanisms by effect size. No parameter is fitted to an observed time
 series. Evaluation is pattern-oriented: the target patterns are (i) a low and
 slowly rising agricultural share of the total population under baseline
 conditions, and (ii) the ordering of mechanisms by how strongly each releases or
-suppresses farming.
+suppresses farming. Both patterns were fixed as the evaluation criteria before the
+sweeps were run.
 
 ### I.ii Entities, state variables, and scales
 
 The model contains two entity types: spatial cells and settlement groups.
 
 **Cells** form a raster grid of South China. Each cell stores an elevation
-(`elevation`), a slope (`slope`), and a water class (`water_type` ∈ {sea, land,
-near-water}). It derives binary land-use predicates. A cell is rainfed-arable
-(`is_arable`) when `slope` ≤ 10°, 0 < `elevation` < 200 m, and it is not water. A
-cell is paddy-arable (`is_rice_arable`) when `slope` ≤ 0.5° under the same
-elevation and water conditions; paddy-arable cells are a subset of rainfed-arable
-cells. Each cell holds at most one group (`max_agents = 1`).
+(`elevation`), a slope (`slope`), and a water class (`water_type`). It derives
+binary land-use predicates. A cell is rainfed-arable (`is_arable`) when `slope` ≤
+10°, 0 < `elevation` < 200 m, and it is not open water. A cell is paddy-arable
+(`is_rice_arable`) when `slope` ≤ 0.5° under the same elevation and water
+conditions; paddy-arable cells are therefore a subset of rainfed-arable cells. A
+cell is near-water (`is_near_water`) when `water_type` = 1, which raises the
+forager capacity it can support. Each cell holds at most one group
+(`max_agents` = 1).
 
 **Settlement groups** are the agents; individuals are not represented. Three
 breeds inherit one group class: rainfed farmers (`Farmer`), paddy farmers
 (`RiceFarmer`), and hunter-gatherers (`Hunter`). Every group has a size (`size`,
 = $N$), a minimum viable size (`min_size` = 6), and a carrying capacity
 (`max_size`). Farmers additionally hold a cultivated area (`area`) and a mutable
-growth rate (`growth_rate`). A group whose `size` drops below `min_size` is
-removed.
+growth rate (`growth_rate`); foragers hold a sedentism flag, set when `size`
+exceeds the threshold `Hunter.is_complex` = 100. A group whose `size` drops below
+`min_size` is removed.
 
-**Scales.** Time advances in discrete steps with no calendar; each run lasts
-`time.end` = 500 steps. Space is the fixed extent of the input raster, and each
-cell is a patch of constant area. There is no exogenous temporal input.
+**Scales.** Space is the fixed extent of the input raster: 104.4–121.3° E,
+19.2–29.1° N at 5 arc-minute resolution (EPSG:4326). After nodata masking this
+gives **6835 modelled cells**, each covering about **78 km²** (75 km² at the
+northern edge, 81 km² at the southern). Of these, 2620 are rainfed-arable, 885 are
+paddy-arable, and 1064 are near-water. Time advances in discrete steps and each run
+lasts `time.end` = 500 steps. **The model defines no mapping from a step to
+calendar time**: there is no time driver and no unit in the configuration, so all
+results are reported in step number and interpreted as an abstract
+generation-scale interval. There is no exogenous temporal input.
 
 ### I.iii Process overview and scheduling
 
@@ -58,8 +72,8 @@ One step (`Model.step`) executes the following ordered sequence.
    `Poisson(env.lam_farmer)` and of paddy groups as
    `Poisson(env.lam_ricefarmer)`, provided the current tick is at least
    `tick_farmer` / `tick_ricefarmer` (both 0 by default). Each new group is placed
-   on a uniformly random empty arable cell of the matching type and given a size
-   drawn from `new_group_size`.
+   on a uniformly random empty **rainfed-arable** cell — for both breeds — and
+   given a size drawn from `new_group_size`.
 2. **Group updates** (`agents.shuffle_do("step")`). All existing groups act once
    in a freshly randomised order. Each group, in its turn, performs the following
    sub-sequence:
@@ -68,112 +82,159 @@ One step (`Model.step`) executes the following ordered sequence.
    - (c) **Colonization** (`diffuse`): a farming group attempts to split off a
      colony with probability `diffuse_prob`; a forager group attempts to split
      only when it is at `max_size`.
-   - (d) **Mortality** (`loss`): a Bernoulli loss event.
+   - (d) **Mortality** (`loss`): a Bernoulli loss event. `Farmer` and `RiceFarmer`
+     execute this step **twice** per tick, `Hunter` once.
    - (e) **Movement** (`move_one`, `Hunter` only): a mobile forager steps to a
-     random suitable empty neighbour.
+     random suitable empty cell within `max_travel_distance`.
 3. **Regional forager ceiling** (`apply_global_hunter_limit`). If the summed
    forager population exceeds the ceiling `global_hunter_limit`, forager groups
    are trimmed in random order until it no longer does.
 4. **Observation** (`datacollector.collect`). For each breed the summed `size`
-   and the group count are recorded.
+   and the group count are recorded, after all updates for the step have completed.
 
 Updates are asynchronous within a step: a group acts on the state left by groups
-that moved earlier in the same step. Group splitting and merging conserve total
-population exactly.
+that acted earlier in the same step.
 
 ---
 
 ## II. Design concepts
 
-### II.i Theoretical and empirical background
+### II.i Basic principles
 
-The model rests on competition between livelihoods for a shared, finite
-landscape. The standing forager population sets the resistance that incoming
-farmers meet. The arability thresholds, the per-cell forager carrying capacity,
-the per-group farming capacity, and the spacing of settlements are parameterised
-from published archaeological and ethnographic estimates for the region and
-period. Livelihood conversion encodes the central hypothesis that switching
-between ways of life, rather than the physical environment, governs the spread of
-agriculture.
+The model instantiates the frontier view of the Neolithic transition, in which
+farming spreads into occupied land by demic diffusion and by local adoption at the
+contact zone, rather than into empty space. Two principles carry the design. First,
+livelihoods compete for a shared, finite landscape: because a cell holds at most one
+group, a standing forager population is not merely a demographic background but an
+occupier of the very cells farming needs. Second, the boundary between livelihoods
+is permeable in both directions, so the frontier can retreat as well as advance. The
+model addresses these principles at the level of the settlement group, which is the
+scale at which archaeological sites are observed, and it deliberately omits the
+individual and the household. The central hypothesis under test is that the
+two-directional conversion rate between livelihoods, rather than environmental
+suitability, governs how fast agriculture takes hold.
 
-### II.ii Individual decision-making
+### II.ii Theoretical and empirical background
+
+The arability thresholds, the per-cell forager carrying capacity, the per-group
+farming capacity, and the spacing of settlements are parameterised from published
+archaeological and ethnographic estimates for the region and period: forager
+densities from Binford (2001) and Tallavaara et al. (2017), minimum viable group
+size from Binford (2001) and Kelly (2013), the sedentism threshold from Kelly
+(2013: 171), per-person cultivated area from Qiao (2010) adjusted for South China
+productivity, and settlement spacing from Wu et al. (2023) and Shelach (1999).
+Several behavioural parameters carry no empirical source and are stated as expert
+judgement: the colonisation probability `diffuse_prob`, the intensification factor
+`complexity`, the travel range `max_travel_distance`, and all growth rates. They are
+identified as such in Table S1 rather than given an implied provenance.
+
+### II.iii Individual decision-making
 
 Groups do not maximise an explicit objective; behaviour is governed by
 condition-and-probability rules, and persistence is emergent. Every behavioural
 decision is a two-stage test: a set of deterministic conditions must hold, and
-then a Bernoulli draw at the relevant probability must succeed. This applies to
+then a random Bernoulli draw at the relevant probability must succeed; the
+randomness is a stand-in for the many local circumstances the model does not
+represent, and each of its sources is enumerated with a reason in II.x below.
+This applies to
 conversion (`convert_prob`, gated by size thresholds, land suitability, and
 neighbour presence), colonization (`diffuse_prob`, gated by having enough people
 for a colony and an empty suitable cell), and movement (gated by the sedentism
-threshold). Immigrant placement is a model-level draw over eligible cells.
-Decisions are made at the scale of the group and its immediate neighbourhood and
-are re-evaluated every step. Social norms, institutions, preferences, and
-explicit representations of uncertainty are not modelled.
+threshold). The rule is heuristic rather than optimising or satisficing: no
+alternative is evaluated and no utility is compared. The decision horizon is one
+step; decisions are made at the scale of the group and its immediate neighbourhood
+and are re-evaluated every step. Immigrant placement is a model-level draw over
+eligible cells, not a decision by the immigrating group. Social norms, institutions,
+preferences, and explicit representations of uncertainty are not modelled.
 
-### II.iii Learning
+### II.iv Learning
 
-Not implemented. No rule or parameter is updated from past experience. The only
-adaptive feedback is density-dependent intensification of farming groups (see
-Submodels), a fixed response rather than a learned strategy.
+Not implemented. No rule or parameter is updated from past experience, and no group
+carries a memory of previous steps. The only adaptive feedback is density-dependent
+intensification of farming groups (see Submodels), which is a fixed functional
+response to current size rather than a learned strategy.
 
-### II.iv Individual sensing
+### II.v Individual sensing
 
 A group senses its own cell (its arable predicates and water class) and the
 contents of its immediate neighbourhood. Forager-to-farmer conversion senses a
 `Farmer` neighbour; forager-to-paddy conversion senses a `RiceFarmer` neighbour.
-Colonising and moving groups sense which neighbouring cells are suitable and
-empty. Sensing is local and error-free.
+Colonising and moving groups sense which nearby cells are suitable and empty, out to
+`max_travel_distance`. Sensing is local and error-free, which is an assumption: no
+group has regional information, and no group is ever mistaken about a cell.
 
-### II.v Prediction
+### II.vi Prediction
 
-Not implemented. No decision uses an expectation of a future state.
+Not implemented. No decision uses an estimate of a future state, and no group holds
+even a tacit internal model of how conditions will change. All rules act on present
+conditions only.
 
-### II.vi Interaction
+### II.vii Interaction
 
-Interaction is indirect and spatial. Because `max_agents = 1`, groups compete for
+Interaction is indirect and spatial. Because `max_agents` = 1, groups compete for
 space by occupancy: a colonising or moving group can settle only on an empty
-suitable cell. Conversion is a contact interaction, since a forager adopts farming
-only next to an existing farming group. There is no direct conflict, predation, or
-resource transfer between groups; an earlier competition mechanism was removed.
+suitable cell, so a cell held by a forager is unavailable to a farmer and the
+reverse. Conversion is a contact interaction, since a forager adopts farming only
+next to an existing farming group. There is no direct conflict, predation, trade, or
+resource transfer between groups; an earlier competition mechanism was removed from
+the model. A group-merging routine exists in the code but is never invoked, so no
+merging occurs.
 
-### II.vii Collectives
+### II.viii Collectives
 
-The settlement group is itself the collective unit. Individual people are not
-represented, and there are no higher-order collectives such as tribes or
-alliances.
+The settlement group is itself the collective unit, and it is imposed rather than
+emergent: individuals are not represented, so a group never forms or dissolves by
+aggregation of members. Groups do form and disappear through colonisation, conversion
+and death, but there are no higher-order collectives such as tribes, alliances, or
+regional polities, and no group-level property is inherited from a parent group other
+than population and its `source` label.
 
-### II.viii Heterogeneity
+### II.ix Heterogeneity
 
 Cells are heterogeneous in `elevation`, `slope`, and `water_type`, and therefore
-in their arable predicates. Groups are heterogeneous in breed, in `size`, and —
-for farmers — in `area` and current `growth_rate`. The two farming breeds load
-onto the landscape differently: rainfed groups arrive frequently and small
-(`new_group_size` 30–60) and use a wide range of cells, whereas paddy groups
-arrive rarely and large (`new_group_size` 200–300) and need the scarce near-flat
-cells.
+in their arable predicates. Groups are heterogeneous **in state values, not in
+decision rules**: every group of a given breed runs the identical rule set, and
+differs only in `size`, position, and — for farmers — `area` and current
+`growth_rate`. Heterogeneity between breeds is structural: the two farming breeds
+load onto the landscape differently, since rainfed groups arrive frequently and
+small (`new_group_size` 30–60) and use a wide range of cells, whereas paddy groups
+arrive rarely and large (`new_group_size` 200–300) and can persist only on the
+scarce near-flat cells.
 
-### II.ix Stochasticity
+### II.x Stochasticity
 
-The model is stochastic throughout. The random sources are: the Poisson
-immigration counts (`env.lam_farmer`, `env.lam_ricefarmer`); the uniform choice
-of empty cells for immigrants and colonies; the initial group sizes (drawn
-uniformly within bounds); the Bernoulli conversion trials (`convert_prob`); the
-Bernoulli colonization trial (`diffuse_prob`) and the drawn colony size; the
-Bernoulli mortality trial (`loss.prob`); the random neighbour chosen in forager
-movement; the randomised order of group updates each step; and the random order
-in which forager groups are trimmed at the ceiling. Growth and intensification
-are deterministic. Because of these sources, every parameter combination is run
-in replicate (`exp.repeats` = 5).
+The model is stochastic throughout, and every random source is listed here with the
+reason it is random rather than fixed.
 
-### II.x Observation
+| Source | Why random |
+|---|---|
+| Immigrant counts, `Poisson(env.lam_farmer)` and `Poisson(env.lam_ricefarmer)` | arrivals from outside the region are unmodelled, so their timing is represented as a rate rather than a schedule |
+| Immigrant and colony destination cell (uniform over eligible cells) | the model has no theory of site preference within the eligible set |
+| Initial forager placement over land cells | no data fix which cells were occupied at the start |
+| Initial and colony group sizes (uniform within bounds) | the sources give ranges, not point values |
+| Conversion trials (`convert_prob`) | the decision to change livelihood is treated as a propensity, not a determinate response |
+| Colonization trial (`diffuse_prob`) | as above, for the decision to send out a colony |
+| Mortality trial (`loss.prob`, `loss.rate`) | shocks such as crop failure and disease are exogenous to the model |
+| Forager movement target | no theory of directional preference |
+| Activation order, reshuffled each step | avoids an artefact from a fixed order under asynchronous updating |
+| Trimming order at the regional ceiling | no theory of which groups absorb the shortfall |
+
+Growth, intensification, and the size of the ceiling adjustment are deterministic.
+Because of these sources, every parameter combination is run in replicate
+(`exp.repeats` = 5) and reported as a distribution across replicates.
+
+### II.xi Observation
 
 At each step the model records, for each breed, the summed `size` and the number
-of groups. From these emergent series we compute the agricultural share of total
-population and the end-state summaries. The end state of a run is the mean over
-the last 50 steps; the end state of a parameter combination is the mean of those
-values across the five replicates. The quantities of interest — the suppressed
-agricultural share, the conversion response surface, and the leverage of each
-immigration stream — are emergent properties, not imposed.
+of groups, together with their shares of the totals. From these emergent series we
+compute the agricultural share of total population and the end-state summaries. The
+end state of a run is the mean over steps ≥ `time.end` − 50 (the final 51 recorded
+steps); the end state of a parameter combination is the mean of those values across
+the five replicates. The quantities of interest — the suppressed agricultural share,
+the conversion response surface, and the leverage of each immigration stream — are
+emergent properties. What is imposed rather than emergent is stated explicitly: the
+regional forager ceiling, the per-group capacities, the arability thresholds, and the
+immigration rates are parameters, not outcomes.
 
 ---
 
@@ -181,66 +242,93 @@ immigration stream — are emergent properties, not imposed.
 
 ### III.i Implementation details
 
-The model is implemented in Python (3.11) on the ABSESpy agent-based modelling
-framework (0.8.5). A hierarchical configuration system (`config`) stores the
+The model is implemented in Python 3.11 on the ABSESpy agent-based modelling
+framework (0.11). A hierarchical Hydra configuration (`config/`) stores the
 baseline parameters and defines the sweeps, so model structure and parameters are
 separated and a sweep changes configuration only. Each combination runs as an
-independent batch of `exp.repeats` = 5 replicates. Random draws use the
-framework's seeded generators, so a run reproduces given its parameters and seed.
-Each replicate writes a full time series (`<run>_tracking.csv`) of summed `size`
-and group count per breed, which is the sole input to the analysis.
+independent batch of `exp.repeats` = 5 replicates. All random draws use the
+framework's seeded generators **except the Poisson immigration counts**, which
+consume the global NumPy stream; a run therefore reproduces in distribution rather
+than exactly. Each replicate writes a full time series (`<run>_tracking.csv`) of
+summed `size` and group count per breed, which is the sole input to the analysis.
+Code and configuration are version-controlled; sweeps are dispatched as SLURM job
+arrays (`run_slurm.sh`).
 
 ### III.ii Initialisation
 
-At the start of a run, a fraction `env.init_hunters` = 0.5 of the non-water cells
-is seeded with a `Hunter` group, each with a `size` drawn uniformly between
-`min_size` and 100. No farming groups are present initially (`env.init_farmers` =
-0, `env.init_rice_farmers` = 0). Agriculture appears only through immigration, so
-any farming population observed in a run is generated by the model's own dynamics.
+At the start of a run, a fraction `env.init_hunters` = 0.5 of the land cells is
+seeded with a `Hunter` group, each with a `size` drawn uniformly between
+`min_size` = 6 and 100. In the baseline landscape this places **3417 forager groups
+holding about 180 800 people, roughly 76% of the regional ceiling**, so the region
+begins close to forager saturation. No farming groups are present initially
+(`env.init_farmers` = 0, `env.init_rice_farmers` = 0), and consequently the
+`init_size` ranges for the two farming breeds are unused at baseline. Agriculture
+appears only through immigration, so any farming population observed in a run is
+generated by the model's own dynamics. Results depend on the initial forager
+saturation, which is why `env.lim_h` is treated as an experimental factor.
 
 ### III.iii Input data
 
 The model uses static spatial input only: a digital elevation model of South
 China (sets `elevation`), a matching slope surface (sets `slope`), and a
 water-body layer (sets `water_type`). These rasters are read once and do not
-change during a run. The model uses no dynamic external drivers such as a climate
-or population series. In the terrain experiment (Figure 4) the elevation and slope
-surfaces are replaced by spatially uniform rasters to remove landscape
-heterogeneity.
+change during a run. The model uses **no dynamic external drivers** such as a
+climate, vegetation, or population series; this is a modelling choice, and it means
+that every trend in the output is generated internally.
+
+The water layer supplies two classes over the modelled grid, land (5771 cells) and
+near-water land (1064 cells); sea and out-of-frame cells are the layer's nodata
+value and are dropped from the grid rather than entering it as water. In effect,
+therefore, no modelled cell is open water: the "not water" clause of both arability
+predicates is always satisfied, foragers may occupy any modelled cell, and the
+ceiling denominator is the full 6835 cells. The one live effect of the water layer is
+that near-water cells raise the forager per-group capacity from
+`Hunter.max_size` = 100 to `Hunter.max_size_water` = 500.
+
+In the terrain experiment (Figure 4) the elevation and slope surfaces are each
+replaced, independently, by a spatially uniform raster, giving a 2 × 2 factorial:
+real terrain, homogenised slope only, homogenised elevation only, and fully
+homogenised.
 
 ### III.iv Submodels
 
 **Growth and intensification.** Each step, `size` ← `size` × (1 + `growth_rate`),
 with `Farmer.growth_rate` = 0.005, `RiceFarmer.growth_rate` = 0.006, and
 `Hunter.growth_rate` = 0.001. A farming group's per-group capacity is
-`max_size` = π · `area`² / `capital_area`, with `capital_area` = 0.004 km² per
-person; the initial cultivated radius `area` = 2 km gives `max_size` ≈ 3142. When
-a group would exceed its capacity it intensifies (`complicate`): `area` grows and
-`growth_rate` is multiplied by (1 − `complexity`), with `complexity` = 0.1. This
-produces saturating population curves.
+`max_size` = π · `area`² / `capital_area`. With the initial cultivated radius
+`area` = 2 km this gives ≈ 3142 for `Farmer` (`capital_area` = 0.004 km² per person)
+and ≈ 6283 for `RiceFarmer` (`capital_area` = 0.002 km² per person). When a group
+would exceed its capacity it intensifies (`complicate`): `area` grows by
+`area` × (1 − `complexity`) and `growth_rate` is multiplied by (1 − `complexity`),
+with `complexity` = 0.1. This produces saturating population curves.
 
 **Immigration.** The number of new rainfed groups per step is
 `Poisson(env.lam_farmer)` and of paddy groups `Poisson(env.lam_ricefarmer)`, once
 the tick reaches `tick_farmer` / `tick_ricefarmer` (both 0). Each group is placed
-on a uniformly random empty arable cell of the matching type, at a `size` drawn
-from `new_group_size` (30–60 for `Farmer`, 200–300 for `RiceFarmer`). Defaults are
+on a uniformly random empty rainfed-arable cell at a `size` drawn from
+`new_group_size` (30–60 for `Farmer`, 200–300 for `RiceFarmer`). Placement uses the
+rainfed-arable mask for both breeds, so an immigrant paddy group may be seeded on a
+cell that does not meet the paddy slope criterion. Defaults are
 `env.lam_farmer` = 3 and `env.lam_ricefarmer` = 0.1; these set how hard
 agriculture presses on the region and are swept in Figure 5
 (`env.lam_farmer` ∈ {2,4,6,8,10}, `env.lam_ricefarmer` ∈ {0.1,…,0.5}).
 
 **Colonization.** With probability `diffuse_prob` = 0.05 per step a farming group
 attempts to split off a colony; a `Hunter` group attempts only when at
-`max_size`. The colony takes a block from `new_group_size` and the parent keeps
-the rest, conserving population. The colony searches outward for the nearest
-suitable empty cell within `max_travel_distance` = 5 cells; if none is found, no
-colony forms.
+`max_size`. The colony takes a block drawn from `new_group_size` and the parent
+keeps the rest. The colony searches outward ring by ring, in a von Neumann
+neighbourhood, for a suitable empty cell within `max_travel_distance` = 5 cells,
+choosing uniformly among the eligible cells in the nearest ring that has any; if
+none is found within range, no colony forms. Population is conserved by the split
+itself, with one exception: if the parent is left below `min_size` it dies, and its
+remaining population is lost with it.
 
 **Conversion.** A group changes breed in place when a path's conditions hold and a
-Bernoulli draw at its probability succeeds; the group's `size` is preserved. A
-global switch (`convert.enabled`) and per-path switches
+Bernoulli draw at its probability succeeds; the group's `size` and its `source`
+label are preserved. A global switch (`convert.enabled`) and per-path switches
 (`convert.farmer_to_hunter`, `convert.hunter_to_farmer`, `convert.hunter_to_rice`,
-`convert.farmer_to_rice`, `convert.rice_to_farmer`) can disable any path. The six
-paths:
+`convert.farmer_to_rice`, `convert.rice_to_farmer`) can disable any path. There are
+**five** directed paths; there is no paddy-to-forager path.
 
 | Path | Conditions | Probability (default) | Tested range |
 |---|---|---|---|
@@ -250,96 +338,151 @@ paths:
 | `Hunter` → `RiceFarmer` | a `RiceFarmer` neighbour; cell `is_rice_arable` | `Hunter.convert_prob.to_rice` = 0.05 | — |
 | `RiceFarmer` → `Farmer` | `size` < `convert_threshold.to_farmer` (200) | `RiceFarmer.convert_prob.to_farmer` = 1.0 | — |
 
-The `Farmer` → `Hunter` path drains small farming groups back into the much larger
-foraging pool and is the dominant suppressor of farming; the `Hunter` → `Farmer`
-path is the contact channel by which farming spreads. These two probabilities are
-swept in Figure 3, coarsely over {0, 0.02, …, 0.10} and finely over
-`Farmer.convert_prob.to_hunter` ∈ [0, 0.02] (step 0.002) ×
+A forager evaluates the rainfed path first and the paddy path only if the first
+fails; a rainfed farmer evaluates the forager path first and the paddy path only if
+the first fails. The `Farmer` → `Hunter` path drains small farming groups back into
+the much larger foraging pool and is the dominant suppressor of farming; the
+`Hunter` → `Farmer` path is the contact channel by which farming spreads. These two
+probabilities are swept in Figure 3, coarsely over {0, 0.02, …, 0.10} and finely
+over `Farmer.convert_prob.to_hunter` ∈ [0, 0.02] (step 0.002) ×
 `Hunter.convert_prob.to_farmer` ∈ [0, 0.15] (step 0.015).
 
 **Mortality.** With probability `loss.prob` a group's `size` is scaled by
 (1 − `loss.rate`). Foragers face frequent small losses (`Hunter.loss.prob` = 0.05,
 `Hunter.loss.rate` = 0.01); farmers face rarer larger losses (`Farmer.loss.prob` =
-0.01, `Farmer.loss.rate` = 0.05). A group driven below `min_size` dies.
+`RiceFarmer.loss.prob` = 0.01, rate 0.05). The two farming breeds execute this
+submodel **twice per step** and foragers once, so a farming group draws two
+independent loss trials per tick. A group driven below `min_size` dies.
 
 **Forager carrying capacity.** The total forager population is bounded by
-`global_hunter_limit` = `env.lim_h` × (number of non-water cells), with
-`env.lim_h` = 35 people per cell. At the end of each step, if the total exceeds
-this ceiling, forager groups are trimmed in random order — reducing the largest
-reducible groups first and dissolving groups that reach `min_size` — until the
-total returns to the ceiling. Per-group forager capacity is also bounded
+`global_hunter_limit` = `env.lim_h` × (number of modelled cells), with
+`env.lim_h` = 35 people per cell, giving a baseline ceiling of 35 × 6835 =
+**239 225 people**. At the end of each step, if the total exceeds this ceiling,
+forager groups are visited in random order and each is reduced by as much as it can
+give without falling below `min_size`, dissolving groups that reach that floor,
+until the total returns to the ceiling. Per-group forager capacity is also bounded
 (`Hunter.max_size` = 100 inland, `Hunter.max_size_water` = 500 next to water). The
-ceiling `env.lim_h` is swept in Figure 4 over {15, 25, 35}.
+ceiling parameter `env.lim_h` is swept in Figure 4 over {15, 25, 35}.
 
 **Movement.** A forager group below the sedentism threshold
-(`Hunter.is_complex` = 100) steps to a uniformly random suitable empty neighbour
-each step; above the threshold it becomes sedentary and stops moving. Farmers never
-move and spread only by colonization.
+(`Hunter.is_complex` = 100) moves each step to a suitable empty cell, chosen
+uniformly from the nearest ring that offers one, out to `max_travel_distance` = 5;
+above the threshold it becomes sedentary and stops moving. Farmers never move and
+spread only by colonization.
 
 ### III.v Model output and analysis
 
 Every parameter combination is run for `exp.repeats` = 5 replicates of
 `time.end` = 500 steps. Trajectories are reported as the replicate mean with a
-95% confidence interval; a scalar outcome is the end state, the mean over the last
-50 steps across replicates. For the conversion surface (Figure 3) we fit a
-separable additive model in log space,
-log N ≈ α(f2h) + β(h2f) + γ, and report its coefficient of determination
+95% confidence interval; a scalar outcome is the end state, the mean over the final
+51 recorded steps across replicates. Because replicate count is a design choice,
+effect sizes and the replicate count are reported rather than significance tests.
+For the conversion surface (Figure 3) we fit a separable additive model in log
+space, log N ≈ α(f2h) + β(h2f) + γ, and report its coefficient of determination
 ($R^2 = 0.992$) and residual structure as a measure of interaction. For the
 leverage comparison (Figure 5) each swept intensity is normalised to a multiple of
 its baseline and the slope of the end-state response is compared between the two
-streams.
+streams. A separate breakpoint detector (the ruptures library, `Dynp` algorithm, one breakpoint,
+minimum segment 5 steps) produces the `bkp_*` diagnostics used in exploratory
+heatmaps; it does not feed Figures 2–5.
 
 ---
 
 ## IV. Additional elements (ODD+D)
 
-**Model testing and validation.** Validation is pattern-oriented. The model is
-judged by whether it reproduces the qualitative patterns of interest — a
-persistently low agricultural share and the relative ranking of mechanisms —
-rather than by point prediction of specific historical events. The core submodels
-(agent state transitions, conversion thresholds, mortality, and boundary cases)
-are covered by unit tests.
+**Implemented behaviour that departs from the natural reading.** These are recorded
+so that a reimplementation reproduces the published results rather than an idealised
+model. (i) `Farmer` and `RiceFarmer` execute the mortality submodel twice per step,
+`Hunter` once. (ii) Immigrant paddy groups are placed using the rainfed-arable mask,
+so some are seeded on cells that fail the paddy slope criterion. (iii) The Poisson
+immigration counts draw from a global random stream rather than the seeded one.
+(iv) A colony split loses the parent's residual population when that residual falls
+below `min_size`. (v) No modelled cell is open water, for the reason given in
+III.iii. (vi) A group-merging routine exists in the code but is never called.
 
-**Model replication.** The model structure and its parameters are separated, and
-all randomness uses seeded generators, so any reported run reproduces from its
-configuration and seed. The code and configurations are version-controlled.
+**Model testing and validation.** Validation is pattern-oriented. The model is
+judged by whether it reproduces the qualitative patterns named in I.i — a
+persistently low agricultural share and the relative ranking of mechanisms —
+rather than by point prediction of specific historical events. No independent
+dataset was available for validation, so calibration and validation are not
+separated: the parameters are sourced from the literature and the patterns are
+qualitative. The core submodels (agent state transitions, conversion thresholds,
+mortality, and boundary cases) are covered by 105 unit tests. No global
+variance-based sensitivity analysis was run; the sweeps are one- and two-factor
+grids around the mechanism of interest.
+
+**Model replication.** The model structure and its parameters are separated, so any
+reported run reproduces from its configuration up to the immigration stream noted
+above. The code and configurations are version-controlled and the sweep scripts are
+included.
 
 **Computational requirements.** Each replicate is a single-process run of 500
 steps. Sweeps are embarrassingly parallel across parameter combinations and
-replicates, and are dispatched as independent batch jobs.
+replicates, and are dispatched as independent batch jobs (121 combinations × 5
+replicates for the fine conversion grid).
 
 ---
 
+## Table S0. Symbol ↔ parameter mapping
+
+| Symbol (main text) | Parameter (code) | Default | Meaning |
+|---|---|---|---|
+| $T$ | `time.end` | 500 | steps per run |
+| $A$ | — (derived) | 6835 | modelled land cells |
+| $N$ | `size` | — | group population |
+| $N_{\min}$ | `min_size` | 6 | minimum viable group size |
+| $N_{\max}$ | `max_size` | 3142 / 6283 | per-group capacity (rainfed / paddy) |
+| $r_F$ | `Farmer.growth_rate` | 0.005 | rainfed growth rate |
+| $r_R$ | `RiceFarmer.growth_rate` | 0.006 | paddy growth rate |
+| $r_H$ | `Hunter.growth_rate` | 0.001 | forager growth rate |
+| $\lambda_F$ | `env.lam_farmer` | 3 | rainfed immigration intensity |
+| $\lambda_R$ | `env.lam_ricefarmer` | 0.1 | paddy immigration intensity |
+| $p_{F\to H}$ | `Farmer.convert_prob.to_hunter` | 0.1 | rainfed → forager |
+| $p_{H\to F}$ | `Hunter.convert_prob.to_farmer` | 0.05 | forager → rainfed |
+| $k_H$ | `env.lim_h` | 35 | forager capacity per cell |
+| $K_H$ | `global_hunter_limit` | 239 225 | regional forager ceiling |
+| $a$ | `area` | 2 km | cultivated radius |
+| $c$ | `capital_area` | 0.004 / 0.002 km² | land per person (rainfed / paddy) |
+| $\kappa$ | `complexity` | 0.1 | intensification factor |
+| $s_t$ | — (derived) | — | agricultural share of total population |
+
 ## Table S1. Full parameter list
 
-| Parameter | Meaning | Default (range tested) |
-|---|---|---|
-| `time.end` | steps per run | 500 |
-| `exp.repeats` | replicates per combination | 5 |
-| `min_size` | minimum viable group size | 6 |
-| `Farmer.growth_rate` / `RiceFarmer.growth_rate` / `Hunter.growth_rate` | growth rates | 0.005 / 0.006 / 0.001 |
-| `Farmer.area` | initial cultivated radius | 2 km |
-| `Farmer.capital_area` | land per person | 0.004 km² |
-| — | initial per-group farming capacity | ≈ 3142 |
-| `Farmer.complexity` | intensification factor | 0.1 |
-| `env.lam_farmer` / `env.lam_ricefarmer` | immigration intensity | 3 / 0.1 (2–10; 0.1–0.5) |
-| `new_group_size` (Farmer / RiceFarmer) | immigrant/colony size | 30–60 / 200–300 |
-| `diffuse_prob` | colonization probability | 0.05 |
-| `max_travel_distance` | colonization/movement range | 5 cells |
-| `Farmer.convert_prob.to_hunter` (f2h) | rainfed → forager | 0.1 (0–0.1) |
-| `Hunter.convert_prob.to_farmer` (h2f) | forager → rainfed | 0.05 (0–0.15) |
-| `Farmer.convert_prob.to_rice` | rainfed → paddy | 0.05 |
-| `Hunter.convert_prob.to_rice` | forager → paddy | 0.05 |
-| `RiceFarmer.convert_prob.to_farmer` | paddy → rainfed | 1.0 |
-| `convert_threshold.to_hunter` / `.to_rice` / `.to_farmer` | size thresholds | 100 / 200 / 200 |
-| `Hunter.max_size` / `Hunter.max_size_water` | per-group forager capacity | 100 / 500 |
-| `Hunter.is_complex` | forager sedentism threshold | 100 |
-| `env.lim_h` | forager carrying capacity per cell | 35 (15, 25, 35) |
-| `Farmer.loss.prob` / `.rate` | farmer mortality | 0.01 / 0.05 |
-| `Hunter.loss.prob` / `.rate` | forager mortality | 0.05 / 0.01 |
-| `env.init_hunters` | initial forager cover | 0.5 (50% of non-water cells) |
-| `env.init_farmers` / `env.init_rice_farmers` | initial farmers | 0 / 0 |
-| `convert.enabled` and per-path switches | conversion on/off controls | all on |
+Sources: **[lit]** from the cited literature, **[exp]** expert judgement with no
+empirical source, **[der]** derived from other parameters.
+
+| Parameter | Meaning | Default (range tested) | Source |
+|---|---|---|---|
+| `time.end` | steps per run | 500 | [exp] |
+| `exp.repeats` | replicates per combination | 5 | [exp] |
+| `min_size` | minimum viable group size | 6 | [lit] Binford 2001; Kelly 2013 |
+| `Farmer.growth_rate` / `RiceFarmer.growth_rate` / `Hunter.growth_rate` | growth rates | 0.005 / 0.006 / 0.001 | [exp] |
+| `Farmer.area` / `RiceFarmer.area` | initial cultivated radius | 2 km | [lit] Shelach 1999; Wu et al. 2023 |
+| `Farmer.capital_area` | land per person, rainfed | 0.004 km² | [lit] Qiao 2010, adjusted |
+| `RiceFarmer.capital_area` | land per person, paddy | 0.002 km² | [exp] |
+| `Farmer.max_size` / `RiceFarmer.max_size` | per-group farming capacity | ≈ 3142 / ≈ 6283 | [der] |
+| `complexity` (both farming breeds) | intensification factor | 0.1 | [exp] |
+| `env.lam_farmer` / `env.lam_ricefarmer` | immigration intensity | 3 / 0.1 (2–10; 0.1–0.5) | [exp] |
+| `env.tick_farmer` / `env.tick_ricefarmer` | first step at which each stream may arrive | 0 / 0 | [exp] |
+| `init_size` (Farmer / RiceFarmer / Hunter) | initial group size range | 60–100 / 300–400 / 6–100 | [exp]; farming values unused at baseline |
+| `new_group_size` (Farmer / RiceFarmer / Hunter) | immigrant and colony size | 30–60 / 200–300 / 6–50 | [exp] |
+| `diffuse_prob` | colonization probability | 0.05 | [exp] |
+| `max_travel_distance` | colonization and movement range | 5 cells | [exp] |
+| `Farmer.convert_prob.to_hunter` (f2h) | rainfed → forager | 0.1 (0–0.1; fine 0–0.02) | [exp] |
+| `Hunter.convert_prob.to_farmer` (h2f) | forager → rainfed | 0.05 (0–0.15) | [exp] |
+| `Farmer.convert_prob.to_rice` | rainfed → paddy | 0.05 | [exp] |
+| `Hunter.convert_prob.to_rice` | forager → paddy | 0.05 | [exp] |
+| `RiceFarmer.convert_prob.to_farmer` | paddy → rainfed | 1.0 | [exp] |
+| `convert_threshold.to_hunter` / `.to_rice` / `.to_farmer` | size thresholds | 100 / 200 / 200 | [exp] |
+| `Hunter.max_size` / `Hunter.max_size_water` | per-group forager capacity | 100 / 500 | [lit] Kelly 2013: 171 |
+| `Hunter.is_complex` | forager sedentism threshold | 100 | [lit] Kelly 2013: 171 |
+| `env.lim_h` | forager carrying capacity per cell | 35 (15, 25, 35) | [lit] Binford 2001; Tallavaara et al. 2017 |
+| `Farmer.loss.prob` / `.rate` | farmer mortality, applied twice per step | 0.01 / 0.05 | [exp] |
+| `RiceFarmer.loss.prob` / `.rate` | paddy mortality, applied twice per step | 0.01 / 0.05 | [exp] |
+| `Hunter.loss.prob` / `.rate` | forager mortality, applied once per step | 0.05 / 0.01 | [exp] |
+| `env.init_hunters` | initial forager cover | 0.5 (50% of land cells) | [exp] |
+| `env.init_farmers` / `env.init_rice_farmers` | initial farmers | 0 / 0 | [exp] |
+| `convert.enabled` and five path switches | conversion on/off controls | all on | — |
 
 *Reference: Müller B. et al. (2013) Describing human decisions in agent-based
 models — ODD+D, an extension of the ODD protocol. Environmental Modelling &
