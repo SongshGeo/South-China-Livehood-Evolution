@@ -71,6 +71,7 @@ notebook = [
     { name = "ipykernel" },
     { name = "jupyterlab" },
     { name = "jupyterlab-execute-time" },
+    { name = "nbconvert" },
 ]
 
 [package.metadata]
@@ -106,6 +107,7 @@ notebook = [
     { name = "ipykernel", specifier = ">=6.25.1" },
     { name = "jupyterlab", specifier = ">=4.0.9" },
     { name = "jupyterlab-execute-time", specifier = ">=3.0.1" },
+    { name = "nbconvert", specifier = ">=7.0" },
 ]
 
 [[package]]

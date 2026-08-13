@@ -41,6 +41,12 @@ notebook = [
     "ipykernel>=6.25.1",
     "jupyterlab>=4.0.9",
     "jupyterlab-execute-time>=3.0.1",
+    # Rebuilding the manuscript figures runs the notebook headlessly:
+    #   uv run jupyter nbconvert --execute --to notebook --inplace \
+    #       reports/manuscript_figures.ipynb
+    # jupyterlab happens to pull nbconvert in today, but the figure workflow
+    # depends on it directly, so declare it rather than rely on that.
+    "nbconvert>=7.0",
 ]
 
 # Only the packaging fields poetry-core needs; all metadata lives in [project] above.
