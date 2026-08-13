@@ -65,7 +65,8 @@
 #   216 × 3.4h ≈ 730 task-hours：%32 约 23 小时跑完，%64 约 12 小时，%16 约 46 小时。
 #
 # 用法:
-#   sbatch run_slurm_rerun.sh                     # 全部投出（已完成的会跳过）
+#   bash run_slurm_rerun.sh --prep                # ① 登录节点上先备好 .venv（只需一次）
+#   sbatch run_slurm_rerun.sh                     # ② 全部投出（已完成的会跳过）
 #   sbatch --array=0-215%64 run_slurm_rerun.sh    # 队列宽裕时再调高并发
 #   sbatch --array=0-58%32 run_slurm_rerun.sh     # 先出 Fig 2/4/5，精细网格后投
 #   sbatch --array=0,22,27-215%32 run_slurm_rerun.sh
@@ -75,6 +76,11 @@
 #   bash run_slurm_rerun.sh --list                # 本地打印任务清单，不提交
 #   TASK=5 bash run_slurm_rerun.sh --dry-run      # 看第 5 个任务会执行什么
 #   bash run_slurm_rerun.sh --verify              # 跑完后核对产出，列出未完成的任务号
+#
+# 投递前的冒烟测试（强烈建议，几秒钟）:
+#   SCE_EXTRA_OVERRIDES="time.end=2 exp.repeats=1" SLURM_ARRAY_TASK_ID=0 \
+#       SLURM_SUBMIT_DIR=$PWD bash run_slurm_rerun.sh
+#   跑通说明环境和路径都对；把产生的目录删掉再正式投。
 #
 # 邮件通知:
 #   --mail-type=END,FAIL 没有带 ARRAY_TASKS，所以 SLURM 把整个数组当一个作业发信：
@@ -235,7 +241,16 @@ verify_tasks() {
     echo "all tasks complete — safe to repoint the notebook at ${SWEEP_ROOT}"
 }
 
-# ── 本地辅助：--list / --dry-run / --verify 不需要 SLURM ─────────────────────
+# ── 本地辅助：--prep / --list / --dry-run / --verify 不需要 SLURM ────────────
+# 在登录节点跑一次，把 .venv 准备好。任务本身不再碰环境（见下面 SLURM 段的说明）。
+if [[ "${1:-}" == "--prep" ]]; then
+    command -v uv >/dev/null 2>&1 || { echo "Error: uv is not found." >&2; exit 1; }
+    echo "Syncing .venv once, on this node..."
+    uv sync --no-dev
+    .venv/bin/python -c "import src; print('env ready:', src.__file__)"
+    exit 0
+fi
+
 if [[ "${1:-}" == "--verify" ]]; then
     verify_tasks
     exit $?
@@ -256,7 +271,7 @@ fi
 
 # ── SLURM 正式执行 ───────────────────────────────────────────────────────────
 # 先确认确实在数组作业里，再动 module / uv——否则会白跑一次几分钟的 uv sync 才失败。
-: "${SLURM_ARRAY_TASK_ID:?not running under sbatch; use --list or --dry-run locally}"
+: "${SLURM_ARRAY_TASK_ID:?not running under sbatch; use --prep / --list / --dry-run / --verify locally}"
 TASK_LINE=$(task_line "${SLURM_ARRAY_TASK_ID}")
 JOB_DIR="${TASK_LINE%%|*}"
 OVERRIDES="${TASK_LINE#*|}"
@@ -270,29 +285,40 @@ echo "Working Directory: $(pwd)"
 echo "  dir:       ${JOB_DIR}"
 echo "  overrides: ${OVERRIDES}"
 
-module purge
-module load python-waterboa/2025.06
-export PATH="$HOME/.local/bin:$PATH"
-
-if ! command -v uv &> /dev/null; then
-    echo "Error: uv is not found. Please install uv first." >&2
-    exit 1
+# 集群上加载 Python 模块；本地没有 module 命令时跳过，好让这一段能在本地端到端试跑
+if command -v module >/dev/null 2>&1; then
+    module purge
+    module load python-waterboa/2025.06
 fi
+export PATH="$HOME/.local/bin:$PATH"
 
 mkdir -p logs
 cd "${SLURM_SUBMIT_DIR:-$(dirname "$0")}"
 
-# 用 flock 串行化 uv sync，避免多 task 并发写 .venv；uv sync 本身幂等且快
-echo "Syncing dependencies with uv (flock-serialized)..."
-(
-    flock -x 200
-    uv sync --no-dev
-) 200>.uv-sync.lock
+# 任务里**不做**任何环境同步——这正是 26949 那次全军覆没的原因：
+# 几十个任务分散在不同节点上同时 `uv sync` 同一个共享 .venv，把它写坏了
+#   error: failed to remove directory `.venv/lib`: Not a directory (os error 20)
+# flock 只在单机内有效，跨节点锁不住；而且 `uv run` 默认也会自己同步一次，
+# 所以光去掉显式的 uv sync 还不够，必须绕开 uv 直接用 venv 里的解释器。
+# 环境请在投递前用 `bash run_slurm_rerun.sh --prep` 在登录节点准备好一次。
+if [[ ! -x .venv/bin/python ]]; then
+    echo "Error: .venv/bin/python not found." >&2
+    echo "Run 'bash $(basename "$0") --prep' on the login node before submitting." >&2
+    exit 1
+fi
+if ! .venv/bin/python -c "import src" 2>/dev/null; then
+    echo "Error: the project is not installed in .venv (import src failed)." >&2
+    echo "Run 'bash $(basename "$0") --prep' on the login node before submitting." >&2
+    exit 1
+fi
 
 # hydra.run.dir 的值里带 = 和 ,（为了对齐 figures.py 的目录解析），必须用单引号
 # 包起来交给 Hydra 的 override 语法，否则会报 "mismatched input '=' expecting <EOF>"。
-# shellcheck disable=SC2086  # OVERRIDES 必须按空格拆成多个参数
-uv run python src $OVERRIDES "hydra.run.dir='${JOB_DIR}'"
+# SCE_EXTRA_OVERRIDES 用于冒烟测试：投正式作业前先用两步跑通一个任务，确认环境没问题。
+#   SCE_EXTRA_OVERRIDES="time.end=2 exp.repeats=1" SLURM_ARRAY_TASK_ID=0 bash run_slurm_rerun.sh
+# 正式跑时不要设置它。
+# shellcheck disable=SC2086  # OVERRIDES 与 EXTRA 都必须按空格拆成多个参数
+.venv/bin/python src $OVERRIDES ${SCE_EXTRA_OVERRIDES:-} "hydra.run.dir='${JOB_DIR}'"
 
 echo "End Time: $(date)"
 echo "Task ${SLURM_ARRAY_TASK_ID} completed"
