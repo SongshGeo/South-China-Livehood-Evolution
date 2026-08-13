@@ -14,6 +14,8 @@
 """
 
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -105,3 +107,102 @@ class TestRerunTaskList:
             assert m and int(m.group(1)) == index
             assert float(m.group(2)) == f2h_values[index % 11]
             assert float(m.group(3)) == h2f_values[index // 11]
+
+
+class TestVerifyAndResubmit:
+    """`--verify` 与它给出的重投命令。
+
+    重跑失败后，这两样东西决定了"哪些组合还要再跑"。算错了要么白跑几百个
+    task-hour，要么漏掉组合、拿不完整的数据出图，所以直接拿真实脚本跑。
+    每个用例都在临时目录里搭一个只含必要文件的假仓库，不碰真实的 out/。
+    """
+
+    @pytest.fixture(name="repo")
+    def mock_repo(self, tmp_path):
+        """假仓库：脚本副本 + verify 要读的 config/config.yaml。"""
+        shutil.copy(ROOT / "run_slurm_rerun.sh", tmp_path / "run_slurm_rerun.sh")
+        (tmp_path / "config").mkdir()
+        (tmp_path / "config" / "config.yaml").write_text(
+            "exp:\n  repeats: 5\n", encoding="utf-8"
+        )
+        return tmp_path
+
+    @staticmethod
+    def _run(repo: Path, *args: str) -> subprocess.CompletedProcess:
+        """跑假仓库里的那份脚本——它会把工作目录切到自己所在的仓库根。"""
+        return subprocess.run(
+            ["bash", str(repo / "run_slurm_rerun.sh"), *args],
+            capture_output=True,
+            text=True,
+            cwd=repo,
+        )
+
+    @staticmethod
+    def _fill(repo: Path, task_dir: str, run_ids) -> None:
+        """在某个组合目录里放上指定编号的 tracking.csv。"""
+        target = repo / task_dir
+        target.mkdir(parents=True, exist_ok=True)
+        for i in run_ids:
+            (target / f"{i}_tracking.csv").write_text("step\n", encoding="utf-8")
+
+    def _first_task_dir(self, repo: Path) -> str:
+        listing = self._run(repo, "--list").stdout.splitlines()
+        return listing[0].split(None, 1)[1].split("|", 1)[0]
+
+    def test_reports_everything_missing_when_nothing_ran(self, repo):
+        """一个产出都没有时全部计入 missing，并以非零退出。"""
+        out = self._run(repo, "--verify")
+
+        assert "complete: 0" in out.stdout
+        assert "missing: 216" in out.stdout
+        assert out.returncode == 1
+
+    def test_complete_combination_is_excluded_from_the_resubmit(self, repo):
+        """凑齐 repeats 个确切命名的 CSV 才算完成，且不再出现在重投区间里。"""
+        self._fill(repo, self._first_task_dir(repo), range(1, 6))
+
+        out = self._run(repo, "--verify")
+
+        assert "complete: 1" in out.stdout
+        # 0 号已完成，重投区间必须从 1 开始
+        assert "--array=1-215" in out.stdout
+
+    def test_stray_csv_does_not_count_towards_completion(self, repo):
+        """杂散的 *_tracking.csv 不能顶数。
+
+        `src/__main__.py` 要的是 1..repeats 这些确切文件名。verify 若用通配去数，
+        两边判据就会分歧：verify 报完成，实际投出去却整组重跑。
+        """
+        self._fill(repo, self._first_task_dir(repo), [1, 2, 3, 4, 99])
+
+        out = self._run(repo, "--verify")
+
+        assert "complete: 0" in out.stdout
+        assert "has 4/5" in out.stdout
+
+    def test_all_complete_reports_success(self, repo):
+        """全部齐了要以 0 退出，并且不再打印重投命令。"""
+        for line in self._run(repo, "--list").stdout.splitlines():
+            if not re.match(r"^\s*\d+\s", line):
+                continue
+            self._fill(repo, line.split(None, 1)[1].split("|", 1)[0], range(1, 6))
+
+        out = self._run(repo, "--verify")
+
+        assert "all tasks complete" in out.stdout
+        assert "resubmit" not in out.stdout
+        assert out.returncode == 0
+
+    def test_resubmit_line_compresses_runs_into_ranges(self, repo):
+        """未完成的任务号要压成 SLURM 区间，几百个逗号是没法用的。"""
+        dirs = [
+            line.split(None, 1)[1].split("|", 1)[0]
+            for line in self._run(repo, "--list").stdout.splitlines()
+            if re.match(r"^\s*\d+\s", line)
+        ]
+        for index in (0, 1, 2, 5):
+            self._fill(repo, dirs[index], range(1, 6))
+
+        out = self._run(repo, "--verify")
+
+        assert "--array=3-4,6-215" in out.stdout

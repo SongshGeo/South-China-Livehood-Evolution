@@ -41,7 +41,7 @@
 #   间完全相同。这是有意的 common random numbers：参数扫描里它成对化了各组合、
 #   压低了跨组合比较的方差。代价是各组合的重复不独立，所以整张网格的置信区间不能当作
 #   互相独立来解释，且一次"不走运"的实现会同向影响每个格点。
-#   若确实需要各组合独立抽样，在下面的 uv run 那行加 `seed=$((42 + SLURM_ARRAY_TASK_ID))`。
+#   若确实需要各组合独立抽样，在下面 .venv/bin/python 那行加 `seed=$((42 + SLURM_ARRAY_TASK_ID))`。
 #
 # 编号:
 #   任务号 = 数组下标（全局，0–215）；目录里的 <n> / idx<n> 是**组内**序号，每组从 0
@@ -66,7 +66,8 @@
 #
 # 用法:
 #   bash run_slurm_rerun.sh --prep                # ① 登录节点上先备好 .venv（只需一次）
-#   sbatch run_slurm_rerun.sh                     # ② 全部投出（已完成的会跳过）
+#   bash run_slurm_rerun.sh --smoke               # ② 十几秒的冒烟测试
+#   sbatch run_slurm_rerun.sh                     # ③ 全部投出（已完成的会跳过）
 #   sbatch --array=0-215%64 run_slurm_rerun.sh    # 队列宽裕时再调高并发
 #   sbatch --array=0-58%32 run_slurm_rerun.sh     # 先出 Fig 2/4/5，精细网格后投
 #   sbatch --array=0,22,27-215%32 run_slurm_rerun.sh
@@ -77,10 +78,10 @@
 #   TASK=5 bash run_slurm_rerun.sh --dry-run      # 看第 5 个任务会执行什么
 #   bash run_slurm_rerun.sh --verify              # 跑完后核对产出，列出未完成的任务号
 #
-# 投递前的冒烟测试（强烈建议，几秒钟）:
-#   SCE_EXTRA_OVERRIDES="time.end=2 exp.repeats=1" SLURM_ARRAY_TASK_ID=0 \
-#       SLURM_SUBMIT_DIR=$PWD bash run_slurm_rerun.sh
-#   跑通说明环境和路径都对；把产生的目录删掉再正式投。
+# 投递前的冒烟测试（强烈建议，十几秒）:
+#   bash run_slurm_rerun.sh --smoke               # 默认第 0 号任务
+#   TASK=55 bash run_slurm_rerun.sh --smoke       # 挑路径带 / 和 , 的那个更保险
+#   两步跑通即说明解释器、依赖和 override 引号都对；产出在临时目录，不碰 out/。
 #
 # 邮件通知:
 #   --mail-type=END,FAIL 没有带 ARRAY_TASKS，所以 SLURM 把整个数组当一个作业发信：
@@ -90,6 +91,32 @@
 # ──────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
+
+# 统一工作目录。build_tasks 的 SWEEP_ROOT、verify 读的 config/config.yaml、
+# 以及 .venv/bin/python 全是相对路径，子命令从任何目录调用都必须先站到仓库根。
+# sbatch 执行的是 spool 里的一份副本（/var/spool/slurmd/...），$0 指不到仓库，
+# 所以在数组作业里只能靠 SLURM_SUBMIT_DIR，不能用 dirname "$0" 兜底。
+if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
+    : "${SLURM_SUBMIT_DIR:?running under sbatch without SLURM_SUBMIT_DIR; submit from the repo root}"
+    cd "$SLURM_SUBMIT_DIR"
+else
+    cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
+# 集群上加载 Python 模块。--prep 和任务体必须走同一套解释器：.venv/bin/python 是
+# 指向"创建它的那个解释器"的符号链接。如果 --prep 用登录节点的默认 Python 建 venv，
+# 而任务体 module purge 之后换成 python-waterboa，venv 就指向一个已被 purge 的解释器
+# ——而且两道预检还都会通过。26949 日志里那句
+#   Using CPython 3.11.15 interpreter at: /usr/bin/python3.11
+# 正是这个登录节点默认解释器。
+load_cluster_python() {
+    if command -v module >/dev/null 2>&1; then
+        module purge
+        module load python-waterboa/2025.06
+    else
+        echo "note: no 'module' command here; using the ambient Python." >&2
+    fi
+}
 
 SWEEP_ROOT="out/south_china_evolution/rerun_v2"
 
@@ -220,7 +247,12 @@ verify_tasks() {
         if [[ ! -d "$dir" ]]; then
             missing_n=$((missing_n + 1)); incomplete+=("$index")
         else
-            count=$(find "$dir" -maxdepth 1 -name '*_tracking.csv' | wc -l | tr -d ' ')
+            # 数确切的 1..repeats，与 src/__main__.py 的跳过判据完全一致；
+            # 用 *_tracking.csv 通配会把杂散文件也算进来，两边就会有分歧。
+            count=0
+            for i in $(seq 1 "$repeats"); do
+                [[ -f "${dir}/${i}_tracking.csv" ]] && count=$((count + 1))
+            done
             if [[ "$count" -eq "$repeats" ]]; then
                 done_n=$((done_n + 1))
             else
@@ -241,19 +273,51 @@ verify_tasks() {
     echo "all tasks complete — safe to repoint the notebook at ${SWEEP_ROOT}"
 }
 
-# ── 本地辅助：--prep / --list / --dry-run / --verify 不需要 SLURM ────────────
+# ── 本地辅助：--prep / --smoke / --list / --dry-run / --verify 不需要 SLURM ──
 # 在登录节点跑一次，把 .venv 准备好。任务本身不再碰环境（见下面 SLURM 段的说明）。
 if [[ "${1:-}" == "--prep" ]]; then
+    if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
+        echo "Error: --prep must run once on the login node, not inside an array task." >&2
+        echo "Running it in every task at once is what corrupted .venv in job 26949." >&2
+        exit 1
+    fi
     command -v uv >/dev/null 2>&1 || { echo "Error: uv is not found." >&2; exit 1; }
+    load_cluster_python
+    export PATH="$HOME/.local/bin:$PATH"
     echo "Syncing .venv once, on this node..."
-    uv sync --no-dev
+    # --inexact：不删除不属于本组的包。这个 .venv 也服务于出图流程（notebook 组的
+    # nbconvert 等），默认的剪枝会把分析环境一起清掉。
+    uv sync --no-dev --inexact
     .venv/bin/python -c "import src; print('env ready:', src.__file__)"
     exit 0
 fi
 
+# 投递前的冒烟测试：两步跑通一个任务，确认解释器、依赖和 override 引号都没问题。
+# 产出写进临时目录，绝不碰 out/——真实目录里留半截产物会让 --verify 误判为 partial。
+if [[ "${1:-}" == "--smoke" ]]; then
+    smoke_index="${TASK:-0}"
+    smoke_line=$(task_line "$smoke_index")
+    smoke_tmp=$(mktemp -d)
+    trap 'rm -rf "$smoke_tmp"' EXIT
+    load_cluster_python
+    if [[ ! -x .venv/bin/python ]]; then
+        echo "Error: .venv/bin/python not found; run --prep first." >&2
+        exit 1
+    fi
+    echo "smoke-testing task ${smoke_index} in ${smoke_tmp} (2 steps, 1 repeat)"
+    # 保留任务真实的相对目录名，带 / 和 , 的路径也一并验到
+    # shellcheck disable=SC2086  # override 串必须按空格拆开
+    .venv/bin/python src ${smoke_line#*|} time.end=2 exp.repeats=1 \
+        "hydra.run.dir='${smoke_tmp}/${smoke_line%%|*}'"
+    echo "smoke test OK — nothing was written under out/"
+    exit 0
+fi
+
 if [[ "${1:-}" == "--verify" ]]; then
-    verify_tasks
-    exit $?
+    # 显式收口：全绿时 verify_tasks 返回 0，若只写 `verify_tasks` 就会继续往下掉进
+    # SLURM 段，报一句莫名其妙的 "not running under sbatch"。
+    verify_tasks || exit 1
+    exit 0
 fi
 
 if [[ "${1:-}" == "--list" ]]; then
@@ -265,13 +329,23 @@ fi
 if [[ "${1:-}" == "--dry-run" ]]; then
     TASK_LINE=$(task_line "${TASK:-0}")
     echo "would run:"
-    echo "  uv run python src ${TASK_LINE#*|} \"hydra.run.dir='${TASK_LINE%%|*}'\""
+    echo "  .venv/bin/python src ${TASK_LINE#*|} \"hydra.run.dir='${TASK_LINE%%|*}'\""
     exit 0
 fi
 
 # ── SLURM 正式执行 ───────────────────────────────────────────────────────────
 # 先确认确实在数组作业里，再动 module / uv——否则会白跑一次几分钟的 uv sync 才失败。
-: "${SLURM_ARRAY_TASK_ID:?not running under sbatch; use --prep / --list / --dry-run / --verify locally}"
+: "${SLURM_ARRAY_TASK_ID:?not running under sbatch; use --prep / --smoke / --list / --dry-run / --verify locally}"
+
+# SCE_EXTRA_OVERRIDES 曾用于冒烟测试，现在由 --smoke 承担。留这个口子很危险：
+# sbatch 默认 --export=ALL，在冒烟测试后的同一个 shell 里投递，216 个任务会静默继承
+# time.end=2，跑出一批两步的垃圾数据、而且全都"成功"。
+if [[ -n "${SCE_EXTRA_OVERRIDES:-}" ]]; then
+    echo "Error: SCE_EXTRA_OVERRIDES is set inside a batch job; refusing to run." >&2
+    echo "It was probably exported while smoke testing; use --smoke instead and unset" >&2
+    echo "it before sbatch (sbatch exports your whole environment by default)." >&2
+    exit 1
+fi
 TASK_LINE=$(task_line "${SLURM_ARRAY_TASK_ID}")
 JOB_DIR="${TASK_LINE%%|*}"
 OVERRIDES="${TASK_LINE#*|}"
@@ -285,15 +359,8 @@ echo "Working Directory: $(pwd)"
 echo "  dir:       ${JOB_DIR}"
 echo "  overrides: ${OVERRIDES}"
 
-# 集群上加载 Python 模块；本地没有 module 命令时跳过，好让这一段能在本地端到端试跑
-if command -v module >/dev/null 2>&1; then
-    module purge
-    module load python-waterboa/2025.06
-fi
-export PATH="$HOME/.local/bin:$PATH"
-
+load_cluster_python
 mkdir -p logs
-cd "${SLURM_SUBMIT_DIR:-$(dirname "$0")}"
 
 # 任务里**不做**任何环境同步——这正是 26949 那次全军覆没的原因：
 # 几十个任务分散在不同节点上同时 `uv sync` 同一个共享 .venv，把它写坏了
@@ -306,19 +373,19 @@ if [[ ! -x .venv/bin/python ]]; then
     echo "Run 'bash $(basename "$0") --prep' on the login node before submitting." >&2
     exit 1
 fi
+# 这验的是"用这个解释器能否 import src 及其依赖"（src 从当前目录解析，运行时也一样），
+# 不是"项目装没装进 venv"。依赖缺失、或 venv 指向已被 purge 的解释器，都会在这里挂。
 if ! .venv/bin/python -c "import src" 2>/dev/null; then
-    echo "Error: the project is not installed in .venv (import src failed)." >&2
+    echo "Error: .venv/bin/python cannot import src (missing deps, or the venv points" >&2
+    echo "at an interpreter this node purged)." >&2
     echo "Run 'bash $(basename "$0") --prep' on the login node before submitting." >&2
     exit 1
 fi
 
 # hydra.run.dir 的值里带 = 和 ,（为了对齐 figures.py 的目录解析），必须用单引号
 # 包起来交给 Hydra 的 override 语法，否则会报 "mismatched input '=' expecting <EOF>"。
-# SCE_EXTRA_OVERRIDES 用于冒烟测试：投正式作业前先用两步跑通一个任务，确认环境没问题。
-#   SCE_EXTRA_OVERRIDES="time.end=2 exp.repeats=1" SLURM_ARRAY_TASK_ID=0 bash run_slurm_rerun.sh
-# 正式跑时不要设置它。
-# shellcheck disable=SC2086  # OVERRIDES 与 EXTRA 都必须按空格拆成多个参数
-.venv/bin/python src $OVERRIDES ${SCE_EXTRA_OVERRIDES:-} "hydra.run.dir='${JOB_DIR}'"
+# shellcheck disable=SC2086  # OVERRIDES 必须按空格拆成多个参数
+.venv/bin/python src $OVERRIDES "hydra.run.dir='${JOB_DIR}'"
 
 echo "End Time: $(date)"
 echo "Task ${SLURM_ARRAY_TASK_ID} completed"

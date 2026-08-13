@@ -183,8 +183,9 @@ def load_grid(root: Path, cols: list[str] | None = None) -> pd.DataFrame:
 def load_fine_grid(root: Path, cols: list[str] | None = None) -> pd.DataFrame:
     """加载 ``idx<n>_f2h<a>_h2f<b>/`` 精细网格（SLURM job array 产出）。
 
-    覆盖广网格 ``grid_f2h_h2f_v1``（6×6）、2D 精细 ``grid_2d_fine_v1``（11×11）
-    与 ``grid_h2f_fine_v1``，命名格式一致。
+    重跑后的 ``rerun_v2/grid_broad``（6×6）与 ``rerun_v2/grid_fine``（11×11），
+    以及修复前的 ``grid_f2h_h2f_v1`` / ``grid_2d_fine_v1`` / ``grid_h2f_fine_v1``，
+    命名格式一致，都能用这个函数加载。
 
     参数:
         root: 含 ``idx..._f2h..._h2f...`` 子目录的网格根目录。
