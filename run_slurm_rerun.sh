@@ -1,0 +1,230 @@
+#!/bin/bash -l
+#SBATCH --job-name=sce_rerun_v2
+#SBATCH --array=0-215%32
+#SBATCH --time=3-00:00:00
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
+#SBATCH --mem=32G
+#SBATCH --cpus-per-task=5
+#SBATCH --mail-user=song@gea.mpg.de
+#SBATCH --mail-type=END,FAIL
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 全量重跑：Figure 2–5 的六组实验，一次投完
+#
+# 为什么要重跑:
+#   两个改变模型行为的缺陷已修复，已有的 out/ 结果全部由修复前的代码产出：
+#   • #28 (commit d4553ab) 农民与水稻农民每步做两次死亡抽样，现在只做一次。
+#     解析上每步期望存活乘子从 0.999 变为 0.9995，500 步累积约 1.28×。
+#   • #29 (commit 见 git log) 水稻移民曾用旱作可耕地掩膜落点，31% 的水稻群体坐在
+#     不满足水稻坡度条件的格子上且永不被淘汰；现在按品种取掩膜。
+#   同时 #38/#30 (commit 39d47a0) 接通了随机种子，所以这批新结果可逐 run 复现。
+#
+# 设计:
+#   216 个任务 = 每个任务跑一个参数组合 × exp.repeats(5) 次重复。
+#   六组实验拼成一个扁平数组，一次 sbatch 投完，靠数组末尾的 %N 控制并发。
+#   目录名严格对齐 src/workflow/figures.py 的四个加载器，否则画图读不到：
+#     load_trajectories / load_grid  ->  <job_id>_<k=v,k=v>/
+#     load_fine_grid                 ->  idx<n>_f2h<a>_h2f<b>/
+#     load_terrain                   ->  <n>_ds.dem=data/<dem>.tif,ds.slope=data/<slo>.tif/
+#   前四组的目录名由 override 串直接派生（空格换成逗号），所以参数名只写一次——
+#   figures.py 是从目录名里解析参数值的，两处写错一处就会画出标错参数的图。
+#
+# 与旧数据的差异（有意为之，不是笔误）:
+#   • 广网格补齐成 6×6=36 组，旧的 grid_f2h_h2f_v1 只有 25 组（当时有任务未完成）。
+#   • lam 补齐成 5×5=25 组，旧的 2026-01-18 只有 23 组（缺 lam_farmer=10 × 0.4/0.5）。
+#   两处都是把原设计跑完整，不是改设计；代价很小，但会让 Fig 3b / 4a 的输入比旧版更密。
+#
+# 随机种子:
+#   数组里每个任务都是独立进程，ABSESpy 的 Experiment._get_seed 看到的 job_id 恒为 0，
+#   因此**所有组合共用同一串 replicate 种子**（base=42）——初始狩猎采集者布局在各组合
+#   间完全相同。这是有意的 common random numbers：参数扫描里它成对化了各组合、
+#   压低了跨组合比较的方差。代价是各组合的重复不独立，所以整张网格的置信区间不能当作
+#   互相独立来解释，且一次"不走运"的实现会同向影响每个格点。
+#   若确实需要各组合独立抽样，在下面的 uv run 那行加 `seed=$((42 + SLURM_ARRAY_TASK_ID))`。
+#
+# 编号:
+#   任务号 = 数组下标（全局，0–215）；目录里的 <n> / idx<n> 是**组内**序号，每组从 0
+#   重新开始。例如 grid_fine/idx0_... 是全局任务 95。重投单个任务要用全局号，
+#   例如 `sbatch --array=95,96%2 run_slurm_rerun.sh`。
+#
+# 断点恢复:
+#   输出目录是稳定的（不带日期），src/__main__.py 在 batch_run 前检查 5 个
+#   *_tracking.csv 是否齐全，齐全就跳过。重投整个数组会自动跳过已完成的组合。
+#   ⚠️ build_tasks 的输出顺序就是任务号，改动顺序会让所有任务重新映射到别的目录，
+#      断点恢复随之失效。只应在末尾追加，不要插入或重排。
+#
+# 资源预算:
+#   实测单个组合（5 次重复并行，cpus-per-task=5）约 3.4 小时；转化全关的组合最慢，
+#   因为农民不再被抽回狩猎采集，主体数量持续膨胀。
+#   默认 --time=3-00:00:00 是实测值的约 21 倍。留这么大余量的理由是：任务一旦被墙钟
+#   杀掉，该组合的 5 次重复不会全部落盘，断点恢复判定为"未完成"，整组要从头重跑——
+#   宁可多要时间，也不要多投一轮。集群上限 7 天，需要时 `--time=7-00:00:00` 顶满。
+#   但注意 --time 只是上限，不影响实际用时：**要缩短总时长应该调并发（%N）**，
+#   请求越长 SLURM 的 backfill 越难塞，排队反而更久。
+#   216 × 3.4h ≈ 730 task-hours：%32 约 23 小时跑完，%64 约 12 小时，%16 约 46 小时。
+#
+# 用法:
+#   sbatch run_slurm_rerun.sh                     # 全部投出（已完成的会跳过）
+#   sbatch --array=0-215%64 run_slurm_rerun.sh    # 队列宽裕时再调高并发
+#   sbatch --array=0-58%32 run_slurm_rerun.sh     # 先出 Fig 2/4/5，精细网格后投
+#   sbatch --array=0,22,27-215%32 run_slurm_rerun.sh
+#       ↑ 只跑正文要用的：convert3 里 manuscript_figures.ipynb 只读第 0（全关）和第 22
+#         （基线）两个目录，其余 25 组是为复现原始 3³ 扫描而跑的（约 85 task-hours）。
+#         其它 notebook（如 hypothesis_validation.ipynb）会用到完整 3³，按需取舍。
+#   bash run_slurm_rerun.sh --list                # 本地打印任务清单，不提交
+#   TASK=5 bash run_slurm_rerun.sh --dry-run      # 看第 5 个任务会执行什么
+# ──────────────────────────────────────────────────────────────────────────────
+
+set -euo pipefail
+
+SWEEP_ROOT="out/south_china_evolution/rerun_v2"
+
+# 精细网格的扫描值。必须与 run_slurm.sh 的同名数组逐值相等：
+# paper/build_tables.py::swept_ranges 从 run_slurm.sh 读这两个数组来填 Table S1 的
+# "Swept" 列，而数据现在由本脚本产出——两处不一致，表里报告的扫描范围就是错的。
+# tests/test_sweep_scripts.py 锁住这个等式。
+F2H_VALUES=(0.0 0.002 0.004 0.006 0.008 0.01 0.012 0.014 0.016 0.018 0.02)
+H2F_VALUES=(0.0 0.015 0.03 0.045 0.06 0.075 0.09 0.105 0.12 0.135 0.15)
+
+# ── 任务清单 ─────────────────────────────────────────────────────────────────
+# 每行: <相对输出目录>|<override1 override2 ...>
+build_tasks() {
+    local n ov
+
+    # 任务 0-26：convert 3³。Fig 2 基线 = f2h 0.1 / h2f 0.05 / h2r 0.05（组内 22），
+    # Fig 3a 全关对照 = 三者皆 0（组内 0）——notebook 按这两个目录名直接取用。
+    n=0
+    for f2h in 0.0 0.05 0.1; do
+        for h2f in 0.0 0.05 0.1; do
+            for h2r in 0.0 0.05 0.1; do
+                ov="Farmer.convert_prob.to_hunter=${f2h} Hunter.convert_prob.to_farmer=${h2f} Hunter.convert_prob.to_rice=${h2r}"
+                echo "${SWEEP_ROOT}/convert3/${n}_${ov// /,}|${ov}"
+                n=$((n + 1))
+            done
+        done
+    done
+
+    # 任务 27-51：移民强度 5×5。Fig 4a 的 lam_farmer 与 Fig 5 的 lam_ricefarmer。
+    n=0
+    for lf in 2 4 6 8 10; do
+        for lr in 0.1 0.2 0.3 0.4 0.5; do
+            ov="env.lam_farmer=${lf} env.lam_ricefarmer=${lr}"
+            echo "${SWEEP_ROOT}/lam/${n}_${ov// /,}|${ov}"
+            n=$((n + 1))
+        done
+    done
+
+    # 任务 52-54：狩猎采集者承载力，Fig 4b。
+    n=0
+    for lh in 15 25 35; do
+        ov="env.lim_h=${lh}"
+        echo "${SWEEP_ROOT}/limh/${n}_${ov// /,}|${ov}"
+        n=$((n + 1))
+    done
+
+    # 任务 55-58：地貌均质化 2×2，Fig 4c。
+    # override 值里的 / 会被 Hydra 当成路径分隔符，目录因此是两层嵌套——
+    # load_terrain 正是按这个结构解析的，不要"修正"成单层。
+    n=0
+    for dem in ohndem10 ohn_value1; do
+        for slo in ohnslo10 ohn_value0; do
+            ov="ds.dem=data/${dem}.tif ds.slope=data/${slo}.tif"
+            echo "${SWEEP_ROOT}/terrain/${n}_${ov// /,}|${ov}"
+            n=$((n + 1))
+        done
+    done
+
+    # 任务 59-94：转化概率广网格 6×6，Fig 3b 的 f2h 悬崖曲线。
+    # 这两组的目录名是 load_fine_grid 要的 idx<n>_f2h<a>_h2f<b>，不能由 ov 派生；
+    # 但名字里的数值和 ov 里的数值同出于循环变量，仍然只写了一遍。
+    n=0
+    for f2h in 0.0 0.02 0.04 0.06 0.08 0.1; do
+        for h2f in 0.0 0.02 0.04 0.06 0.08 0.1; do
+            echo "${SWEEP_ROOT}/grid_broad/idx${n}_f2h${f2h}_h2f${h2f}|Farmer.convert_prob.to_hunter=${f2h} Hunter.convert_prob.to_farmer=${h2f}"
+            n=$((n + 1))
+        done
+    done
+
+    # 任务 95-215：转化概率精细网格 11×11，Fig 3c 的响应面。
+    # 循环顺序刻意让 f2h 变得最快（h2f 在外层），这样组内 idx 与 run_slurm.sh 的
+    # F2H_IDX=$((INDEX % 11)) 完全一致——同一个 idx 在新旧两批数据里指同一组参数，
+    # 便于交叉核对。
+    n=0
+    for h2f in "${H2F_VALUES[@]}"; do
+        for f2h in "${F2H_VALUES[@]}"; do
+            echo "${SWEEP_ROOT}/grid_fine/idx${n}_f2h${f2h}_h2f${h2f}|Farmer.convert_prob.to_hunter=${f2h} Hunter.convert_prob.to_farmer=${h2f}"
+            n=$((n + 1))
+        done
+    done
+}
+
+# 取第 N 个任务（0-based），越界即报错。
+# sed 用 -n "Np" 而不是 "Np;q"：不加 q 才会把 stdin 读完，否则 build_tasks 会吃到
+# SIGPIPE，在 set -o pipefail 下变成伪失败。
+task_line() {
+    local index="$1" line
+    line=$(build_tasks | sed -n "$((index + 1))p")
+    if [[ -z "$line" ]]; then
+        echo "Error: no task defined for index ${index} (valid: 0-$(($(build_tasks | wc -l) - 1)))" >&2
+        return 1
+    fi
+    printf '%s\n' "$line"
+}
+
+# ── 本地辅助：--list / --dry-run 不需要 SLURM ────────────────────────────────
+if [[ "${1:-}" == "--list" ]]; then
+    build_tasks | nl -v 0 -w4 -s'  '
+    echo "total: $(build_tasks | wc -l) tasks"
+    exit 0
+fi
+
+if [[ "${1:-}" == "--dry-run" ]]; then
+    TASK_LINE=$(task_line "${TASK:-0}")
+    echo "would run:"
+    echo "  uv run python src ${TASK_LINE#*|} \"hydra.run.dir='${TASK_LINE%%|*}'\""
+    exit 0
+fi
+
+# ── SLURM 正式执行 ───────────────────────────────────────────────────────────
+# 先确认确实在数组作业里，再动 module / uv——否则会白跑一次几分钟的 uv sync 才失败。
+: "${SLURM_ARRAY_TASK_ID:?not running under sbatch; use --list or --dry-run locally}"
+TASK_LINE=$(task_line "${SLURM_ARRAY_TASK_ID}")
+JOB_DIR="${TASK_LINE%%|*}"
+OVERRIDES="${TASK_LINE#*|}"
+
+echo "Job ID: ${SLURM_JOB_ID:-NA}"
+echo "Array Job ID: ${SLURM_ARRAY_JOB_ID:-NA}"
+echo "Array Task ID: ${SLURM_ARRAY_TASK_ID}"
+echo "Node: ${SLURM_NODELIST:-NA}"
+echo "Start Time: $(date)"
+echo "Working Directory: $(pwd)"
+echo "  dir:       ${JOB_DIR}"
+echo "  overrides: ${OVERRIDES}"
+
+module purge
+module load python-waterboa/2025.06
+export PATH="$HOME/.local/bin:$PATH"
+
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not found. Please install uv first." >&2
+    exit 1
+fi
+
+mkdir -p logs
+cd "${SLURM_SUBMIT_DIR:-$(dirname "$0")}"
+
+# 用 flock 串行化 uv sync，避免多 task 并发写 .venv；uv sync 本身幂等且快
+echo "Syncing dependencies with uv (flock-serialized)..."
+(
+    flock -x 200
+    uv sync --no-dev
+) 200>.uv-sync.lock
+
+# hydra.run.dir 的值里带 = 和 ,（为了对齐 figures.py 的目录解析），必须用单引号
+# 包起来交给 Hydra 的 override 语法，否则会报 "mismatched input '=' expecting <EOF>"。
+# shellcheck disable=SC2086  # OVERRIDES 必须按空格拆成多个参数
+uv run python src $OVERRIDES "hydra.run.dir='${JOB_DIR}'"
+
+echo "End Time: $(date)"
+echo "Task ${SLURM_ARRAY_TASK_ID} completed"

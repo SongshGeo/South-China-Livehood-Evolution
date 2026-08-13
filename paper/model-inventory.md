@@ -28,9 +28,37 @@ the fixes now landing on `dev`. Two consequences, both to be cleared by one re-r
      the expected per-step survival multiplier moves from 0.999 to 0.9995, which
      compounds to ≈1.28× over 500 steps. The realised effect has not been measured
      and the direction is not asserted here — the re-run is the measurement.
+   - **F3 / #29** — immigrant paddy groups were placed on the rainfed-arable mask;
+     now on the paddy-arable mask. Before the fix 31% of paddy groups sat on cells
+     that fail the paddy slope test and were never evicted, so Figure 5's
+     `env.lam_ricefarmer` sweep carried their contribution inside the measured paddy
+     effect. Every figure that involves paddy agents is affected, Figure 5 most
+     directly.
 
 Until the sweeps are re-run, `methods.md` and `si_odd_protocol.md` describe the
 **current code**, which is not the code that produced the current figures.
+
+**How to clear this block.** `run_slurm_rerun.sh` dispatches all six sweeps as one
+216-task SLURM array into the stable root `out/south_china_evolution/rerun_v2/`
+(`sbatch run_slurm_rerun.sh`; it skips combinations that already have all five
+`*_tracking.csv`). Two sweeps are deliberately run to their full design rather than
+to what the old directories happen to contain: the broad conversion grid becomes 6×6
+(was 25 of 36) and the immigration sweep 5×5 (was 23 of 25). Afterwards:
+
+| `reports/manuscript_figures.ipynb` constant | repoint to `rerun_v2/` |
+|---|---|
+| `BASELINE_DIR` | `convert3/22_Farmer.convert_prob.to_hunter=0.1,Hunter.convert_prob.to_farmer=0.05,Hunter.convert_prob.to_rice=0.05` |
+| `OFF_DIR` | `convert3/0_Farmer.convert_prob.to_hunter=0.0,Hunter.convert_prob.to_farmer=0.0,Hunter.convert_prob.to_rice=0.0` |
+| `LAM_ROOT` | `lam` |
+| `LIMH_ROOT` | `limh` |
+| `TERRAIN_ROOT` | `terrain` |
+| `BROAD_GRID` / `FINE_GRID` | `grid_broad` / `grid_fine` |
+
+Then delete this block, the seed and correction caveats in `methods.md` §Software and
+`si_odd_protocol.md` §III.i, and the paragraph about Figures 2–5 in that file's
+preamble. All replicate seeds derive from `seed` = 42, and every array task sees
+`job_id` = 0, so the sweep uses common random numbers — combinations are paired,
+which is what a sweep wants, but grid-wide intervals are not independent across cells.
 
 ---
 
@@ -144,7 +172,7 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 123 passing, covering agents, environment, conversion thresholds, seed
+- Unit tests: 134 passing, covering agents, environment, conversion thresholds, seed
   reproducibility, and the figure builders (`tests/`, `make test`).
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
@@ -182,11 +210,11 @@ must be regenerated — see "Pending re-run" at the top.**
 paddy→forager path (`rice_farmer.py:16-20`). The config carries exactly five switches
 (`config.yaml:17-21`). The old draft said "six" while tabulating five.
 
-**F3. Paddy immigrants are placed on rainfed-arable cells, not paddy-arable cells.**
-`add_farmers` reads the `is_arable` raster regardless of breed (`env.py:456`), whereas
-`add_initial_farmers` correctly branches on breed (`env.py:414-417`). Since
-paddy-arable ⊂ rainfed-arable (885 of 2 620 cells), most immigrant paddy groups land
-on cells where `able_to_live` would have refused them.
+**F3. Paddy immigrants were placed on rainfed-arable cells — FIXED.**
+`add_farmers` read the `is_arable` raster regardless of breed, whereas
+`add_initial_farmers` correctly branched on breed. Since paddy-arable ⊂ rainfed-arable
+(885 of 2 620 cells), most immigrant paddy groups landed on cells where
+`able_to_live` would have refused them.
 
 Measured over 10 seeded replicates (baseline config, seeds 1–10, 30 steps each, now
 reproducible since F14): **22 of 71 surviving paddy groups (31.0%)** sat on cells
@@ -200,10 +228,16 @@ Misplacement is not transient. A paddy group only converts back to `Farmer` belo
 searching for a cell (`people.py:184,210`), never as a recurring survival check, so a
 misplaced group is never evicted either.
 
-**Author's decision: leave the code as is** and describe the behaviour honestly. The
-SI already does, in I.iii, III.iii and section IV item (i). Note the consequence for
-Figure 5: the `env.lam_ricefarmer` sweep mixes the paddy mechanism with a
-contribution from paddy groups living where paddy cannot be grown.
+**Fixed** by giving both placement paths one breed-aware helper,
+`Env._vacant_arable_cells`, so an immigrant can only be seeded where `able_to_live`
+would admit it. Re-measured after the fix over 5 seeded replicates: **0 of 31**
+paddy groups on non-paddy-arable cells, against 22 of 71 before.
+`tests/test_env.py::TestImmigrantPlacement` locks it; reverting the branch fails the
+three paddy cases while the rainfed case passes as a control.
+
+**This changed model behaviour.** Figure 5's `env.lam_ricefarmer` sweep previously
+mixed the paddy mechanism with a contribution from paddy groups living where paddy
+cannot be grown; it must be re-run. See "Pending re-run" at the top.
 
 **F4. Immigration was not seed-reproducible — FIXED.** `np.random.poisson` (then at
 `env.py:454`) drew from the global NumPy stream rather than the model's seeded
@@ -337,7 +371,7 @@ F7 is confirmed intended behaviour and needs no change.
 | Finding | Issue | Title | Status |
 |---|---|---|---|
 | F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; needs re-run |
-| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **closed, code unchanged** — confirmed real (31% of paddy groups over 10 replicates), documented in the SI by decision |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **fixed** — changed model behaviour; needs re-run |
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
 | F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |

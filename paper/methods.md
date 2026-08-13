@@ -50,7 +50,8 @@ sequence.
    streams. The number of arriving rainfed groups is $m_F \sim
    \mathrm{Poisson}(\lambda_F)$ and of paddy groups $m_R \sim
    \mathrm{Poisson}(\lambda_R)$. Each new group is placed on a uniformly random
-   empty rainfed-arable cell, at a size drawn from a livelihood-specific range.
+   empty cell that is arable for its own livelihood, at a size drawn from a
+   livelihood-specific range.
 2. **Group updates.** Every group already present acts once, in randomised order.
    In its turn a group (i) grows geometrically, $N \leftarrow N\,(1 + r)$; (ii)
    may convert to another livelihood; (iii) may found a colony on a nearby empty
@@ -153,8 +154,10 @@ that feed the figures. Every replicate derives its own seed from a single base s
 recorded in the configuration, and every random draw in the model consumes that
 seeded stream, so a replicate reproduces exactly given its configuration, its
 position in the sweep, and its repeat index. The runs reported here were produced
-before the base seed was introduced and therefore reproduce in distribution rather
-than exactly. The full parameter set, all submodels, and the design concepts are
+before the base seed was introduced, and before two corrections to the model —
+mortality is now drawn once per step rather than twice for farming breeds, and
+immigrant paddy groups are now placed on paddy-arable rather than rainfed-arable
+cells. They are being regenerated under the corrected, seeded code. The full parameter set, all submodels, and the design concepts are
 specified in the Supplementary Information.
 
 Baseline values and the range swept for each parameter named above are given in

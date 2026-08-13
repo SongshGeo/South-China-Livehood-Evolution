@@ -12,7 +12,9 @@ from abses import MainModel
 from hydra import compose, initialize
 from omegaconf import OmegaConf
 
-from src.api.env import BaseNature, CompetingCell, Env, Farmer, Hunter
+from src.api.env import BaseNature, CompetingCell, Env, Farmer, Hunter, RiceFarmer
+
+from .conftest import set_cell_arable_condition
 
 # 加载项目层面的配置
 with initialize(version_base=None, config_path="../config"):
@@ -272,3 +274,80 @@ class TestGlobalHunterLimit:
 
         with pytest.raises(KeyError):
             self._tiny_env(without_lim_h)
+
+
+class TestImmigrantPlacement:
+    """移民的落点必须和该品种的生存判据一致。
+
+    水稻可耕地（坡度 ≤ 0.5°）是旱作可耕地（≤ 10°）的真子集。`add_farmers` 曾经无论
+    品种一律用 `is_arable` 掩膜，而放置走 `random.new()` 不经过 `able_to_live()`，
+    于是水稻移民会被放在本不该生存的格子上，且此后永不被淘汰（issue #29）。
+    """
+
+    @staticmethod
+    def _mixed_arability_nature():
+        """一行 4 格的环境：2 格只满足旱作，2 格同时满足水稻。"""
+
+        class TinyEnv(Env):
+            """跳过栅格读取，只保留放置逻辑。"""
+
+            def initialize(self):
+                """只建栅格，不放初始狩猎采集者——否则它们会占掉这 4 格里的一部分。"""
+                self.setup_dem()
+
+            def setup_dem(self):
+                self.dem = self.create_module(
+                    shape=(1, 4),
+                    resolution=1,
+                    cell_cls=CompetingCell,
+                    major_layer=True,
+                )
+                self.calculate_global_hunter_limit()
+
+        # lam 调大，确保被测的这一步一定有移民进入
+        parameters = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True))
+        parameters.env.lam_farmer = 10
+        parameters.env.lam_ricefarmer = 10
+        model = MainModel(parameters=parameters, nature_class=TinyEnv)
+
+        # 前两格只能旱作，后两格旱作和水稻都可以
+        for index, rice_arable in enumerate((False, False, True, True)):
+            set_cell_arable_condition(
+                model.nature.dem.array_cells[0, index],
+                arable=True,
+                rice_arable=rice_arable,
+            )
+        return model.nature
+
+    def test_vacant_arable_cells_narrows_for_paddy(self):
+        """水稻取到的候选格子是旱作候选的真子集。"""
+        nature = self._mixed_arability_nature()
+
+        assert len(nature._vacant_arable_cells(Farmer)) == 4
+        assert len(nature._vacant_arable_cells(RiceFarmer)) == 2
+
+    @pytest.mark.parametrize(
+        "farmer_cls", [Farmer, RiceFarmer], ids=["rainfed", "paddy"]
+    )
+    def test_immigrants_land_where_they_can_live(self, farmer_cls):
+        """回归 #29：每个新落地的移民都必须通过 able_to_live()。"""
+        # Arrange
+        nature = self._mixed_arability_nature()
+
+        # Act
+        placed = nature.add_farmers(farmer_cls)
+
+        # Assert
+        assert len(placed) > 0
+        assert all(f.at.able_to_live(f) for f in placed)
+
+    def test_paddy_immigrants_never_use_rainfed_only_cells(self):
+        """水稻移民不会落在只满足旱作条件的格子上。"""
+        nature = self._mixed_arability_nature()
+
+        placed = nature.add_farmers(RiceFarmer)
+
+        assert all(f.at.is_rice_arable for f in placed)
+        # 只满足旱作的那两格必须仍然空着
+        rainfed_only = [nature.dem.array_cells[0, i] for i in (0, 1)]
+        assert all(cell.agents.has() == 0 for cell in rainfed_only)

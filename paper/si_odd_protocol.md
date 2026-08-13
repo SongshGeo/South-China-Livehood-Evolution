@@ -25,9 +25,11 @@ The model produces main-text Figures 2–5.
 Where the implemented behaviour differs from what a reader would naturally assume,
 this description reports the implemented behaviour, so that the description matches
 the code that can be run. Those places are marked and collected in section IV.
-Figures 2–5 were generated before the mortality submodel was corrected to one draw
-per step; they are being regenerated, and this description follows the corrected
-code rather than the version that produced them.
+Figures 2–5 were generated before two corrections landed — mortality is now drawn
+once per step rather than twice for farming breeds, and immigrant paddy groups are
+now placed on paddy-arable cells rather than on the rainfed mask. They are being
+regenerated; this description follows the corrected code rather than the version
+that produced them.
 
 ---
 
@@ -89,7 +91,8 @@ One step (`Model.step`) executes the following ordered sequence.
    `Poisson(env.lam_farmer)` and of paddy groups as
    `Poisson(env.lam_ricefarmer)`, provided the current tick is at least
    `tick_farmer` / `tick_ricefarmer` (both 0 by default). Each new group is placed
-   on a uniformly random empty **rainfed-arable** cell — for both breeds — and
+   on a uniformly random empty cell that is arable **for that breed** — paddy
+   groups on paddy-arable cells, rainfed groups on rainfed-arable cells — and
    given a size drawn from `new_group_size`.
 2. **Group updates** (`agents.shuffle_do("step")`). All existing groups act once
    in a freshly randomised order. Each group, in its turn, performs the following
@@ -326,10 +329,10 @@ with `complexity` = 0.1. This produces saturating population curves.
 **Immigration.** The number of new rainfed groups per step is
 `Poisson(env.lam_farmer)` and of paddy groups `Poisson(env.lam_ricefarmer)`, once
 the tick reaches `tick_farmer` / `tick_ricefarmer` (both 0). Each group is placed
-on a uniformly random empty rainfed-arable cell at a `size` drawn from
-`new_group_size` (30–60 for `Farmer`, 200–300 for `RiceFarmer`). Placement uses the
-rainfed-arable mask for both breeds, so an immigrant paddy group may be seeded on a
-cell that does not meet the paddy slope criterion. Defaults are
+on a uniformly random empty cell drawn from its own breed's arability mask
+(`is_arable` for `Farmer`, `is_rice_arable` for `RiceFarmer`) at a `size` drawn from
+`new_group_size` (30–60 for `Farmer`, 200–300 for `RiceFarmer`), so an immigrant is
+only ever seeded where `able_to_live` would admit it. Defaults are
 `env.lam_farmer` = 3 and `env.lam_ricefarmer` = 0.1; these set how hard
 agriculture presses on the region and are swept in Figure 5
 (`env.lam_farmer` ∈ {2,4,6,8,10}, `env.lam_ricefarmer` ∈ {0.1,…,0.5}).
@@ -415,9 +418,8 @@ heatmaps; it does not feed Figures 2–5.
 
 **Implemented behaviour that departs from the natural reading.** These are recorded
 so that a reimplementation reproduces this model rather than an idealised one.
-(i) Immigrant paddy groups are placed using the rainfed-arable mask, so some are
-seeded on cells that fail the paddy slope criterion. (ii) A colony split loses the
-parent's residual population when that residual falls below `min_size`.
+(i) A colony split loses the parent's residual population when that residual falls
+below `min_size`.
 
 **Model testing and validation.** Validation is pattern-oriented. The model is
 judged by whether it reproduces the qualitative patterns named in I.i — a
@@ -426,7 +428,7 @@ rather than by point prediction of specific historical events. No independent
 dataset was available for validation, so calibration and validation are not
 separated: the parameters are sourced from the literature and the patterns are
 qualitative. The core submodels (agent state transitions, conversion thresholds,
-mortality, and boundary cases) are covered by 123 unit tests. No global
+mortality, and boundary cases) are covered by 134 unit tests. No global
 variance-based sensitivity analysis was run; the sweeps are one- and two-factor
 grids around the mechanism of interest.
 

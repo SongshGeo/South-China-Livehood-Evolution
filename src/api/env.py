@@ -402,6 +402,26 @@ class Env(BaseNature):
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
 
+    def _vacant_arable_cells(self, farmer_cls: type) -> ActorsList[CompetingCell]:
+        """按品种取出空着的可耕地。
+
+        水稻的可耕地判据比旱作更严（坡度 ≤ 0.5° 对 ≤ 10°），是旱作可耕地的真子集。
+        两条放置路径——初始化与逐步移民——必须用同一个掩膜，否则主体会被放到
+        `able_to_live()` 本来会拒绝的格子上，而放置不经过该检查（issue #29）。
+
+        Args:
+            farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
+
+        Returns:
+            适合该品种、且当前没有主体的格子。
+        """
+        # 用 issubclass 而非 is：将来若有 RiceFarmer 的子类，用 `is` 会悄悄把它退回
+        # 旱作掩膜，重新引入本 issue
+        raster = "is_rice_arable" if issubclass(farmer_cls, RiceFarmer) else "is_arable"
+        arable = self.dem.get_raster(raster).reshape(self.dem.shape2d)
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        return arable_cells.select(lambda c: c.agents.has() == 0)
+
     def add_initial_farmers(
         self, farmer_cls: type = Farmer, num: int = 0
     ) -> ActorsList[Farmer | RiceFarmer]:
@@ -418,15 +438,7 @@ class Env(BaseNature):
         if num <= 0:
             return ActorsList(self.model, [])
 
-        # 根据农民类型选择合适的可耕地
-        if farmer_cls == RiceFarmer:
-            arable = self.dem.get_raster("is_rice_arable").reshape(self.dem.shape2d)
-        else:
-            arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-
-        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        # 过滤出没有主体的格子
-        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+        valid_cells = self._vacant_arable_cells(farmer_cls)
 
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(num, len(valid_cells))
@@ -446,7 +458,7 @@ class Env(BaseNature):
 
     def add_farmers(self, farmer_cls: type = Farmer) -> ActorsList[Farmer | RiceFarmer]:
         """
-        添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
+        添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。新农民被放置在**该品种自己的**可耕地上（水稻用 `is_rice_arable`，旱作用 `is_arable`），因此不会落在 `able_to_live()` 会拒绝的格子上。
 
         Args:
             farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
@@ -461,11 +473,8 @@ class Env(BaseNature):
         else:
             # 走模型的 seeded 生成器，而不是全局 NumPy 流，否则整条移民序列不可复现
             farmers_num = self.model.rng.poisson(self.params.get(lam_key, 0))
-        # 从可耕地、没有主体的里面选
-        arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        # Use lambda function to filter cells with no agents
-        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+        # 从该品种能生存的、且没有主体的可耕地里选
+        valid_cells = self._vacant_arable_cells(farmer_cls)
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(farmers_num, len(valid_cells))
         if farmers_num == 0:
