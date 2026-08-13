@@ -74,6 +74,13 @@
 #         其它 notebook（如 hypothesis_validation.ipynb）会用到完整 3³，按需取舍。
 #   bash run_slurm_rerun.sh --list                # 本地打印任务清单，不提交
 #   TASK=5 bash run_slurm_rerun.sh --dry-run      # 看第 5 个任务会执行什么
+#   bash run_slurm_rerun.sh --verify              # 跑完后核对产出，列出未完成的任务号
+#
+# 邮件通知:
+#   --mail-type=END,FAIL 没有带 ARRAY_TASKS，所以 SLURM 把整个数组当一个作业发信：
+#   全部结束发一封，失败发一封，而不是 216 封。想要每个任务都发信就改成
+#   --mail-type=END,FAIL,ARRAY_TASKS（不建议）。邮件只说"数组结束了"，不保证每个
+#   组合都成功——完成与否请以 `--verify` 为准。
 # ──────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -172,7 +179,68 @@ task_line() {
     printf '%s\n' "$line"
 }
 
-# ── 本地辅助：--list / --dry-run 不需要 SLURM ────────────────────────────────
+# 把递增的任务号压成 SLURM 的 --array 语法：0 1 2 5 7 8 -> 0-2,5,7-8。
+# 不压缩的话几百个逗号分隔的下标会长得没法用。
+compress_indices() {
+    local out="" start prev n
+    for n in "$@"; do
+        if [[ -z "${start:-}" ]]; then
+            start=$n; prev=$n; continue
+        fi
+        if [[ $n -eq $((prev + 1)) ]]; then
+            prev=$n; continue
+        fi
+        if [[ $start -eq $prev ]]; then out+="${start},"; else out+="${start}-${prev},"; fi
+        start=$n; prev=$n
+    done
+    if [[ -n "${start:-}" ]]; then
+        if [[ $start -eq $prev ]]; then out+="${start}"; else out+="${start}-${prev}"; fi
+    fi
+    printf '%s' "$out"
+}
+
+# 逐个任务检查产出是否齐全，打印未完成的任务号。
+# 判定口径与 src/__main__.py 的跳过逻辑一致：目录里要有 exp.repeats 个 *_tracking.csv。
+verify_tasks() {
+    local repeats done_n partial_n missing_n dir count incomplete=()
+    # -E 而非基本正则：BSD sed（macOS）不认 \+，集群上的 GNU sed 两者都认
+    repeats=$(sed -nE 's/^[[:space:]]*repeats:[[:space:]]*([0-9]+).*/\1/p' config/config.yaml | head -1)
+    : "${repeats:?cannot read exp.repeats from config/config.yaml}"
+    done_n=0; partial_n=0; missing_n=0
+
+    local index=0
+    while IFS= read -r line; do
+        dir="${line%%|*}"
+        if [[ ! -d "$dir" ]]; then
+            missing_n=$((missing_n + 1)); incomplete+=("$index")
+        else
+            count=$(find "$dir" -maxdepth 1 -name '*_tracking.csv' | wc -l | tr -d ' ')
+            if [[ "$count" -eq "$repeats" ]]; then
+                done_n=$((done_n + 1))
+            else
+                partial_n=$((partial_n + 1)); incomplete+=("$index")
+                echo "  partial: task ${index} has ${count}/${repeats} in ${dir}"
+            fi
+        fi
+        index=$((index + 1))
+    done < <(build_tasks)
+
+    echo "complete: ${done_n}   partial: ${partial_n}   missing: ${missing_n}   (of ${index})"
+    if [[ ${#incomplete[@]} -gt 0 ]]; then
+        echo
+        echo "resubmit the rest with:"
+        echo "  sbatch --array=$(compress_indices "${incomplete[@]}")%32 $(basename "$0")"
+        return 1
+    fi
+    echo "all tasks complete — safe to repoint the notebook at ${SWEEP_ROOT}"
+}
+
+# ── 本地辅助：--list / --dry-run / --verify 不需要 SLURM ─────────────────────
+if [[ "${1:-}" == "--verify" ]]; then
+    verify_tasks
+    exit $?
+fi
+
 if [[ "${1:-}" == "--list" ]]; then
     build_tasks | nl -v 0 -w4 -s'  '
     echo "total: $(build_tasks | wc -l) tasks"
