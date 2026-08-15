@@ -4,6 +4,8 @@ version = "0.8.0"
 description = "South China Livelihood Evolution Model - agent-based simulation of prehistoric livelihood change"
 readme = "README.md"
 authors = [{ name = "SongshGeo", email = "songshgeo@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "hydra-core>=1.3.2",

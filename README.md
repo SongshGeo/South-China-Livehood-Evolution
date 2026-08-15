@@ -3,6 +3,7 @@
 [![Docs](https://github.com/SongshGeo/South-China-Livehood-Evolution/actions/workflows/docusaurus-pages.yml/badge.svg)](https://github.com/SongshGeo/South-China-Livehood-Evolution/actions/workflows/docusaurus-pages.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/badge/uv-managed-blue)](https://docs.astral.sh/uv/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [中文](#中文) | [English](#english)
 
@@ -204,7 +205,14 @@ If you use this model, please cite:
 
 ## License
 
-[Add your license here]
+Released under the [MIT License](LICENSE). Copyright (c) 2023-2026 Shuang Song (SongshGeo).
+
+You are free to use, modify, and redistribute this code, including for commercial
+purposes, as long as the copyright notice and license text are preserved. If you use
+the model in academic work, please also cite it — see [Citation](#-citation) above.
+
+本项目采用 [MIT 许可证](LICENSE)。可自由使用、修改和再分发（含商业用途），只需保留
+版权声明与许可证全文。若用于学术研究，请同时按上文[引用](#-引用)方式标注出处。
 
 ## Acknowledgments
 
