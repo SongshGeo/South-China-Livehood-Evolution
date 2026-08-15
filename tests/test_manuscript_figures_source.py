@@ -15,12 +15,17 @@ Figures 2–5 曾经指向一批日期目录，那批数据产于 #28（每步�
 
 1. **数据来源**：旧目录仍留在 `out/` 下，任何一个路径常量被改回去，notebook
    照样跑通、照样出图，只是出的是修复前的图，没有任何报错。
-2. **可加模型的 R²**：同一个数字被抄在三处（`paper/methods.md`、
-   `paper/si_odd_protocol.md`、notebook 正文）。重跑后手工更新时确实漏掉了
-   其中一处，靠人眼没抓住。这里只要求三处相等，不判定数值本身对不对——
-   数值要靠重新拟合，而 `out/` 在 .gitignore 里，CI 上没有数据。
+2. **可加模型的 R²**：同一个数字被抄在多处（`paper/methods.md`、SI、notebook
+   正文）。重跑后手工更新时确实漏掉了其中一处，靠人眼没抓住。这里只要求各处
+   相等，不判定数值本身对不对——数值要靠重新拟合，而 `out/` 在 .gitignore 里，
+   CI 上没有数据。
 
 同理，本文件全部只做纯文本检查，不碰真实数据。
+
+**SI 的写作源在 Obsidian vault 里**：`paper/si_odd_protocol` 是指向 vault 中
+longform 项目 `supplementary/` 的软链接，SI 以场景（scene）分文件存放。软链接
+存的是绝对路径，所以在别人的 clone 或 CI 上必然悬空——此时 SI 那部分检查跳过，
+而不是把整个套件判红。
 """
 
 import json
@@ -43,12 +48,28 @@ PATH_CONSTANTS = (
     "FINE_GRID",
 )
 
-#: 抄了同一个 R² 的三个文件。notebook 用 Markdown 单元，另两个是正文。
-R2_SOURCES = (
-    ROOT / "paper" / "methods.md",
-    ROOT / "paper" / "si_odd_protocol.md",
-    NOTEBOOK,
-)
+#: SI 的写作源：vault 里 longform 项目的 supplementary/，经软链接接入。
+SI_SCENES = ROOT / "paper" / "si_odd_protocol"
+
+
+def _si_scenes() -> list[Path]:
+    """SI 的场景文件。
+
+    只取场景本身：索引笔记（`* (Index).md`）是草稿定义不是正文，而
+    `<项目名>_Supplementary.md` 是 longform 编译出来的产物——把产物算进去会让
+    同一处 R² 被数两遍，且产物永远与场景一致，检查不出任何东西。
+    """
+    if not SI_SCENES.is_dir():
+        return []
+    return sorted(
+        p
+        for p in SI_SCENES.glob("*.md")
+        if not p.stem.endswith("(Index)") and not p.stem.endswith("_Supplementary")
+    )
+
+
+#: 抄了同一个 R² 的地方。notebook 用 Markdown 单元，其余是正文。
+R2_SOURCES = (ROOT / "paper" / "methods.md", NOTEBOOK, *_si_scenes())
 
 #: `$R^2 = 0.993$`，容忍 `R^2`/`R²` 与等号周围的空格。
 R2_RE = re.compile(r"R(?:\^2|²)\s*=\s*(0\.\d+)")
@@ -109,21 +130,41 @@ class TestFigureDataSource:
 
 
 class TestQuotedGoodnessOfFit:
-    """可加模型 R² 的三处抄写必须一致。"""
+    """可加模型 R² 的各处抄写必须一致。"""
 
-    def test_every_file_quotes_a_goodness_of_fit(self):
-        """三处都得能解析出 R²，否则下面的相等断言会变成空转。"""
-        for path in R2_SOURCES:
-            text = path.read_text(encoding="utf-8")
-
-            assert R2_RE.search(text), f"{path.name} 里找不到 R² 引用"
-
-    def test_all_three_files_agree(self):
-        """重跑后重新拟合，三处要一起改；漏掉任何一处都在这里失败。"""
-        quoted = {
+    @staticmethod
+    def _quoted() -> dict[str, list[str]]:
+        """各文件里引到的 R²，只保留真的引了的那些。"""
+        found = {
             path.name: sorted(set(R2_RE.findall(path.read_text(encoding="utf-8"))))
             for path in R2_SOURCES
         }
+        return {name: vs for name, vs in found.items() if vs}
+
+    def test_both_manuscript_tiers_quote_it(self):
+        """主文与 notebook 都得引到，否则下面的相等断言会变成空转。
+
+        SI 不在这里要求：它按场景分文件，R² 只出现在其中一个场景，且在别人的
+        clone 上整个软链接都是悬空的。
+        """
+        quoted = self._quoted()
+
+        assert "methods.md" in quoted, "paper/methods.md 里找不到 R² 引用"
+        assert NOTEBOOK.name in quoted, f"{NOTEBOOK.name} 里找不到 R² 引用"
+
+    def test_si_quotes_it_too(self):
+        """SI 也抄了同一个数——正是这一处在上次手工更新时被漏掉。"""
+        if not _si_scenes():
+            pytest.skip("SI 软链接未解析（不是本机的 Obsidian vault）")
+        quoted = self._quoted()
+
+        assert any(
+            name not in {"methods.md", NOTEBOOK.name} for name in quoted
+        ), "SI 的场景里找不到 R² 引用"
+
+    def test_all_files_agree(self):
+        """重跑后重新拟合，各处要一起改；漏掉任何一处都在这里失败。"""
+        quoted = self._quoted()
         values = {v for vs in quoted.values() for v in vs}
 
         assert len(values) == 1, f"R² 在各处不一致: {quoted}"
