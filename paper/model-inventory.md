@@ -12,53 +12,65 @@ Recovered against commit on `dev` at the time of writing; ABSESpy 0.11.5, Python
 
 ---
 
-## ⚠️ Pending re-run
+## Provenance of the current figures
 
-The stored runs under `out/` — and therefore Figures 2–5 — were produced **before**
-the fixes now landing on `dev`. Two consequences, both to be cleared by one re-run:
+Figures 2–5 come from `out/south_china_evolution/rerun_v2/`, produced by
+`run_slurm_rerun.sh` as one 216-task SLURM array under the corrected, seeded code —
+i.e. after F1/#28, F3/#29, F4/#30 and F14 had all landed. `bash run_slurm_rerun.sh
+--verify` reports 216 complete, 0 partial, 0 missing. The superseded pre-fix runs are
+left in place under their original date-stamped directories. The manuscript figure
+pipeline no longer reads them — `tests/test_manuscript_figures_source.py` locks all
+seven of the notebook's data-path constants to `rerun_v2/`, because pointing one back
+at an old directory would still run and still produce figures, just pre-fix ones. The
+exploratory notebooks elsewhere in `reports/` do still read the old directories; they
+are working notes, not figure sources, and the numbers in them describe the pre-fix
+runs they were written against. `convert_prob_2d_fine_v1.ipynb` in particular reports
+$R^2$ = 0.9922 for the log-additive fit, which is the *old* fine grid; the manuscript
+quotes 0.993, refitted on `grid_fine`. Both are right about their own data.
 
-1. **No stored run is exactly reproducible.** They were generated with no base seed at
-   all (F14), so they reproduce in distribution only. `methods.md` and
-   `si_odd_protocol.md` say so explicitly; delete those sentences once the sweeps are
-   re-run under the seeded code.
-2. **The stored numbers are stale.** Fixes that change model behaviour have landed
-   since they were generated, so the figures must be rebuilt:
-   - **F1 / #28** — farming breeds drew mortality twice per step; now once. This
-     halves the expected per-step mortality of both farming breeds. Arithmetic only:
-     the expected per-step survival multiplier moves from 0.999 to 0.9995, which
-     compounds to ≈1.28× over 500 steps. The realised effect has not been measured
-     and the direction is not asserted here — the re-run is the measurement.
-   - **F3 / #29** — immigrant paddy groups were placed on the rainfed-arable mask;
-     now on the paddy-arable mask. Before the fix 31% of paddy groups sat on cells
-     that fail the paddy slope test and were never evicted, so Figure 5's
-     `env.lam_ricefarmer` sweep carried their contribution inside the measured paddy
-     effect. Every figure that involves paddy agents is affected, Figure 5 most
-     directly.
+Two sweeps were run to their full design rather than to what the old directories
+happened to contain: the broad conversion grid is 6×6 (was 25 of 36) and the
+immigration sweep 5×5 (was 23 of 25).
 
-Until the sweeps are re-run, `methods.md` and `si_odd_protocol.md` describe the
-**current code**, which is not the code that produced the current figures.
+**Common random numbers.** All replicate seeds derive from `seed` = 42, and each
+combination is dispatched as its own single-combination job, so every task sees
+`job_id` = 0 and replicate *r* draws the same seed in every combination. Combinations
+are therefore paired — which is what a sweep wants — but grid-wide intervals are not
+independent across cells. This is not merely by construction: the (0, 0) conversion
+cell appears in both `grid_broad/idx0` and `grid_fine/idx0`, which ran as separate
+array tasks on different nodes, and all five replicate `*_tracking.csv` are
+byte-identical between them.
 
-**How to clear this block.** `run_slurm_rerun.sh` dispatches all six sweeps as one
-216-task SLURM array into the stable root `out/south_china_evolution/rerun_v2/`
-(`sbatch run_slurm_rerun.sh`; it skips combinations that already have all five
-`*_tracking.csv`). Two sweeps are deliberately run to their full design rather than
-to what the old directories happen to contain: the broad conversion grid becomes 6×6
-(was 25 of 36) and the immigration sweep 5×5 (was 23 of 25). Afterwards:
+**What the re-run changed.** Every qualitative claim behind Figures 2–5 survives; the
+levels move and the noise drops sharply.
 
-| `reports/manuscript_figures.ipynb` constant | repoint to `rerun_v2/` |
-|---|---|
-| `BASELINE_DIR` | `convert3/22_Farmer.convert_prob.to_hunter=0.1,Hunter.convert_prob.to_farmer=0.05,Hunter.convert_prob.to_rice=0.05` |
-| `OFF_DIR` | `convert3/0_Farmer.convert_prob.to_hunter=0.0,Hunter.convert_prob.to_farmer=0.0,Hunter.convert_prob.to_rice=0.0` |
-| `LAM_ROOT` | `lam` |
-| `LIMH_ROOT` | `limh` |
-| `TERRAIN_ROOT` | `terrain` |
-| `BROAD_GRID` / `FINE_GRID` | `grid_broad` / `grid_fine` |
+- **Figure 2.** End-state agricultural share falls 17.6% → 15.4%. The shape of the
+  trajectory is unchanged, and so is the claim it supports — agriculture stays a
+  small share of total population.
+- **Figure 3b.** Materially cleaner, and for a reason worth recording: the old broad
+  grid held only 25 of its 36 cells, so several `h2f` curves had gaps and were drawn
+  across them, which read as curves crossing one another. The response surface itself
+  was never non-monotonic — both the old and the new grid increase in `h2f` along
+  every `f2h` row wherever data exists. The re-run fills all 36 cells, so the six
+  curves separate cleanly and converge at `f2h` = 0. The apparent crossing was a
+  coverage artefact, not a modelling result.
+- **Figure 4.** The ranking of the three factors — the point of the panel — is
+  unchanged, and so are the effect sizes to within a few percent. Measured as the
+  ratio of the largest to the smallest level of each factor (50-step tail mean of
+  `num_farmers_n`): terrain 1.77× → **1.91×**, `lam_farmer` 1.63× → **1.66×**,
+  `lim_h` 1.44× → **1.43×**. Terrain still leads, forager carrying capacity still
+  trails.
+- **Figure 5.** The paddy-versus-dryland contrast holds and strengthens. End-state
+  agricultural population (the 50-step tail mean the panel plots) at ×5 relative to
+  ×1 goes from 1.40× to **1.60×** for `lam_farmer` and from 4.89× to **5.70×** for
+  `lam_ricefarmer`. The ratio between the two leverages — the actual claim — is
+  essentially unmoved: 3.50 → 3.56.
 
-Then delete this block, the seed and correction caveats in `methods.md` §Software and
-`si_odd_protocol.md` §III.i, and the paragraph about Figures 2–5 in that file's
-preamble. All replicate seeds derive from `seed` = 42, and every array task sees
-`job_id` = 0, so the sweep uses common random numbers — combinations are paired,
-which is what a sweep wants, but grid-wide intervals are not independent across cells.
+The precision gain is uniform, not selective: across the ten slices Figure 5 plots
+(five levels of each of the two intensities, of which nine are distinct combinations —
+the baseline cell belongs to both slices), the coefficient of variation over the five
+replicates falls from a mean of **12.6% to 6.9%**, and it falls in every slice
+individually. That is the expected return on seeding plus common random numbers.
 
 ---
 
@@ -202,8 +214,8 @@ farmer-side call. A leftover, not a modelling choice.
 Fixed by deleting the `Farmer.step` override entirely (it then held nothing but
 `super().step()`); `RiceFarmer`, which inherited it, is fixed with it.
 `tests/test_people.py::TestStepSchedule` locks all four breeds to one draw per step.
-**This changed model behaviour: the stored runs and Figures 2–5 predate the fix and
-must be regenerated — see "Pending re-run" at the top.**
+**This changed model behaviour.** Figures 2–5 have been regenerated under the fix —
+see "Provenance of the current figures" at the top.
 
 **F2. Five conversion paths exist, not six.** `Hunter`→`Farmer`, `Hunter`→`RiceFarmer`,
 `Farmer`→`Hunter`, `Farmer`→`RiceFarmer`, `RiceFarmer`→`Farmer`. There is no
@@ -237,7 +249,8 @@ three paddy cases while the rainfed case passes as a control.
 
 **This changed model behaviour.** Figure 5's `env.lam_ricefarmer` sweep previously
 mixed the paddy mechanism with a contribution from paddy groups living where paddy
-cannot be grown; it must be re-run. See "Pending re-run" at the top.
+cannot be grown; it has been re-run. See "Provenance of the current figures" at the
+top.
 
 **F4. Immigration was not seed-reproducible — FIXED.** `np.random.poisson` (then at
 `env.py:454`) drew from the global NumPy stream rather than the model's seeded
@@ -370,8 +383,8 @@ F7 is confirmed intended behaviour and needs no change.
 
 | Finding | Issue | Title | Status |
 |---|---|---|---|
-| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; needs re-run |
-| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **fixed** — changed model behaviour; needs re-run |
+| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; re-run landed in `rerun_v2/` |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **fixed** — changed model behaviour; re-run landed in `rerun_v2/` |
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
 | F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |

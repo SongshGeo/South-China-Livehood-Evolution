@@ -123,7 +123,7 @@ resolutions: a baseline-versus-off contrast; a coarse sweep of both probabilitie
 corner ($p_{F\to H} \in [0, 0.02]$, $p_{H\to F} \in [0, 0.15]$). We fitted a
 separable additive model in log space,
 $\log N \approx \alpha(p_{F\to H}) + \beta(p_{H\to F}) + \gamma$, and report its
-fit ($R^2 = 0.992$), which shows the two paths act almost independently with
+fit ($R^2 = 0.993$), which shows the two paths act almost independently with
 $p_{F\to H}$ dominant.
 
 **Ranking the factors (Figure 4).** We compared three factors on the rainfed
@@ -153,12 +153,12 @@ replicates, and each replicate writes the population and group-count time series
 that feed the figures. Every replicate derives its own seed from a single base seed
 recorded in the configuration, and every random draw in the model consumes that
 seeded stream, so a replicate reproduces exactly given its configuration, its
-position in the sweep, and its repeat index. The runs reported here were produced
-before the base seed was introduced, and before two corrections to the model —
-mortality is now drawn once per step rather than twice for farming breeds, and
-immigrant paddy groups are now placed on paddy-arable rather than rainfed-arable
-cells. They are being regenerated under the corrected, seeded code. The full parameter set, all submodels, and the design concepts are
-specified in the Supplementary Information.
+position in the sweep, and its repeat index. Each combination is dispatched as its
+own job, so replicate $r$ starts from the same seed in every combination: the sweeps
+use common random numbers, which reduces the variance of a contrast between two
+parameter settings without making the combinations statistically independent of one
+another. The full parameter set, all submodels, and the design concepts are specified
+in the Supplementary Information.
 
 Baseline values and the range swept for each parameter named above are given in
 Table \ref{tbl:key-params}. Foragers grow an order of magnitude more slowly than

@@ -25,11 +25,6 @@ The model produces main-text Figures 2–5.
 Where the implemented behaviour differs from what a reader would naturally assume,
 this description reports the implemented behaviour, so that the description matches
 the code that can be run. Those places are marked and collected in section IV.
-Figures 2–5 were generated before two corrections landed — mortality is now drawn
-once per step rather than twice for farming breeds, and immigrant paddy groups are
-now placed on paddy-arable cells rather than on the rainfed mask. They are being
-regenerated; this description follows the corrected code rather than the version
-that produced them.
 
 ---
 
@@ -268,19 +263,26 @@ independent batch of `exp.repeats` = 5 replicates. A base seed in the configurat
 (`base + 1000 × job_id + run_id`, where `job_id` is the combination's position in the
 sweep), and every random draw — including the Poisson immigration counts — uses the
 resulting seeded generators. A replicate therefore reproduces **exactly** given its
-configuration, sweep position, and repeat index. The runs reported here predate the
-introduction of the base seed and so reproduce in distribution rather than exactly.
+configuration, sweep position, and repeat index. Every combination reported here was
+dispatched as its own single-combination job, so all of them share `job_id` = 0 and
+replicate *r* draws the same seed in every combination: the sweep uses common random
+numbers, and combinations are paired rather than independently randomised. This was
+checked against the stored output — the (0, 0) cell appears in both the broad and the
+fine conversion grid, and although the two were run as separate array tasks on
+different nodes, all five replicate time series are byte-identical between them.
 Each replicate writes a full time series (`<run>_tracking.csv`) of
 summed `size` and group count per breed, which is the sole input to the analysis.
 Code and configuration are version-controlled; sweeps are dispatched as SLURM job
-arrays (`run_slurm.sh`).
+arrays (`run_slurm.sh`, `run_slurm_rerun.sh`).
 
 ### III.ii Initialisation
 
 At the start of a run, a fraction `env.init_hunters` = 0.5 of the land cells is
 seeded with a `Hunter` group, each with a `size` drawn uniformly between
-`min_size` = 6 and 100. In the baseline landscape this places **3417 forager groups
-holding about 180 800 people, roughly 76% of the regional ceiling**, so the region
+`min_size` = 6 and 100. Both the number of seeded cells and each group's size are
+random, so this varies between replicates; in the baseline landscape it places
+**about 3470 forager groups holding about 183 500 people, roughly 77% of the
+regional ceiling** (means over the five baseline replicates), so the region
 begins close to forager saturation. No farming groups are present initially
 (`env.init_farmers` = 0, `env.init_rice_farmers` = 0), and consequently the
 `init_size` ranges for the two farming breeds are unused at baseline. Agriculture
@@ -405,7 +407,7 @@ Every parameter combination is run for `exp.repeats` = 5 replicates of
 effect sizes and the replicate count are reported rather than significance tests.
 For the conversion surface (Figure 3) we fit a separable additive model in log
 space, log N ≈ α(f2h) + β(h2f) + γ, and report its coefficient of determination
-($R^2 = 0.992$) and residual structure as a measure of interaction. For the
+($R^2 = 0.993$) and residual structure as a measure of interaction. For the
 leverage comparison (Figure 5) each swept intensity is normalised to a multiple of
 its baseline and the slope of the end-state response is compared between the two
 streams. A separate breakpoint detector (the ruptures library, `Dynp` algorithm, one breakpoint,
