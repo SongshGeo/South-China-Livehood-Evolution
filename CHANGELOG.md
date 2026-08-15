@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.8.0...v0.9.0) (2026-01-17)
+
+
+### Features
+
+* add Docusaurus documentation site ([303049b](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/303049b3bb79c5111b056121728fb9fbb06da917))
+* add missing MkDocs plugins to Vercel build ([869317d](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/869317d0c1c896872035486b8ba44a44d2b791e6))
+* update waterbody data handling and global hunter limit calculations ([db72cfe](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/db72cfeb1652c6d8a09009219ae58efb376b36d8))
+* use Poetry for Vercel build (much cleaner!) ([b3e7ca4](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/b3e7ca4bf3eabd73ebbd40b9059d76fda92918e7))
+
+
+### Bug Fixes
+
+* configure Vercel to use Python3 explicitly ([637ffc6](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/637ffc6d93f0a7835029b153007d34863d88b15b))
+* **env:** :bug: improve population reduction logic in Env class ([70ecc7d](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/70ecc7d45858818645d749c2d78f22c9dff6af98))
+* **tests:** enhance test environment setup for CompetingCell and Farmer ([71b60cc](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/71b60ccc36ac5eec657e7f174f3611e011b16493))
+* use python3 -m poetry to avoid PATH issues ([cf2dd20](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/cf2dd20c961dc809cb3ef17c0859c2ab4178c0c9))
+
+
+### Documentation
+
+* add deployment status section ([9d9c03b](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/9d9c03b2ce9bf566efac60413914b58b68dff934))
+* **docs:** :memo: add deployment scripts and workflows for Docusaurus ([f2e4075](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/f2e40758f9e52b08afb56e359c68b822fc3a94a4))
+* **docs:** :memo: enhance core methods and documentation for improved functionality ([b3d4685](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/b3d468517b3d50af339a788b6b6d4fe49b373af7))
+
 ## [0.8.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.7.0...v0.8.0) (2025-10-20)
 
 
