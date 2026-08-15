@@ -55,8 +55,22 @@ Consequences worth knowing before you edit:
   to keep the quoted $R^2$ in step with `methods.md` and the figure notebook. On
   a clone where the link dangles, that one check skips rather than failing.
 - The figures and `SCE_Tables.xlsx` travel the other way: they are **generated
-  here** and copied into the vault's `figs/`. Re-copy them after rebuilding the
-  notebook or `build_tables.py`.
+  here** and copied into the vault's `figs/`. Nothing propagates them on its own,
+  so use the make targets rather than copying by hand:
+
+  ```sh
+  make figures      # rebuild the notebook + the workbook, then sync
+  make sync-vault   # sync only, when the assets are already current
+  ```
+
+  `sync-vault` checks every asset before copying any of them, so a missing file
+  aborts with nothing copied rather than leaving the vault half old and half new.
+  Point it elsewhere with `make sync-vault VAULT_PROJECT=/path/to/project`.
+
+  Note what it does **not** do: it copies whatever is in `reports/` without asking
+  how old that is. Only `make figures` guarantees the vault gets figures built
+  from the current data — reach for it whenever the outputs under `out/` have
+  changed.
 
 ## Tables live in the workbook, not in the prose
 

@@ -6,6 +6,15 @@
 GEANY_REMOTE ?= geany:/u/songsh/CodeBase/South-China-Livehood-Evolution
 RERUN_REL := out/south_china_evolution/rerun_v2
 
+# The Obsidian longform project the manuscript is written in. Prose travels from
+# there to here through the symlinks in paper/; figures and the tables workbook
+# travel the other way, which is what `sync-vault` does. See paper/README.md.
+# The path contains spaces, so every use of it must stay quoted.
+VAULT_PROJECT ?= $(HOME)/Documents/Obsidian/Scholar-Vault/50 - Outputs/Longform/华南农业ABM
+
+# Figure N in the manuscript <- reports/figure<N>_<slug>.{png,pdf}
+FIGURE_SLUGS := 2:baseline_suppression 3:conversion 4:expansion_factors 5:paddy_vs_dryland
+
 setup: uv-setup uv-geo uv-install install-pre-commit
 
 # Runtime + dev tooling (pytest, black, flake8, isort, pre-commit).
@@ -62,6 +71,55 @@ fetch-rerun:
 	}
 	@echo "Fetched. Now verify completeness:"
 	@echo "  bash run_slurm_rerun.sh --verify"
+
+# Copies the generated assets into the vault's figs/. Run it after rebuilding the
+# figure notebook or the workbook — nothing else propagates them, so the vault
+# would otherwise export last week's figures without complaining.
+#
+# Everything is checked before anything is copied, and the copies run under
+# `set -e`: a half-synced vault is worse than an unsynced one, because the mix of
+# old and new files carries no sign of which is which.
+.PHONY: sync-vault figures
+sync-vault:
+	@test -d "$(VAULT_PROJECT)/figs" || { \
+		echo "Error: no figs/ under the longform project:"; \
+		echo "  $(VAULT_PROJECT)"; \
+		echo "Override the location with: make sync-vault VAULT_PROJECT=/path/to/project"; \
+		exit 1; \
+	}
+	@missing=; \
+	for pair in $(FIGURE_SLUGS); do \
+		n=$${pair%%:*}; slug=$${pair##*:}; \
+		for ext in png pdf; do \
+			src="reports/figure$${n}_$${slug}.$${ext}"; \
+			test -f "$$src" || missing="$$missing  $$src\n"; \
+		done; \
+	done; \
+	test -f paper/figs/SCE_Tables.xlsx || missing="$$missing  paper/figs/SCE_Tables.xlsx\n"; \
+	if [ -n "$$missing" ]; then \
+		echo "Error: cannot sync, these generated assets are missing:"; \
+		printf "$$missing"; \
+		echo "Rebuild everything and sync in one go:"; \
+		echo "  make figures"; \
+		exit 1; \
+	fi
+	@set -e; \
+	for pair in $(FIGURE_SLUGS); do \
+		n=$${pair%%:*}; slug=$${pair##*:}; \
+		for ext in png pdf; do \
+			cp "reports/figure$${n}_$${slug}.$${ext}" \
+			   "$(VAULT_PROJECT)/figs/SCE_figure$${n}.$${ext}"; \
+		done; \
+	done; \
+	cp paper/figs/SCE_Tables.xlsx "$(VAULT_PROJECT)/figs/SCE_Tables.xlsx"
+	@echo "Synced SCE_figure2-5.{png,pdf} + SCE_Tables.xlsx into:"
+	@echo "  $(VAULT_PROJECT)/figs/"
+
+# Rebuild every generated manuscript asset, then push it to the vault.
+figures:
+	uv run jupyter nbconvert --execute --to notebook --inplace reports/manuscript_figures.ipynb
+	uv run python paper/build_tables.py
+	@$(MAKE) --no-print-directory sync-vault
 
 fetch-geany-data:
 	@command -v rsync >/dev/null 2>&1 || { echo "Error: rsync is not installed"; exit 1; }
