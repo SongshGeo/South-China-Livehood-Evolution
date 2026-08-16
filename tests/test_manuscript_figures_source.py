@@ -15,17 +15,18 @@ Figures 2–5 曾经指向一批日期目录，那批数据产于 #28（每步�
 
 1. **数据来源**：旧目录仍留在 `out/` 下，任何一个路径常量被改回去，notebook
    照样跑通、照样出图，只是出的是修复前的图，没有任何报错。
-2. **可加模型的 R²**：同一个数字被抄在多处（`paper/methods.md`、SI、notebook
+2. **可加模型的 R²**：同一个数字被抄在多处（主文场景、SI、notebook
    正文）。重跑后手工更新时确实漏掉了其中一处，靠人眼没抓住。这里只要求各处
    相等，不判定数值本身对不对——数值要靠重新拟合，而 `out/` 在 .gitignore 里，
    CI 上没有数据。
 
 同理，本文件全部只做纯文本检查，不碰真实数据。
 
-**SI 的写作源在 Obsidian vault 里**：`paper/si_odd_protocol` 是指向 vault 中
-longform 项目 `supplementary/` 的软链接，SI 以场景（scene）分文件存放。软链接
-存的是绝对路径，所以在别人的 clone 或 CI 上必然悬空——此时 SI 那部分检查跳过，
-而不是把整个套件判红。
+**手稿正文不在本仓库**：主文与 SI 都写在 Obsidian vault 的 longform 项目里，
+`paper/manuscript` 与 `paper/si_odd_protocol` 是指向它 `manuscript/`、
+`supplementary/` 两个文件夹的软链接，两边都以场景（scene）分文件存放。软链接存
+的是绝对路径，所以在别人的 clone 或 CI 上必然悬空——此时这两部分检查跳过，而不是
+把整个套件判红。notebook 是本仓库自带的，任何时候都仍然要引到 R²。
 """
 
 import json
@@ -48,28 +49,35 @@ PATH_CONSTANTS = (
     "FINE_GRID",
 )
 
+#: 主文的写作源：vault 里 longform 项目的 manuscript/，经软链接接入。
+MS_SCENES = ROOT / "paper" / "manuscript"
+
 #: SI 的写作源：vault 里 longform 项目的 supplementary/，经软链接接入。
 SI_SCENES = ROOT / "paper" / "si_odd_protocol"
 
 
-def _si_scenes() -> list[Path]:
-    """SI 的场景文件。
+def _scenes(folder: Path) -> list[Path]:
+    """一个 longform 文件夹里的场景文件。
 
     只取场景本身：索引笔记（`* (Index).md`）是草稿定义不是正文，而
-    `<项目名>_Supplementary.md` 是 longform 编译出来的产物——把产物算进去会让
+    `<项目名>_Supplementary.md` 之类是 longform 编译出来的产物——把产物算进去会让
     同一处 R² 被数两遍，且产物永远与场景一致，检查不出任何东西。
+
+    软链接悬空时返回空表，让上层跳过而不是判红。
     """
-    if not SI_SCENES.is_dir():
+    if not folder.is_dir():
         return []
     return sorted(
         p
-        for p in SI_SCENES.glob("*.md")
+        for p in folder.glob("*.md")
         if not p.stem.endswith("(Index)") and not p.stem.endswith("_Supplementary")
     )
 
 
 #: 抄了同一个 R² 的地方。notebook 用 Markdown 单元，其余是正文。
-R2_SOURCES = (ROOT / "paper" / "methods.md", NOTEBOOK, *_si_scenes())
+#: 主文与 SI 都在 vault 里，在别人的 clone 上整批悬空——此时两边都收不到场景，
+#: 只有 notebook 是本仓库自带、任何时候都必须引到的那一处。
+R2_SOURCES = (NOTEBOOK, *_scenes(MS_SCENES), *_scenes(SI_SCENES))
 
 #: `$R^2 = 0.993$`，容忍 `R^2`/`R²` 与等号周围的空格。
 R2_RE = re.compile(r"R(?:\^2|²)\s*=\s*(0\.\d+)")
@@ -134,33 +142,42 @@ class TestQuotedGoodnessOfFit:
 
     @staticmethod
     def _quoted() -> dict[str, list[str]]:
-        """各文件里引到的 R²，只保留真的引了的那些。"""
-        found = {
-            path.name: sorted(set(R2_RE.findall(path.read_text(encoding="utf-8"))))
-            for path in R2_SOURCES
-        }
+        """各文件里引到的 R²，只保留真的引了的那些。
+
+        读不到的直接跳过：主文与 SI 的场景都在 vault 里，在别人的 clone 或 CI 上
+        必然读不到，那不是这份检查要抓的漂移。
+        """
+        found = {}
+        for path in R2_SOURCES:
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            found[path.name] = sorted(set(R2_RE.findall(text)))
         return {name: vs for name, vs in found.items() if vs}
 
     def test_both_manuscript_tiers_quote_it(self):
         """主文与 notebook 都得引到，否则下面的相等断言会变成空转。
 
-        SI 不在这里要求：它按场景分文件，R² 只出现在其中一个场景，且在别人的
-        clone 上整个软链接都是悬空的。
+        SI 不在这里要求：它按场景分文件，R² 只出现在其中一个场景。主文同样按场景
+        分文件，R² 落在 `methods.md` 那一篇；两边的软链接悬空时都只查 notebook。
         """
         quoted = self._quoted()
 
-        assert "methods.md" in quoted, "paper/methods.md 里找不到 R² 引用"
+        if _scenes(MS_SCENES):
+            assert (
+                "methods.md" in quoted
+            ), "paper/manuscript/methods.md 里找不到 R² 引用"
         assert NOTEBOOK.name in quoted, f"{NOTEBOOK.name} 里找不到 R² 引用"
 
     def test_si_quotes_it_too(self):
         """SI 也抄了同一个数——正是这一处在上次手工更新时被漏掉。"""
-        if not _si_scenes():
+        if not _scenes(SI_SCENES):
             pytest.skip("SI 软链接未解析（不是本机的 Obsidian vault）")
         quoted = self._quoted()
 
-        assert any(
-            name not in {"methods.md", NOTEBOOK.name} for name in quoted
-        ), "SI 的场景里找不到 R² 引用"
+        si_names = {p.name for p in _scenes(SI_SCENES)}
+        assert si_names & quoted.keys(), "SI 的场景里找不到 R² 引用"
 
     def test_all_files_agree(self):
         """重跑后重新拟合，各处要一起改；漏掉任何一处都在这里失败。"""

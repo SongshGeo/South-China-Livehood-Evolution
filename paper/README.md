@@ -1,46 +1,71 @@
 # paper/
 
-Manuscript prose for the South China livelihood-evolution study.
+The manuscript's working surface. **No manuscript prose is stored here** — every
+scene lives in the PaperBell longform project in the Obsidian vault, and this
+folder reaches it through symlinks (see below). What this repository does own is
+the ledger that the prose is derived from, the script that builds the tables, and
+the generated assets that travel the other way.
+
+Written here, tracked by this repository's git:
 
 - `model-inventory.md` — **reconnaissance ledger**, written before the prose. A
   factual record of entities, scales, schedule, parameters, stochasticity, and
   existing evidence, every entry carrying a `file:line`. Its "Findings" section
   lists the places where the code and an earlier draft disagreed, and the open
   questions that only the author can settle (marked `[ASK]`). Re-derive it before
-  editing the two documents below; they are downstream of it.
-- `methods.md` — **main-text Methods**. Concise and overview-level: model
-  purpose, landscape and agents, the core processes, and the four simulation
-  experiments organised by figure (Figure 2–5), plus a compact key-parameter
-  table. Points to the SI for the full specification.
-- `si_odd_protocol/` — **Supplementary Information**. The full, protocol-
+  editing the scenes; they are downstream of it. It stays here rather than in the
+  vault because it is a working ledger keyed to this code, never exported.
+- `build_tables.py` — builds `figs/SCE_Tables.xlsx` from the config, the rasters,
+  and the sweep script, so no table value is retyped.
+- `figs/` — the generated tables workbook, copied into the vault by `make
+  sync-vault`.
+
+Reached by symlink, owned by the vault:
+
+- `manuscript/` — the **main-text scenes**: `introduction.md`, `methods.md`,
+  `results.md`. Methods is concise and overview-level — model purpose, landscape
+  and agents, the core processes, and the four simulation experiments organised
+  by figure (Figure 2–5), plus a compact key-parameter table — and points to the
+  SI for the full specification.
+- `si_odd_protocol/` — the **Supplementary Information**. The full, protocol-
   conformant model description following ODD+D (Overview, Design concepts,
   Details, and human Decision-making). Contains every submodel equation, the
   design-concept subsections, initialisation, input data, and the full parameter
-  list. **This is a symlink — see below.**
+  list.
+- `refs.bib` — the bibliography the `[@key]` citations resolve against.
 
-## The SI is written in Obsidian, not here
+## The prose is written in Obsidian, not here
 
-The SI's source of truth is the PaperBell longform project in the Obsidian vault:
+The source of truth for both the main text and the SI is the PaperBell longform
+project in the Obsidian vault:
 
 ```
 Scholar-Vault/50 - Outputs/Longform/华南农业ABM/
 ├── metadata.json          ← frontmatter lives here, not in the prose
 ├── references.bib         ← the bibliography for [@key] citations
 ├── figs/                  ← SCE_figure2–5.{png,pdf} + SCE_Tables.xlsx
-├── manuscript/            ← main-text scenes (methods.md is the real one)
+├── manuscript/            ← main-text scenes (introduction, methods, results)
 └── supplementary/         ← the SI, one scene per ODD+D part
 ```
 
-Two symlinks point this repository at it:
+Three symlinks point this repository at it:
 
 | Here | → | There |
 |---|---|---|
+| `paper/manuscript` | → | `…/华南农业ABM/manuscript` |
 | `paper/si_odd_protocol` | → | `…/华南农业ABM/supplementary` |
 | `paper/refs.bib` | → | `…/华南农业ABM/references.bib` |
 
-Both are **gitignored**: they store a machine-specific absolute path, so
-committing them would hand every other clone a dangling link. The SI's version
+Both prose folders are linked as **directories**, not file by file, so a scene
+added in the vault shows up here without touching this repository.
+
+All three are **gitignored**: they store a machine-specific absolute path, so
+committing them would hand every other clone a dangling link. The prose's version
 history lives in the vault's own git repository instead.
+
+Authors, affiliations, and the corresponding-author email are still placeholders
+in `metadata.json`, and the parameter-provenance citations in Table S4 still need
+a bibliography — settle both before the first export.
 
 Consequences worth knowing before you edit:
 
@@ -51,9 +76,10 @@ Consequences worth knowing before you edit:
   hand-written section numbers** (`numbersections: true` numbers them), and **no
   `\renewcommand{\thetable}{S…}` block** (the Supplementary workflow injects it).
   Adding any of the three by hand duplicates what the pipeline already does.
-- `tests/test_manuscript_figures_source.py` reads the scenes through the symlink
-  to keep the quoted $R^2$ in step with `methods.md` and the figure notebook. On
-  a clone where the link dangles, that one check skips rather than failing.
+- `tests/test_manuscript_figures_source.py` reads the scenes through the symlinks
+  to keep the quoted $R^2$ in step across `methods.md`, the SI, and the figure
+  notebook. On a clone where the links dangle, those checks skip rather than
+  failing; the notebook is checked either way.
 - The figures and `SCE_Tables.xlsx` travel the other way: they are **generated
   here** and copied into the vault's `figs/`. Nothing propagates them on its own,
   so use the make targets rather than copying by hand:
@@ -77,7 +103,7 @@ Consequences worth knowing before you edit:
 Every table the manuscript needs is a sheet in the one workbook,
 `figs/SCE_Tables.xlsx`; the prose carries only an `xlsx-table` block pointing at
 the sheet, and refers to it as `Table \ref{tbl:…}`. Never write a markdown table
-into `methods.md` or `si_odd_protocol.md` — it would carry hand-typed numbers
+into a manuscript or SI scene — it would carry hand-typed numbers
 whose only copy is the prose, and it would be typeset outside the house style.
 
 | Sheet | Label | In |

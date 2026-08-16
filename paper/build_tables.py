@@ -719,7 +719,7 @@ def build() -> None:
             "Table S3",
             "tbl:symbol-map",
             "One-to-one mapping between main-text symbols and implementation parameter names.",
-            "paper/methods.md; config/config.yaml",
+            "paper/manuscript/methods.md; config/config.yaml",
             BUILT,
         ],
         [

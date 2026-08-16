@@ -172,8 +172,10 @@ reports/*.png
 reports/*.pdf
 .claude
 
-# SI 与文献库的写作源已移到 Obsidian vault 的 longform 项目里（见 paper/README.md）。
-# 这两个是指向 vault 的软链接，存的是本机绝对路径——提交上去对任何别的 clone
-# 都是悬空的，所以只在本机存在，版本历史由 vault 自己的 git 保管。
+# 手稿正文（主文场景、SI、文献库）一律不在本仓库保存，写作源全在 Obsidian vault
+# 的 longform 项目里（见 paper/README.md）。这三个是指向 vault 的软链接，存的是本
+# 机绝对路径——提交上去对任何别的 clone 都是悬空的，所以只在本机存在，版本历史由
+# vault 自己的 git 保管。
+paper/manuscript
 paper/si_odd_protocol
 paper/refs.bib
