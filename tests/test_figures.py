@@ -329,3 +329,17 @@ class TestRenderSmoke:
         _, ax = plt.subplots()
         fig.panel_label(ax, "a")
         assert any("a." in t.get_text() for t in ax.texts)
+
+    def test_save_figure_writes_a_png_and_a_pdf_twin(self, tmp_path: Path):
+        """`make sync-vault` 要求每张图 png 与 pdf 都在，缺一个就整体中止。
+
+        这条策略以前抄在每个 notebook 里、无法被测；现在它有了唯一的一份实现，
+        这里就是钉住它的地方。
+        """
+        figure, _ = plt.subplots()
+
+        png = fig.save_figure(figure, "demo_panel", tmp_path)
+
+        assert png == tmp_path / "demo_panel.png"
+        assert png.exists() and png.with_suffix(".pdf").exists()
+        plt.close("all")

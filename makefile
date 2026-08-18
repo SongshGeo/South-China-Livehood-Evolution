@@ -12,7 +12,19 @@ RERUN_REL := out/south_china_evolution/rerun_v2
 # The path contains spaces, so every use of it must stay quoted.
 VAULT_PROJECT ?= $(HOME)/Documents/Obsidian/Scholar-Vault/50 - Outputs/Longform/华南农业ABM
 
+# Notebooks under reports/ that generate manuscript assets. `make figures`
+# re-executes every one of them.
+#
+# Deliberately separate from FIGURE_SLUGS below: a figure can be reproducible
+# before it has been given a manuscript number, and it should be. An asset that
+# no target rebuilds goes stale the moment its data or its code changes, with
+# nothing to say so — which is the exact failure `sync-vault` exists to prevent
+# one step further downstream.
+FIGURE_NOTEBOOKS := manuscript_figures c14_sites
+
 # Figure N in the manuscript <- reports/figure<N>_<slug>.{png,pdf}
+# Numbered figures only; sync-vault copies exactly these into the vault. Add a
+# row here when reports/c14_sites.* is given its number (and rename it to match).
 FIGURE_SLUGS := 2:baseline_suppression 3:conversion 4:expansion_factors 5:paddy_vs_dryland
 
 setup: uv-setup uv-geo uv-install install-pre-commit
@@ -117,7 +129,17 @@ sync-vault:
 
 # Rebuild every generated manuscript asset, then push it to the vault.
 figures:
-	uv run jupyter nbconvert --execute --to notebook --inplace reports/manuscript_figures.ipynb
+	@set -e; for nb in $(FIGURE_NOTEBOOKS); do \
+		test -f "reports/$$nb.ipynb" || { \
+			echo "Error: no such notebook: reports/$$nb.ipynb"; \
+			echo "Fix the FIGURE_NOTEBOOKS list at the top of this makefile."; \
+			exit 1; \
+		}; \
+	done; \
+	for nb in $(FIGURE_NOTEBOOKS); do \
+		echo "executing reports/$$nb.ipynb"; \
+		uv run jupyter nbconvert --execute --to notebook --inplace "reports/$$nb.ipynb"; \
+	done
 	uv run python paper/build_tables.py
 	@$(MAKE) --no-print-directory sync-vault
 

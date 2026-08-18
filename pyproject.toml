@@ -21,6 +21,11 @@ dependencies = [
     "shapely==2.0.4",
     "twist-academic>=0.3.0",
     "matplotkit>=0.3.0",
+    # src/workflow/c14.py reads the SI-2 workbook (data/si2_c14_sites.xlsx)
+    # through pandas, so this is a runtime dependency of the package now, not
+    # just a dev-time one. paper/build_tables.py (which writes
+    # paper/figs/SCE_Tables.xlsx) also needs it.
+    "openpyxl>=3.1",
 ]
 
 [dependency-groups]
@@ -36,8 +41,6 @@ dev = [
     "flake8==7.3.0",
     "isort==7.0.0",
     "pre-commit>=3.5",
-    # Builds the manuscript table workbook (paper/figs/SCE_Tables.xlsx).
-    "openpyxl>=3.1",
 ]
 notebook = [
     "ipykernel>=6.25.1",

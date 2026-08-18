@@ -27,6 +27,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import LogNorm
+from matplotlib.figure import Figure
 
 # ── 常量 ─────────────────────────────────────────────────────────────────
 #: 每条 tracking.csv 里参与主图的六个 tracker 指标（人口数 + 群体数）。
@@ -369,6 +370,30 @@ def build_leverage_frame(
     out = pd.concat([slice_a, slice_b], ignore_index=True)
     out["param_mult"] = out["param_mult"].round(2)
     return out
+
+
+# ── 导出 ─────────────────────────────────────────────────────────────────
+def save_figure(fig: Figure, name: str, out_dir: Path, dpi: int = 300) -> Path:
+    """主图存 ``<out_dir>/<name>.png`` + 同名 ``.pdf`` 矢量孪生。
+
+    「PNG 加同名 PDF」不是排版偏好，是构建约定：``make sync-vault`` 要求每张图两
+    个扩展名都在，缺一个就整体中止。所以这条策略必须只有一份，而不是在每个
+    notebook 里各抄一遍——抄两份就等于两份可以各自漂移的构建契约。
+
+    参数:
+        fig: 要保存的 Figure。
+        name: 不带扩展名的文件名（如 ``"figure2_baseline_suppression"``）。
+        out_dir: 输出目录，通常是 ``reports/``。
+        dpi: PNG 的分辨率，默认 300。PDF 是矢量的，不受影响。
+
+    返回:
+        写出的 PNG 路径。
+    """
+    png = Path(out_dir) / f"{name}.png"
+    fig.savefig(png, dpi=dpi, bbox_inches="tight")
+    fig.savefig(png.with_suffix(".pdf"), bbox_inches="tight")
+    print(f"saved: {png}  (+ .pdf)")
+    return png
 
 
 # ── 面板 builder（接受 ax=，渲染，返回 Axes） ───────────────────────────
