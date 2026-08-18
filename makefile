@@ -25,8 +25,9 @@ FIGURE_NOTEBOOKS := manuscript_figures c14_sites
 # Figure N in the manuscript <- reports/figure<N>_<slug>.{png,pdf}
 # Numbered figures only; sync-vault copies exactly these into the vault as
 # SCE_figure<N>.{png,pdf}. Figure 1 (the SI-2 radiocarbon timeline) replaced the
-# hand-made study-area map, which moved to the SI; the map was never part of this
-# pipeline, so nothing here had to be renumbered.
+# hand-made study-area map, which was dropped from the manuscript rather than
+# moved to the SI. That map was never part of this pipeline, so nothing here had
+# to be renumbered.
 FIGURE_SLUGS := 1:c14_sites 2:baseline_suppression 3:conversion 4:expansion_factors 5:paddy_vs_dryland
 
 setup: uv-setup uv-geo uv-install install-pre-commit
