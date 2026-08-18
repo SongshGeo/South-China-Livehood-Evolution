@@ -23,9 +23,11 @@ VAULT_PROJECT ?= $(HOME)/Documents/Obsidian/Scholar-Vault/50 - Outputs/Longform/
 FIGURE_NOTEBOOKS := manuscript_figures c14_sites
 
 # Figure N in the manuscript <- reports/figure<N>_<slug>.{png,pdf}
-# Numbered figures only; sync-vault copies exactly these into the vault. Add a
-# row here when reports/c14_sites.* is given its number (and rename it to match).
-FIGURE_SLUGS := 2:baseline_suppression 3:conversion 4:expansion_factors 5:paddy_vs_dryland
+# Numbered figures only; sync-vault copies exactly these into the vault as
+# SCE_figure<N>.{png,pdf}. Figure 1 (the SI-2 radiocarbon timeline) replaced the
+# hand-made study-area map, which moved to the SI; the map was never part of this
+# pipeline, so nothing here had to be renumbered.
+FIGURE_SLUGS := 1:c14_sites 2:baseline_suppression 3:conversion 4:expansion_factors 5:paddy_vs_dryland
 
 setup: uv-setup uv-geo uv-install install-pre-commit
 
@@ -99,12 +101,18 @@ sync-vault:
 		echo "Override the location with: make sync-vault VAULT_PROJECT=/path/to/project"; \
 		exit 1; \
 	}
-	@missing=; \
+	@missing=; corrupt=; \
 	for pair in $(FIGURE_SLUGS); do \
 		n=$${pair%%:*}; slug=$${pair##*:}; \
 		for ext in png pdf; do \
 			src="reports/figure$${n}_$${slug}.$${ext}"; \
-			test -f "$$src" || missing="$$missing  $$src\n"; \
+			if [ ! -f "$$src" ]; then \
+				missing="$$missing  $$src\n"; \
+			else \
+				case "$$ext" in png) want=89504e47 ;; pdf) want=25504446 ;; esac; \
+				got=$$(od -An -tx1 -N4 "$$src" | tr -d ' \n'); \
+				[ "$$got" = "$$want" ] || corrupt="$$corrupt  $$src\n"; \
+			fi; \
 		done; \
 	done; \
 	test -f paper/figs/SCE_Tables.xlsx || missing="$$missing  paper/figs/SCE_Tables.xlsx\n"; \
@@ -112,6 +120,14 @@ sync-vault:
 		echo "Error: cannot sync, these generated assets are missing:"; \
 		printf "$$missing"; \
 		echo "Rebuild everything and sync in one go:"; \
+		echo "  make figures"; \
+		exit 1; \
+	fi; \
+	if [ -n "$$corrupt" ]; then \
+		echo "Error: cannot sync, these assets exist but are not valid PNG/PDF:"; \
+		printf "$$corrupt"; \
+		echo "A truncated or clobbered figure passes an existence check and then"; \
+		echo "ships to the vault looking like a real one. Rebuild it:"; \
 		echo "  make figures"; \
 		exit 1; \
 	fi
@@ -124,7 +140,7 @@ sync-vault:
 		done; \
 	done; \
 	cp paper/figs/SCE_Tables.xlsx "$(VAULT_PROJECT)/figs/SCE_Tables.xlsx"
-	@echo "Synced SCE_figure2-5.{png,pdf} + SCE_Tables.xlsx into:"
+	@echo "Synced SCE_figure*.{png,pdf} + SCE_Tables.xlsx into:"
 	@echo "  $(VAULT_PROJECT)/figs/"
 
 # Rebuild every generated manuscript asset, then push it to the vault.

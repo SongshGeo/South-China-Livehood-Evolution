@@ -134,6 +134,19 @@ Both write the per-step schedule as an explicit ordered sequence, declare the
 model class (heuristic, pattern-validated), and enumerate every stochastic
 source. Same equations and parameters in both layers; only the notation differs.
 
-Figures referenced by number (Figure 2–5) are produced by
-`reports/manuscript_figures.ipynb`, which composes them from the core builders in
-`src/workflow/figures.py`. Figure 1 (study-area map) is out of scope here.
+Every numbered figure is produced here, from two notebooks:
+
+| Figure | Notebook | Core builders |
+|---|---|---|
+| 1 | `reports/c14_sites.ipynb` | `src/workflow/c14.py` |
+| 2–5 | `reports/manuscript_figures.ipynb` | `src/workflow/figures.py` |
+
+Figure 1 is the SI-2 radiocarbon timeline — calibrated dates and subsistence type
+per site. It took the Figure 1 slot from the hand-made study-area map, which moved
+into the SI; that map was never built by this pipeline, so nothing else had to be
+renumbered. Prose that needs a site's *location* or the modelled grid now points at
+the SI, not at Figure 1.
+
+`make figures` re-executes every notebook in the makefile's `FIGURE_NOTEBOOKS`,
+rebuilds the workbook, and syncs. The number→asset map is `FIGURE_SLUGS`, kept
+separate so a figure can be reproducible before it has been given a number.
