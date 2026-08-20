@@ -4,7 +4,7 @@
 # Remote checkout used by the fetch-* targets. Override on the command line to
 # point at a different host, e.g. make fetch-rerun GEANY_REMOTE=other:/path/repo
 GEANY_REMOTE ?= geany:/u/songsh/CodeBase/South-China-Livehood-Evolution
-RERUN_REL := out/south_china_evolution/rerun_v2
+RERUN_REL := out/south_china_evolution/rerun_v3
 
 # The Obsidian longform project the manuscript is written in. Prose travels from
 # there to here through the symlinks in paper/; figures and the tables workbook
@@ -77,10 +77,10 @@ ci: uv-setup uv-geo uv-install test
 fetch-rerun:
 	@command -v rsync >/dev/null 2>&1 || { echo "Error: rsync is not installed"; exit 1; }
 	@mkdir -p ./$(RERUN_REL)/
-	@echo "Fetching rerun_v2 from $(GEANY_REMOTE)..."
+	@echo "Fetching $(notdir $(RERUN_REL)) from $(GEANY_REMOTE)..."
 	@rsync -avzP --partial \
 		"$(GEANY_REMOTE)/$(RERUN_REL)/" "./$(RERUN_REL)/" || { \
-		echo "Error: failed to fetch rerun_v2"; \
+		echo "Error: failed to fetch $(notdir $(RERUN_REL))"; \
 		echo "Check SSH access to geany and that the remote path exists"; \
 		exit 1; \
 	}

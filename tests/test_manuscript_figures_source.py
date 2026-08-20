@@ -7,9 +7,13 @@
 
 """出图 notebook 的数据来源，以及跨文件重复引用的拟合优度。
 
-Figures 2–5 曾经指向一批日期目录，那批数据产于 #28（每步损失两次）和 #29
-（水稻移民落在旱作掩膜上）修复之前，且完全没有种子。修好之后重跑进了
-`out/south_china_evolution/rerun_v2/`，notebook 也随之改指。
+Figures 2–5 至今换过两次数据源，每次旧目录都原地留着：
+
+1. 最早的一批日期目录，产于 #28（每步损失两次）和 #29（水稻移民落在旱作掩膜上）
+   修复之前，且完全没有种子。修好之后重跑进 `rerun_v2/`。
+2. `rerun_v2/` 用的 `env.lim_h` = 35 是拍在"人/格"上的，没按格子面积换算。改成
+   35 人/百平方公里 × 80 km²/格 = 28 人/格之后，六组实验全部重算，进了
+   `out/south_china_evolution/rerun_v3/`，notebook 也随之改指。
 
 两类漂移都是"无声"的，所以都要钉住：
 
@@ -111,9 +115,9 @@ def _assignments(name: str) -> list[str]:
 class TestFigureDataSource:
     """Figures 2–5 的数据来源。"""
 
-    def test_rerun_root_points_at_rerun_v2(self):
-        """RERUN 必须是 rerun_v2——重跑脚本写死的输出根。"""
-        assert 'RERUN = DATA / "rerun_v2"' in SOURCE
+    def test_rerun_root_points_at_rerun_v3(self):
+        """RERUN 必须是 rerun_v3——重跑脚本写死的输出根。"""
+        assert 'RERUN = DATA / "rerun_v3"' in SOURCE
 
     @pytest.mark.parametrize("name", PATH_CONSTANTS)
     def test_every_path_constant_derives_from_rerun(self, name):
@@ -124,7 +128,7 @@ class TestFigureDataSource:
         for line in assignments:
             assert "RERUN" in line, (
                 f"{name} 不是从 RERUN 派生的：{line}；"
-                "修复前的日期目录仍在 out/ 下，指回去不会报错，只会出旧图"
+                "rerun_v2 和更早的日期目录仍在 out/ 下，指回去不会报错，只会出旧图"
             )
 
     @pytest.mark.parametrize(

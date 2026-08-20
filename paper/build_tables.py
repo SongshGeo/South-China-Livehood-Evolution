@@ -86,6 +86,21 @@ def landscape_counts() -> dict[str, int | float]:
     }
 
 
+def limh_swept() -> list[int]:
+    """The forager-capacity arms actually dispatched, read from the SLURM script.
+
+    Parsed from the `for lh in ...` loop in `run_slurm_rerun.sh` rather than
+    written out here, for the same reason `swept_ranges` reads `F2H_VALUES`:
+    a literal in this file drifts silently the next time the sweep changes, and
+    the table goes on reporting a range no run ever used.
+    `tests/test_sweep_scripts.py` locks the baseline to one of these arms.
+    """
+    text = (ROOT / "run_slurm_rerun.sh").read_text(encoding="utf-8")
+    line = next(ln for ln in text.splitlines() if ln.strip().startswith("for lh in "))
+    body = line.split("for lh in ", 1)[1].split(";", 1)[0]
+    return [int(v) for v in body.split()]
+
+
 def swept_ranges() -> dict[str, str]:
     """The conversion grid actually dispatched, read from the SLURM script."""
     text = (ROOT / "run_slurm.sh").read_text(encoding="utf-8")
@@ -174,7 +189,7 @@ def build() -> None:
                 "Forager carrying capacity",
                 "people per cell",
                 env.lim_h,
-                "15, 25, 35",
+                ", ".join(str(v) for v in limh_swept()),
             ],
             ["$K_H$", "Regional forager ceiling", "people", ceiling, "—"],
             ["$c_F$", "Land per person, rainfed", "km$^2$", F.capital_area, "—"],
@@ -635,7 +650,7 @@ def build() -> None:
                 "env.lim_h",
                 "Forager capacity per cell",
                 env.lim_h,
-                "15, 25, 35",
+                ", ".join(str(v) for v in limh_swept()),
                 lit,
                 "Binford 2001; Tallavaara et al. 2017",
             ],

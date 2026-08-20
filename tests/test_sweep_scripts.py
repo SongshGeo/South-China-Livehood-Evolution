@@ -59,6 +59,42 @@ class TestSweptValuesAgree:
         assert len(steps) == 1, f"{name} 不是等距网格: {sorted(steps)}"
 
 
+class TestForagerCapacityArms:
+    """Figure 4b 的三档承载力，以及基线必须是其中一档。
+
+    `{15, 25, 35}` 这个三元组曾同时硬编码在四个互不相干的地方：产数据的
+    `run_slurm_rerun.sh`、`paper/build_tables.py` 的两处字符串字面量、以及主文
+    Methods。改一处不会有任何报错，表里报告的扫描范围就与真正跑的数据不符。
+    `build_tables.limh_swept()` 现在从脚本里读，这里锁住剩下的那条不变式：
+    `config/config.yaml` 的基线取值必须落在被扫的三档里——否则 Fig 4b 的三条曲线
+    没有一条对应其它所有图共用的基线，"以基线为参照"这句话就没有着落。
+    """
+
+    @staticmethod
+    def _swept() -> list[int]:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "paper"))
+        from build_tables import limh_swept
+
+        return limh_swept()
+
+    def test_script_declares_three_arms(self):
+        """Fig 4b 是三条曲线，脚本里就该正好三档。"""
+        assert len(self._swept()) == 3
+
+    def test_baseline_is_one_of_the_swept_arms(self):
+        """`config/config.yaml` 的 env.lim_h 必须是被扫的一档。"""
+        text = (ROOT / "config" / "config.yaml").read_text(encoding="utf-8")
+        # `env.lim_h` 是两个同名键中的标量那个；`ds.lim_h` 是栅格路径，不能误取。
+        baseline = int(re.search(r"^  lim_h: (\d+)", text, re.MULTILINE).group(1))
+
+        assert baseline in self._swept(), (
+            f"基线 lim_h={baseline} 不在扫描值 {self._swept()} 里；"
+            "Fig 4b 的三条曲线将没有一条对应其它图的基线"
+        )
+
+
 class TestRerunTaskList:
     """重跑脚本的任务清单本身。"""
 
