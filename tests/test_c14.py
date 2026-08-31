@@ -267,9 +267,9 @@ class TestShippedDataset:
         return c14.load_c14_dates(DATASET)
 
     def test_shape(self, dates: pd.DataFrame):
-        """78 条测年、26 个遗址、3 个省。"""
-        assert len(dates) == 78
-        assert dates["site"].nunique() == 26
+        """79 条测年、27 个遗址、3 个省。"""
+        assert len(dates) == 79
+        assert dates["site"].nunique() == 27
         assert set(dates["province"]) == {"Guangdong", "Guangxi", "Fujian"}
 
     def test_every_row_carries_a_subsistence_and_an_interval(self, dates):
@@ -278,10 +278,10 @@ class TestShippedDataset:
         assert not dates[["cal_from", "cal_to", "lon", "lat"]].isna().any().any()
 
     def test_site_counts_by_subsistence(self, dates):
-        """18 个采集狩猎遗址、8 个农业遗址——图例和正文引的就是这两个数。"""
+        """18 个采集狩猎遗址、9 个农业遗址——图例和正文引的就是这两个数。"""
         sites = c14.aggregate_sites(dates)
         counts = sites["subsistence"].value_counts().to_dict()
-        assert counts == {"Foraging": 18, "Farming": 8}
+        assert counts == {"Foraging": 18, "Farming": 9}
 
     def test_record_span(self, dates):
         """整个记录覆盖 8635–4158 cal BP。"""

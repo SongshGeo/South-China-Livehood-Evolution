@@ -14,19 +14,23 @@ Recovered against commit on `dev` at the time of writing; ABSESpy 0.11.5, Python
 
 ## Provenance of the current figures
 
-Figures 2–5 come from `out/south_china_evolution/rerun_v2/`, produced by
-`run_slurm_rerun.sh` as one 216-task SLURM array under the corrected, seeded code —
-i.e. after F1/#28, F3/#29, F4/#30 and F14 had all landed. `bash run_slurm_rerun.sh
---verify` reports 216 complete, 0 partial, 0 missing. The superseded pre-fix runs are
-left in place under their original date-stamped directories. The manuscript figure
-pipeline no longer reads them — `tests/test_manuscript_figures_source.py` locks all
-seven of the notebook's data-path constants to `rerun_v2/`, because pointing one back
-at an old directory would still run and still produce figures, just pre-fix ones. The
+Figures 2–5 come from `out/south_china_evolution/rerun_v3/`, produced by
+`run_slurm_rerun.sh` as one 216-task SLURM array (job 28593) under the corrected,
+seeded code — i.e. after F1/#28, F3/#29, F4/#30 and F14 had all landed — and with
+`env.lim_h` re-derived from an areal density (F8, below). `bash run_slurm_rerun.sh
+--verify` reports 216 complete, 0 partial, 0 missing. Two superseded batches are left
+in place: `rerun_v2/` (same code, `lim_h` = 35 per cell) and, before that, the
+pre-fix date-stamped directories. The manuscript figure
+pipeline no longer reads either — `tests/test_manuscript_figures_source.py` locks all
+seven of the notebook's data-path constants to `rerun_v3/`, because pointing one back
+at an old directory would still run and still produce figures, just superseded ones. The
 exploratory notebooks elsewhere in `reports/` do still read the old directories; they
 are working notes, not figure sources, and the numbers in them describe the pre-fix
 runs they were written against. `convert_prob_2d_fine_v1.ipynb` in particular reports
 $R^2$ = 0.9922 for the log-additive fit, which is the *old* fine grid; the manuscript
-quotes 0.993, refitted on `grid_fine`. Both are right about their own data.
+quotes 0.993, refitted on `rerun_v3/grid_fine` (0.9934; the same fit gives 0.9926 on
+`rerun_v2/grid_fine`, so the quoted three-decimal value is unchanged by the `lim_h`
+revision). All three are right about their own data.
 
 Two sweeps were run to their full design rather than to what the old directories
 happened to contain: the broad conversion grid is 6×6 (was 25 of 36) and the
@@ -129,7 +133,7 @@ reading), `config/config.yaml` unless noted. Swept ranges come from
 
 | Parameter | Default | Swept | Source of value |
 |---|---|---|---|
-| `env.lim_h` | 35 per cell | {15, 25, 35} | **[exp]** people per cell, confirmed by the author; Binford 2001's 31.93 per 100 km² is an order-of-magnitude reference only, see F8 |
+| `env.lim_h` | 28 per cell | {12, 20, 28} | **[exp]** 35 people per 100 km² × 80 km²/cell; the swept arms are 15/25/35 per 100 km². Binford 2001 gives 31.93 and 39.77 per 100 km², now directly comparable. See F8 |
 | `env.init_hunters` | 0.5 | — | — |
 | `env.init_farmers` / `init_rice_farmers` | 0 / 0 | — | — |
 | `env.lam_farmer` / `lam_ricefarmer` | 3 / 0.1 | 2–10 / 0.1–0.5 | — |
@@ -160,7 +164,7 @@ reading), `config/config.yaml` unless noted. Swept ranges come from
 
 Derived: `Farmer.max_size` = π·`area`²/`capital_area` = π·4/0.004 ≈ **3 142**;
 `RiceFarmer.max_size` = π·4/0.002 ≈ **6 283** (`farmer.py:80-84`).
-Global forager ceiling = 35 × 6 835 = **239 225** (measured).
+Global forager ceiling = 28 × 6 835 = **191 380** (measured).
 
 ## 5. Stochasticity
 
@@ -326,22 +330,39 @@ the write-up: the "not water" clause of both arability predicates is always sati
 and the ceiling denominator is the full 6835 cells.
 
 **F8. `lim_h` units are ambiguous.** The code multiplies `lim_h` by a cell **count**
-(`env.py:316`), so 35 is people per cell; a cell is ≈ 78 km², giving ≈ 45 people per
+(`env.py:316`), so 35 was people per cell; a cell is ≈ 78 km², giving ≈ 45 people per
 100 km². The config comment sources the value from Binford 2001 as 31.93 people per
 **100 km²**. The two readings differ by a factor of about 2.2.
 
-**Answered by the author: people per cell is what is meant.** 35 is an expert
-judgement at the right order of magnitude, not a conversion of Binford's density, and
-no area conversion is intended. The code is unchanged; `config.yaml` now states the
-unit explicitly and labels the literature figures as an order-of-magnitude reference,
-and Table S1 already carried "people per cell". The stale `31.93` default in
-`calculate_global_hunter_limit` — the areal density used as a per-cell fallback, which
-is where the confusion came from — is gone with F13.
+**First answered "people per cell, no conversion intended" — reversed 2026-08-20.**
+The original resolution took 35 as an expert judgement already expressed per cell.
+That left the model at ≈ 45 people per 100 km², above both Binford densities the
+config cited as its warrant, purely because nobody had divided by the cell area. The
+value is now set the other way round: pick the density, then convert. 35 people per
+100 km² × 80 km²/cell = **`lim_h` = 28 people per cell**, and the swept arms
+{15, 25, 35} per 100 km² become **{12, 20, 28}** per cell. The regional ceiling falls
+from 239 225 to **191 380**.
 
-**F9. Foragers start near the ceiling.** Initialisation places 3 417 forager groups
-totalling ≈ 180 848 people against a ceiling of 239 225: the region begins at ~76%
-of forager carrying capacity. Neither document stated this, and it is central to why
-farming is suppressed.
+The code is still unchanged — `lim_h` reaches it as people per cell either way; what
+changed is the number and where it comes from. The 80 km² divisor is the mean
+modelled cell area (78.3 km²) rounded so the arms stay integers, so realised densities
+are 35.8/25.6/15.3 per 100 km². `config.yaml` now carries the conversion and its
+rounding cost; `paper/build_tables.py::limh_swept()` reads the arms from
+`run_slurm_rerun.sh` so the tables cannot drift from the runs, and
+`tests/test_sweep_scripts.py::TestForagerCapacityArms` pins the baseline to one of
+them. The stale `31.93` default in `calculate_global_hunter_limit` — the areal density
+used as a per-cell fallback, which is where the confusion came from — is gone with F13.
+
+Because 213 of the 216 sweep tasks inherit the baseline from `config.yaml`, this
+required a full re-run; it landed in `rerun_v3/`.
+
+**F9. Foragers start at the ceiling.** Initialisation places ≈ 3 470 forager groups
+totalling ≈ 183 500 people (means over the five baseline replicates). Against the old
+239 225 ceiling that was ~77%; against the revised 191 380 it is **~96%**, so the
+region now begins essentially saturated and foragers are trimmed throughout the run
+rather than only late. Neither document stated this, and it is central to why farming
+is suppressed. Initial placement itself is unchanged — it does not depend on `lim_h`,
+and the step-0 totals are identical in `rerun_v2` and `rerun_v3`.
 
 **F10. ABSESpy version was wrong.** Both documents said 0.8.5; the project requires
 `abses>=0.11.0` (`pyproject.toml:17`) and runs 0.11.5.
@@ -367,7 +388,8 @@ sits within 3% of the magic number, so a triggered fallback would have been near
 invisible in the results.
 
 Never triggered in any run checked (measured `global_hunter_limit` = 239 225 = 35 ×
-6835 throughout). Fixed by removing the `try`/`except` so an initialisation-time
+6835 throughout; the revised baseline is 191 380 = 28 × 6835, and the swept low arm is
+now 12 × 6835 = 82 020, no longer near the old 100 000 magic number). Fixed by removing the `try`/`except` so an initialisation-time
 configuration or data fault fails loudly. `lim_h` is now required rather than
 defaulted: its old default, 31.93, was the **areal density** from Binford 2001 being
 used as a **per-cell** value, which is exactly the unit confusion of F8.
@@ -383,14 +405,14 @@ F7 is confirmed intended behaviour and needs no change.
 
 | Finding | Issue | Title | Status |
 |---|---|---|---|
-| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; re-run landed in `rerun_v2/` |
-| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **fixed** — changed model behaviour; re-run landed in `rerun_v2/` |
+| F1 | [#28](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/28) | Farmer/RiceFarmer 每步执行两次 `loss()` | **fixed** — changed model behaviour; re-run landed in `rerun_v2/`, superseded by `rerun_v3/` |
+| F3 | [#29](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/29) | 水稻移民用 `is_arable` 掩膜放置 | **fixed** — changed model behaviour; re-run landed in `rerun_v2/`, superseded by `rerun_v3/` |
 | F4 | [#30](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/30) | 移民 Poisson 抽样走全局 NumPy RNG | **fixed** |
 | F14 | [#38](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/38) | 项目从未设过随机种子 | **fixed** |
 | F5 | [#31](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/31) | `config/scenario/*.yaml` 全部失效 | **fixed** — arm removed; no published result used it |
 | F6b | [#32](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/32) | `diffuse()` 分裂时母体残余人口丢失 | **closed, code unchanged** — ≤ `min_size − 1` per event, farming breeds only; docstring corrected and behaviour pinned by tests |
 | F6a | [#33](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/33) | `Hunter.merge()` 是死代码 | **fixed** — removed |
 | F13 | [#34](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/34) | `calculate_global_hunter_limit()` 的裸 except | **fixed** |
-| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | **closed, code unchanged** — people per cell, confirmed; unit stated in config |
+| F8 | [#35](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/35) | `env.lim_h` 单位歧义 | **reopened and re-resolved 2026-08-20** — value now derived from an areal density (35 per 100 km² × 80 km²/cell = 28); code unchanged, full re-run as `rerun_v3/` |
 | §2 [ASK] | [#36](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/36) | 一个时间步对应多少现实时间 | **closed, code unchanged** — abstract by design; misleading comments removed |
 | §4 [ASK] | [#37](https://github.com/SongshGeo/South-China-Livehood-Evolution/issues/37) | 参数出处缺失；`growth_rate` 注释矛盾 | **closed** — every behavioural parameter tagged [lit]/[exp] in the config, with a legend; contradictory comments removed |
