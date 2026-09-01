@@ -37,6 +37,32 @@ class TestBaselineComposition:
         """
         assert "scenario" not in cfg
 
+    def test_every_exp_key_still_has_a_reader(self):
+        """`exp:` 底下不能有没人读的键。
+
+        这是 F5 那条教训的一般化：`scenario` 组失效了整整四个实验臂，唯一的症状
+        就是"配置在、文档在、没人读、不报错"。`exp.plot_heatmap` 后来重蹈覆辙——
+        它驱动的是 `MyExperiment.plot_heatmap`，那个类删掉之后键就成了哑弹，而
+        文档站还在教人怎么用它。这里把每个键和它的消费者一一对上：
+
+        - `outdir` / `name`  abses 的 `hydra.run.dir` 插值（`abses/conf/default.yaml`），
+          即 `out/<name>/...`。这两个由 abses 的默认配置提供，本仓库只覆盖 `name`。
+        - `repeats`     `src/__main__.py`：断点恢复判据 + `batch_run`
+        - `num_process` `src/__main__.py`：`batch_run(parallels=...)`
+        - `logging`     abses（`abses/utils/config.py` 校验 once/always/bool）
+        - `save_data`   `src/core/model.py::export_tracker_data` 的开关
+
+        新增键时把消费者一起写进来；写不出消费者，就说明这个键不该存在。
+        """
+        assert set(cfg.exp) == {
+            "outdir",
+            "name",
+            "repeats",
+            "num_process",
+            "logging",
+            "save_data",
+        }
+
     @pytest.mark.parametrize(
         # 这三组值同时写在文稿的 Table S1 / S4 里，改动时两边都要更新
         "breed, prob, rate",

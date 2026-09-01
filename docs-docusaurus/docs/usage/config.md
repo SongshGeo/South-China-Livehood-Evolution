@@ -42,15 +42,23 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 ### exp
 
-实验配置，包括实验名称、重复次数、进程数、绘图变量等。
+实验配置，包括实验名称、重复次数、进程数等。
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| name | str | - | 实验名称 |
-| repeats | int | 1 | 每组参数的重复次数 |
-| num_process | int | 1 | 并行运算的进程数 |
-| plot_heatmap | str | - | [绘制热图]的变量 |
+| outdir | str | out | 输出根目录（由 ABSESpy 的默认配置提供） |
+| name | str | south_china_evolution | 实验名称，决定 `out/<name>/...` |
+| repeats | int | 5 | 每组参数的重复次数 |
+| num_process | int | 5 | 并行运算的进程数 |
 | logging | str | all | 记录日志的方式（all 或 once） |
+| save_data | bool | true | 是否写出 `<run_id>_tracking.csv` |
+
+:::note
+`exp:` 底下的每个键都必须有消费者。曾经有一个 `plot_heatmap` 键驱动实验级热图，
+它依赖的 `MyExperiment` 类在投稿前的清理中删除后，这个键就成了哑弹——配置在、文档在、
+没人读、不报错。现在 `tests/test_config.py::test_every_exp_key_still_has_a_reader`
+把每个键和它的消费者钉在一起，新增键时写不出消费者，就说明它不该存在。
+:::
 
 ### tracker
 
@@ -80,16 +88,26 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| lim_h | float | 31.93 | **全局 Hunter 人口上限基础值（人/百平方公里）** |
-| init_hunters | float | 0.05 | 初始狩猎采集者比例或数量（`<1` 时为比例，`≥1` 时为数量） |
-| init_farmers | int | 80 | 初始普通农民主体数量（推荐范围 60-100） |
-| init_rice_farmers | int | 350 | 初始水稻农民主体数量（推荐范围 300-400） |
-| lam_farmer | float | 1 | 每步添加农民的期望值（泊松分布参数） |
-| lam_ricefarmer | float | 1 | 每步添加水稻农民的期望值（泊松分布参数） |
+| lim_h | int | 28 | **全局 Hunter 人口上限基础值（人/格）**，见下方说明 |
+| init_hunters | float | 0.5 | 初始狩猎采集者比例或数量（`<1` 时为比例，`≥1` 时为数量） |
+| init_farmers | int | 0 | 初始普通农民主体数量（基线为 0，农民全部靠移民进入） |
+| init_rice_farmers | int | 0 | 初始水稻农民主体数量（基线为 0，同上） |
+| lam_farmer | float | 3 | 每步添加农民的期望值（泊松分布参数） |
+| lam_ricefarmer | float | 0.1 | 每步添加水稻农民的期望值（泊松分布参数） |
 | tick_farmer | int | 0 | 农民开始添加的时间步（0表示从一开始就有） |
 | tick_ricefarmer | int | 0 | 水稻农民开始添加的时间步（0表示从一开始就有） |
 | width | int | 10 | 网格宽度（玩具模型使用） |
 | height | int | 10 | 网格高度（玩具模型使用） |
+
+:::info lim_h 的单位是「人/格」，但取值是从面密度换算来的
+代码把 `lim_h` 直接乘上格子**数量**（`Env.calculate_global_hunter_limit`），所以它送进
+模型的单位一直是**人/格**。取值则先定面密度再换算：35 人/百平方公里 × 80 km²/格 =
+**28 人/格**，扫描的三档 15/25/35 人/百平方公里对应 12/20/28 人/格。区域天花板因此是
+28 × 6835 = **191 380 人**。
+
+早先这里写的 31.93 是 Binford (2001) 的**面密度**被当成了每格值使用，两者差约 2.2 倍；
+那个默认值已经删除，`lim_h` 现在是必填项，缺了会直接报错而不是回退到一个魔数。
+:::
 
 > **提示**：`tick_farmer` 和 `tick_ricefarmer` 现在默认为 0，表示从模型初始化时就创建这些主体，而不是在运行过程中才开始添加。
 
@@ -99,7 +117,7 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| end | int | 10 | 时间步数 |
+| end | int | 500 | 时间步数 |
 
 ### Farmer
 
@@ -108,7 +126,7 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
 | area | int | 2 | 农民活动范围（公里） |
-| growth_rate | float | 0.004 | 农民人口增长率（每步） |
+| growth_rate | float | 0.005 | 农民人口增长率（每步） |
 | min_size | int | 6 | 最小农民群体数，小于这个数时会死掉 |
 | init_size | list | [60, 100] | **初始农民人口规模范围**（初始化时随机取值） |
 | new_group_size | list | [30, 60] | 扩散时新农民群体大小范围 |
@@ -126,12 +144,12 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| init_size | list | [0, 35] | 初始化时的人口规模范围，小于 min_size 时自动调整为 min_size |
-| growth_rate | float | 0.0008 | 狩猎采集者人口增长率（每步） |
+| init_size | list | [0, 100] | 初始化时的人口规模范围，小于 min_size 时自动调整为 min_size |
+| growth_rate | float | 0.001 | 狩猎采集者人口增长率（每步） |
 | min_size | int | 6 | 最小群体规模，小于此值会死亡 |
 | **max_size** | int | 100 | **单位主体人口最大值（普通情况）** |
 | **max_size_water** | int | 500 | **临近水体时的最大值** |
-| new_group_size | list | [6, 31] | 扩散时新群体大小范围 |
+| new_group_size | list | [6, 50] | 扩散时新群体大小范围 |
 | convert_prob | dict | - | 转换概率（to_farmer, to_rice） |
 | max_travel_distance | int | 5 | 移动时最大搜索距离 |
 | is_complex | int | 100 | 超过此值变为定居狩猎采集者，不再移动 |
@@ -141,7 +159,10 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 > - ❌ 已删除 `intensified_coefficient` 参数（不再有竞争机制）
 > - ✅ 新增 `max_size` 和 `max_size_water` 参数
 > - ✅ 新增 `loss` 参数，狩猎采集者现在也会经历随机损失
-> - ✅ **全局 Hunter 人口上限**：自动计算为 `lim_h × 非水体栅格数量`
+> - ✅ **全局 Hunter 人口上限**：自动计算为 `lim_h × 建模栅格数量`。名义上排除水体格，
+>   但输入数据里海洋是水体图层的 nodata、和整幅栅格一起被掩掉了，所以 6835 个建模
+>   格子全是陆地，分母就是 6835（基线 28 × 6835 = 191 380）。水体的作用改为通过
+>   1064 个近水格把 `Hunter.max_size` 从 100 抬到 `max_size_water` = 500。
 
 ### RiceFarmer
 
@@ -150,7 +171,7 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 | 参数名 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
 | area | int | 2 | 水稻农民活动范围（公里） |
-| growth_rate | float | 0.005 | 水稻农民人口增长率（每步） |
+| growth_rate | float | 0.006 | 水稻农民人口增长率（每步） |
 | min_size | int | 6 | 最小群体规模，小于此值会死亡 |
 | **init_size** | list | [300, 400] | **初始水稻农民人口规模范围**（初始化时随机取值） |
 | new_group_size | list | [200, 300] | 扩散时新群体大小范围 |
@@ -179,4 +200,3 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 <!-- Links -->
   [断点检测方法]: ../tech/breakpoint.md#断点检测方法
   [断点数量]: ../tech/breakpoint.md#断点检测方法
-  [绘制热图]: ./plots.md#绘制热图

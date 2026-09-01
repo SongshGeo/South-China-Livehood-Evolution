@@ -52,9 +52,11 @@ from src.workflow import results as R  # noqa: E402
 
 OUT = ROOT / "paper" / "results.json"
 
-#: The sweep the published figures were built from. Locked to ``rerun_v3`` on purpose:
-#: the superseded batches are still on disk, and pointing at one would recompute
-#: happily and quietly return numbers belonging to the pre-conversion runs.
+#: The sweep the published figures were built from. Locked to ``rerun_v3`` on purpose.
+#: The superseded batches were deleted from this machine before submission, but they
+#: survive on the cluster and `make fetch-geany-data` syncs all of `out/` back — so
+#: pointing at one would still recompute happily and quietly return numbers belonging
+#: to a batch the manuscript does not use.
 SWEEP = ROOT / "out" / "south_china_evolution" / "rerun_v3"
 
 #: SI-2, shipped with the submission; the source for Figure 1.

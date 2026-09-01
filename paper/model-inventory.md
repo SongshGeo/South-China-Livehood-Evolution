@@ -21,12 +21,16 @@ Figures 2–5 come from `out/south_china_evolution/rerun_v3/`, produced by
 `run_slurm_rerun.sh` as one 216-task SLURM array (job 28593) under the corrected,
 seeded code — i.e. after F1/#28, F3/#29, F4/#30 and F14 had all landed — and with
 `env.lim_h` re-derived from an areal density (F8, below). `bash run_slurm_rerun.sh
---verify` reports 216 complete, 0 partial, 0 missing. Two superseded batches are left
-in place: `rerun_v2/` (same code, `lim_h` = 35 per cell) and, before that, the
-pre-fix date-stamped directories. The manuscript figure
-pipeline no longer reads either — `tests/test_manuscript_figures_source.py` locks all
-seven of the notebook's data-path constants to `rerun_v3/`, because pointing one back
-at an old directory would still run and still produce figures, just superseded ones.
+--verify` reports 216 complete, 0 partial, 0 missing. Two superseded batches existed —
+`rerun_v2/` (same code, `lim_h` = 35 per cell) and, before that, the pre-fix
+date-stamped directories — and both were deleted from the working checkout before
+submission, leaving `out/` at 134 MB instead of 502 MB. Every comparison drawn from
+them below is recorded here and in `paper/results.json`; the data itself survives on
+the cluster, and `make fetch-geany-data` brings all of `out/` back if a revision needs
+it. `tests/test_manuscript_figures_source.py` still locks all seven of the notebook's
+data-path constants to `rerun_v3/`, because one rsync is all it takes for an old
+directory to reappear, and pointing at one would run fine and produce figures that are
+simply superseded.
 `reports/` used to hold a dozen exploratory notebooks that still read the old
 directories; they were working notes, not figure sources, and every number in them
 described the pre-fix runs they were written against. They were deleted before

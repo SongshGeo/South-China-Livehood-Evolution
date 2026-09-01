@@ -20,7 +20,7 @@
 - 🔄 动态过程：人口增长、迁移、转化
 - 📊 数据可视化：热力图、趋势图、断点分析
 - 🎛️ 灵活控制：独立的转化机制开关
-- 📐 严格守恒：扩散和合并过程的人口守恒
+- 📐 扩散过程人口基本守恒：母体分裂时残余低于 `min_size` 会随母体消失；模型不含合并机制
 
 ### 🆕 最新更新 (v2.0)
 
@@ -31,7 +31,7 @@
 | ✅ 初始化优化 | 所有主体类型从开始就存在 |
 | ✅ 转化开关 | 可独立控制 6 种转化路径 |
 | ❌ 删除竞争 | 移除主体间竞争机制 |
-| ✅ 人口守恒 | 严格保证扩散/合并守恒 |
+| ✅ 人口守恒 | 扩散基本守恒（残余低于 `min_size` 时随母体消失）；已无合并机制 |
 | ✅ Hunter 改进 | 新的人口上限规则 + 损失机制 |
 | ✅ 每格唯一 | 一个格子只能有一个主体 |
 
@@ -117,7 +117,7 @@ An agent-based model simulating prehistoric livelihood evolution in South China.
 - 🔄 Dynamic processes: population growth, migration, conversion
 - 📊 Data visualization: heatmaps, trend charts, breakpoint analysis
 - 🎛️ Flexible control: independent conversion mechanism switches
-- 📐 Strict conservation: population conservation in diffusion and merger
+- 📐 Near-conservation in diffusion: a parent's remainder below `min_size` dies with it; there is no merging mechanism
 
 ### 🆕 Latest Update (v2.0)
 
@@ -128,7 +128,7 @@ This refactoring completed 8 major model logic modifications:
 | ✅ Initialization | All agent types present from start |
 | ✅ Conversion Switches | Independent control of 6 conversion paths |
 | ❌ Remove Competition | Removed inter-agent competition |
-| ✅ Conservation | Strict diffusion/merger conservation |
+| ✅ Conservation | Diffusion is near-conserving (a remainder below `min_size` dies with the parent); merging is gone |
 | ✅ Hunter Improvements | New population limits + loss mechanism |
 | ✅ One Per Cell | Only one agent allowed per cell |
 

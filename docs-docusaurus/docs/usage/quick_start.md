@@ -2,11 +2,14 @@
 
 本模型的主要工作流程已经集成完毕。用户可以在命令行中运行模型。
 
-## 2.0 版本核心规则
+## 核心规则
 
 - **每格一主体**：每个格子只能有一个主体，严格遵守空间约束
-- **水体类型系统**：支持 -1（海）、0（陆地）、1（近水陆地）三种水体类型
-- **全局人口上限**：Hunter 人口有全局上限控制机制
+- **水体类型系统**：水体图层区分 -1（海）、0（陆地）、1（近水陆地）。注意实际输入里
+  海洋是该图层的 nodata、随整幅栅格一起被掩掉，所以 6835 个建模格子全是陆地；水体的
+  作用是通过 1064 个近水格把 `Hunter.max_size` 从 100 抬到 500
+- **全局人口上限**：狩猎采集者总人口不超过 `lim_h × 建模栅格数量`（基线 28 × 6835 = 191 380），
+  由环境在每个时间步末统一施加
 - **无竞争机制**：主体不能移动到已有其他主体的格子
 
 ## 环境配置
@@ -93,24 +96,31 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 ### 多次实验
 
-运行一次实验后，在`out/<model name>/<date>/<time>`路径下会保存本次实验的所有输出结果。其中 `<model name>` 是您在配置文件中设置的模型名称（默认为 `south_china_evolution`），`<date>` 是实验运行的日期，`<time>` 是实验运行的时间，每个文件夹中包括：
+运行一次实验后，输出保存在 `out/<exp.name>/<date>/<time>/`（`exp.name` 默认
+`south_china_evolution`）。用 `hydra.run.dir` 可以把它固定成一个不带日期的稳定路径，
+稿件那批扫描就是这么做的——目录稳定，断点恢复才有意义。目录里包括：
 
-- `multirun.yaml`：实验配置文件，记录了实验的参数设置，有哪些参数被修改过，取值范围等；
-- 文件夹 `<job.id>_<config>`：记录了当前 `<config>` 配置下，所有[单次实验](#单次实验)的输出结果；`<job.id>` 是子实验的唯一标识符，即该组参数配置相同。
-- `breakpoints.jpg`: 一个 `3 * <jobs>` 的矩阵图，对每组参数配置（唯一的 `<job.id>`），绘制了该组参数下，所有子实验的 `breakpoint` 分布图。
-- `heatmap.jpg`: 一个 `x * y` 的矩阵图，应满足 `x * y = jobs`，展示2维参数配置俩俩组合下，实验某变量的平均输出结果。
-- `len_<breed>_<ratio>.jpg`: 每组参数配置下，所有子实验 `<breed>` 这种主体的**群体数**占全部群体数的比例变化图。
-- `num_<breed>_<ratio>.jpg`: 每组参数配置下，所有子实验 `<breed>` 这种主体的**个体数**占全部群体数的比例变化图。
-- summary.csv: 对本次实验的总结，每个参数配置下每次重复的最终结果。
+- `multirun.yaml`：本次扫描的配置快照，记录扫了哪些参数、每个参数有哪些取值；
+- 文件夹 `<job_id>_<overrides>/`：每个参数组合一个，内含该组合的全部重复。
+
+:::note 实验级的汇总图与 `summary.csv` 已经不再产出
+它们由 `MyExperiment` 的四个绘图方法提供，那个类在投稿定稿时删除了。稿件的图改由
+`reports/` 下的两个 notebook 独立产出，见[从模型到手稿]。
+:::
 
 ### 单次实验
 
-- `ABSESpyExp.log`：实验日志
-- `repeat_<x>_<figure>.png/jpg`：实验图表，`<x>`为实验序号，`<figure>`为图表名称，包括：
-    1. `hist.jpg`: 人口和族群数量的分布
-    2. `dynamic.jpg`: 人口和族群数量的变化趋势
-    3. `heatmap.jpg`: 人口空间分布热力图（地图）
-- `repeat_<x>_conversion.csv`: 人口转化情况，记录每种主体的转化情况
+每个参数组合的目录里：
+
+- `<run_id>_tracking.csv`：**主力数据**，一行一个时间步，列是 `tracker` 里声明的指标；
+  每次重复一份，`<run_id>` 从 1 数到 `exp.repeats`。
+- `repeat_<run_id>_conversion.csv`：该次重复的人口转化矩阵（出身 × 现状）。
+- `model.log` / `<exp.name>.log`：运行日志。
+
+只有把 `save_plots` 设为 true 时，才会额外写出 `repeat_<x>_dynamic.jpg` 与
+`repeat_<x>_heatmap.jpg`；默认不写盘。
+
+怎么把这些文件读成一张可分析的长表，见[数据输出与分析]。
 
 如果您遇到任何问题或有改进建议，欢迎在 [GitHub] 上提出 issue 或贡献代码。
 
@@ -118,4 +128,6 @@ uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 
 <!-- Links -->
 [配置文件]: /docs/usage/config
+[数据输出与分析]: /docs/usage/plots
+[从模型到手稿]: /docs/usage/manuscript_pipeline
 [GitHub]: https://github.com/SongshGeo/South-China-Livehood-Evolution

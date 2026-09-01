@@ -32,7 +32,6 @@ exp:
   name: south_china_evolution
   repeats: 5  # 每组参数的运行重复次数
   num_process: 5  # 并行运算的进程数
-  plot_heatmap: 'bkp_farmer'  # 绘制热图的变量
   logging: all  # 记录所有日志（而不是 once）
   save_data: true  # 是否保存数据
 

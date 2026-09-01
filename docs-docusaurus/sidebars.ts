@@ -24,6 +24,7 @@ const sidebars: SidebarsConfig = {
         'usage/workflow',
         'usage/config',
         'usage/plots',
+        'usage/manuscript_pipeline',
         'usage/usage_guide',
         'output_data_guide',
       ],

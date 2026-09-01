@@ -9,9 +9,18 @@ A typical agent-based model experiment has the structure shown below, with [Expe
 In each experiment, this library automatically completes the following steps:
 
 1. Get combinations of different parameters and determine the number of experimental configurations (jobs)
-2. Batch run models, saving results for each run
-3. Plot comparison charts for all jobs (heatmaps, breakpoint charts, dynamic charts)
-4. Store summary data (`summary.csv`)
+2. Check whether the combination's `exp.repeats` `<run_id>_tracking.csv` files are already
+   complete and skip it if so (resume; the same criterion `bash run_slurm_rerun.sh --verify` uses)
+3. Batch run models, writing each run's per-step metrics to `<run_id>_tracking.csv`
+
+:::note Experiment-level summary plots are gone
+This library used to draw heatmaps, breakpoint charts and dynamic charts and write a
+`summary.csv` when an experiment finished; all four came from `MyExperiment`'s plotting
+methods. That class was deleted when the manuscript was frozen: the paper's figures do
+not come from it, but from the two notebooks under `reports/` composing panels built by
+`src/workflow/figures.py` and `c14.py` (see [From Model to Manuscript]).
+Experiments now produce data only; plotting is a separate layer.
+:::
 
 ## Model Process
 
@@ -90,6 +99,7 @@ The model ends when the number of steps reaches the `time.end` parameter, saving
 3. Visualization charts
 
 <!-- Links -->
+[From Model to Manuscript]: /docs/usage/manuscript_pipeline
 [Experiment Process]: #experiment-process
 [Model Process]: #model-process
 

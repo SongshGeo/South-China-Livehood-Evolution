@@ -1,65 +1,58 @@
 # 结果分析
 
-## 数据输出
+## 一次运行实际产出什么
 
-模型运行后会生成多种数据文件，用于后续分析。
+一个参数组合的输出目录（`out/<exp.name>/<...>/<job_id>_<overrides>/`）里只有数据和
+日志，没有图：
 
-## 主要输出文件
+| 文件 | 内容 |
+| :--- | :--- |
+| `1_tracking.csv` … `<repeats>_tracking.csv` | **主力数据**。每次重复一份，一行一个时间步，列是 `tracker` 配置里声明的指标（`num_farmers_n`、`num_hunters_n`、`len_rice_n` …） |
+| `repeat_1_conversion.csv` … | 每次重复的人口转化矩阵：模拟结束时各类主体的「出身 × 现状」，4 行 × 3 列 |
+| `model.log` / `<exp.name>.log` | 运行日志 |
 
-### CSV 数据文件
-- `conversion.csv`: 转化数据
-- `population.csv`: 人口数据
-- `summary.csv`: 汇总数据
+:::caution 文档曾经写过、但现在不产出的文件
+`summary.csv`、`breakpoints.jpg`、`heatmap.jpg`、`len_<breed>_<ratio>.jpg`、
+`num_<breed>_<ratio>.jpg` 都来自 `MyExperiment` 的实验级绘图方法，那个类在投稿定稿时
+删除了（稿件的图由 `reports/` 下的 notebook 单独产出，见[从模型到手稿]）。
+配置里驱动其中热力图的 `exp.plot_heatmap` 键也一并删除。
+:::
 
-### 图像文件
-- `dynamic.jpg`: 动态变化图
-- `heatmap.jpg`: 热力图
+单次运行的 `dynamic.jpg` / `heatmap.jpg` 仍然存在，但**默认不写盘**：只有把参数
+`save_plots` 设为 true，`Model.plot` 才会拿到保存路径（`src/core/model.py`）。
 
-## 分析方法
+## 怎么把 multirun 拼成一张长表
 
-### 1. 人口分布分析
-通过热力图分析不同人群的空间分布特征。
+不要自己再写一遍加载器。`src/workflow/figures.py` 里有四个成品，覆盖四种目录布局：
 
-### 2. 时间序列分析
-分析人口变化的时间趋势和转化模式。
+| 函数 | 适用的目录 |
+| :--- | :--- |
+| `load_trajectories` | `<job_id>_<k=v,k=v>/`（Hydra multirun 的常规输出） |
+| `load_single_run` | 直接含 `<run_id>_tracking.csv` 的单个组合目录 |
+| `load_fine_grid` | `idx<n>_f2h<a>_h2f<b>/`（SLURM job array 的网格） |
+| `load_terrain` | 地貌实验那种两层嵌套的目录 |
 
-### 3. 统计指标
-- 总人口变化
-- 转化率统计
-- 空间聚集度
+四个都返回 tidy 长表，列含 `step`、指标列、`run_id` 以及从目录名解析出的各 override，
+可以直接交给 `seaborn.relplot`。原理和最小实现见[数据输出指南]，稿件里的用法见
+[从模型到手稿]。
 
-## 可视化工具
+## 终态怎么取
 
-推荐使用以下工具进行数据分析：
-- Python: pandas, matplotlib, seaborn
-- R: ggplot2, dplyr
-- 其他: Excel, Origin
+跨重复比较时统一取**末 51 步的均值**（`step >= max_step - 50`，左端点含在内），
+由 `figures.TAIL_STEPS` 持有这一个值，`src/workflow/results.py` 复用同一个函数。
+两边各写一个 50，就会变成两条能各自漂移的终态定义。
 
-## 示例代码
+## 示例
 
 ```python
-import pandas as pd
-import matplotlib.pyplot as plt
+from pathlib import Path
+from src.workflow import figures as F
 
-# 读取数据
-data = pd.read_csv('conversion.csv')
-
-# 绘制时间序列图
-plt.plot(data['step'], data['hunters'])
-plt.xlabel('时间步')
-plt.ylabel('狩猎采集者数量')
-plt.title('狩猎采集者数量变化')
-plt.show()
+lam = F.load_trajectories(Path("out/south_china_evolution/rerun_v3/lam"))
+end = F._tail_mean(lam, ["env.lam_farmer", "run_id"], ["num_farmers_n"])
+print(end.groupby("env.lam_farmer")["num_farmers_n"].mean())
 ```
 
-## 绘制热图
-
-通过调整[配置文件](/docs/usage/config)中 `exp` 部分的 `plot_heatmap` 参数，可以绘制不同的模拟结果：
-
-- 当 `plot_heatmap` 为 `None` 时，不绘制热图。
-- 当 `plot_heatmap` 为 `bkp_farmer` 时，绘制农民的断点平均所在位置。
-- 还可以设置为运行结束时保存的其它可用变量，如 `bkp_rice`、`len_farmers`、`len_rice` 等。
-
-如下图中，热力图代表农民的断点平均所在位置。无论 `env.lam_farmer` 和 `env.init_hunters` 两个实验参数的取值怎样变化，断点平均位置（每个实验重复 5 次）基本不变，都出现在 `tick=5` 附近。
-
-<img src="https://songshgeo-picgo-1302043007.cos.ap-beijing.myqcloud.com/uPic/WechatIMG6621.jpg" alt="断点位置热图" style={{width: 400}} />
+<!-- Links -->
+[数据输出指南]: /docs/output_data_guide
+[从模型到手稿]: /docs/usage/manuscript_pipeline

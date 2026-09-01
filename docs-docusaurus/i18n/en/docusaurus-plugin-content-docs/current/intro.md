@@ -11,7 +11,11 @@ This model currently includes the following main features:
 5. Flexible conversion mechanism control with independent switches for different conversion types.
 6. Diffusion mostly conserves population (a parent left below `min_size` is removed with its remainder); the model has no merging mechanism.
 
-> **Latest Update (v2.0)**: The model underwent major refactoring, removing competition mechanisms, adding conversion control switches, and optimizing initialization. See [Changelog](tech/changelog_v2.md) for details.
+> **This repository's main deliverable is a paper**: five figures, one table workbook, and
+> every number the prose quotes are produced by the two notebooks under `reports/` and the
+> two scripts under `paper/` — see [From Model to Manuscript].
+> The model itself was substantially refactored in v2.0 (competition removed, conversion
+> switches added, initialisation reworked); see [Changelog](tech/changelog_v2.md).
 
 ## Getting Started
 
@@ -19,6 +23,7 @@ This model currently includes the following main features:
 - Then carefully read [Model Workflow] to understand the running logic
 - Next, consult [Configuration] to adjust model parameters and run your experiments
 - Finally, use methods in [Data Analysis] to analyze experimental results
+- To rebuild the paper's figures, tables and numbers, see [From Model to Manuscript]
 
 ## Method Documentation
 
@@ -37,6 +42,7 @@ This model currently includes the following main features:
 [Quick Start]: usage/quick_start.md
 [Model Workflow]: usage/workflow.md
 [Configuration]: usage/config.md
+[From Model to Manuscript]: /docs/usage/manuscript_pipeline
 [Data Analysis]: usage/plots.md
 [Shuang Song]: https://cv.songshgeo.com/
 

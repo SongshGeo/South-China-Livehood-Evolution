@@ -62,7 +62,7 @@ else:
 
 **行为**:
 - 根据固定增长率计算人口增长
-- 增长公式: `size = size * (1 + 0.0008)`
+- 增长公式: `size = size * (1 + 0.001)`
 
 **示例**:
 ```python
@@ -135,7 +135,7 @@ hunter.move_one()  # 尝试移动到更好的位置
 - `min_size`: 最小人口规模 (默认: 6)
 - `max_size`: 最大人口规模 (默认: 100)
 - `max_size_water`: 水体附近最大人口 (默认: 500)
-- `growth_rate`: 人口增长率 (默认: 0.0008)
+- `growth_rate`: 人口增长率 (默认: 0.001)
 
 ### 转化参数
 - `convert.hunter_to_farmer`: 猎人转农民开关
@@ -153,7 +153,7 @@ from src import Hunter
 # 创建狩猎采集者实例
 hunter = Hunter(
     size=80,
-    growth_rate=0.0008
+    growth_rate=0.001
 )
 
 # 模拟一个时间步
@@ -192,7 +192,9 @@ print(f"是否临近水体: {hunter.is_near_water()}")
 ### 人口上限规则
 - **普通陆地**：最大人口 100
 - **近水陆地**：最大人口 500
-- **全局上限**：所有 Hunter 总人口不超过 `lim_h * 非水体栅格数量`，由环境在每个时间步结束时统一施加
+- **全局上限**：所有 Hunter 总人口不超过 `lim_h × 建模栅格数量`，由环境在每个时间步结束时统一施加。
+  输入数据里海洋是水体图层的 nodata、随整幅栅格一起被掩掉，所以 6835 个建模格子全是陆地，
+  分母就是 6835；基线 `lim_h` = 28 人/格，区域天花板 191 380 人。
 
 ### 移动规则
 - **复杂主体**：人口超过 `is_complex` 阈值后不再移动
@@ -209,7 +211,7 @@ print(f"是否临近水体: {hunter.is_near_water()}")
 ```yaml
 Hunter:
   init_size: [0, 35]  # 初始人口范围
-  growth_rate: 0.0008  # 人口增长率
+  growth_rate: 0.001  # 人口增长率
   min_size: 6  # 最小人口数
   max_size: 100  # 普通陆地最大人口
   max_size_water: 500  # 近水陆地最大人口

@@ -17,8 +17,9 @@ Figures 2–5 至今换过两次数据源，每次旧目录都原地留着：
 
 两类漂移都是"无声"的，所以都要钉住：
 
-1. **数据来源**：旧目录仍留在 `out/` 下，任何一个路径常量被改回去，notebook
-   照样跑通、照样出图，只是出的是修复前的图，没有任何报错。这里查两件事：常量都
+1. **数据来源**：旧目录在投稿前已从本机删除，但集群上还是完整的 `out/`，
+   `make fetch-geany-data` 一条命令就能全部拉回来；届时任何一个路径常量被改回去，
+   notebook 照样跑通、照样出图，只是出的是被取代的图，没有任何报错。这里查两件事：常量都
    从 `RERUN` 派生，且**字面量与 `src.workflow.figures.RERUN_SUBDIRS` 逐字相等**
    ——后者是 `paper/build_results.py` 算见刊数字时读的那一份，两边分家就意味着
    图和 `paper/results.json` 读的不是同一批目录。
@@ -182,7 +183,8 @@ class TestFigureDataSource:
         for line in assignments:
             assert "RERUN" in line, (
                 f"{name} 不是从 RERUN 派生的：{line}；"
-                "rerun_v2 和更早的日期目录仍在 out/ 下，指回去不会报错，只会出旧图"
+                "rerun_v2 和更早的日期目录本机已删，但 make fetch-geany-data 会拉回来；"
+                "指回去不会报错，只会出被取代的图"
             )
 
     @pytest.mark.parametrize(
