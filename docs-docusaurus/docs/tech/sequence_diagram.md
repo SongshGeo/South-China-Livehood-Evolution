@@ -1,9 +1,3 @@
----
-title: 模型时序图
-author: Shuang Song
-date: 2025-10-20
----
-
 # 模型详细时序图
 
 本文档通过时序图详细说明华南生计演变模型的运行流程。
@@ -13,7 +7,7 @@ date: 2025-10-20
 ```mermaid
 sequenceDiagram
     participant User as 用户
-    participant Exp as MyExperiment
+    participant Exp as Experiment
     participant Model as Model
     participant Env as Environment
     participant H as Hunter
@@ -88,10 +82,7 @@ sequenceDiagram
             H->>H: move_one()
             opt 不是定居型 (size <= 100)
                 H->>Cell: 搜索更好的格子
-                opt 遇到另一个 Hunter
-                    H->>H: merge(other_hunter)
-                    Note over H: 人口守恒：size = size1 + size2
-                end
+                Note over H,Cell: 每格最多一个主体，已占据的格子会被拒绝
             end
         else 选中 Farmer
             Model->>F: step()
@@ -299,12 +290,7 @@ sequenceDiagram
         loop 搜索合适格子
             H->>NewCell: 检查 able_to_live(hunter)
 
-            alt 格子有其他 Hunter
-                H->>Other: 合并
-                Note over H,Other: merge(): size = h1.size + h2.size
-                Other->>Other: size = self.size + h.size
-                H->>H: die()
-            else 格子有其他主体
+            alt 格子有其他主体
                 NewCell-->>H: False (不能进入)
             else 格子为空 & 非水体
                 H->>NewCell: 移动到新格子
@@ -602,7 +588,7 @@ sequenceDiagram
 
 ### 查看时序图
 
-1. 启动文档服务器：`poetry run mkdocs serve`
+1. 启动文档服务器：`cd docs-docusaurus && npm run start`
 2. 访问此页面查看完整的交互式时序图
 3. 可以缩放、导出 SVG/PNG
 

@@ -30,9 +30,11 @@ const config: Config = {
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
+  // English pages live in i18n/en/docusaurus-plugin-content-docs/current/,
+  // migrated from the *.en.md files the old mkdocs site carried.
   i18n: {
     defaultLocale: 'zh',
-    locales: ['zh'],
+    locales: ['zh', 'en'],
   },
 
   presets: [
@@ -41,26 +43,11 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/SongshGeo/South-China-Livehood-Evolution/tree/dev/docs-docusaurus/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        // This project publishes documentation only; there is no blog.
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -94,7 +81,7 @@ const config: Config = {
           label: '文档',
         },
         {
-          href: 'https://github.com/SongshGeo/SC-20230710-SCE',
+          href: 'https://github.com/SongshGeo/South-China-Livehood-Evolution',
           label: 'GitHub',
           position: 'right',
         },
@@ -112,7 +99,7 @@ const config: Config = {
             },
             {
               label: 'API 参考',
-              to: '/docs/api',
+              to: '/docs/api/model',
             },
           ],
         },
@@ -121,7 +108,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/SongshGeo/SC-20230710-SCE',
+              href: 'https://github.com/SongshGeo/South-China-Livehood-Evolution',
             },
             {
               label: '作者主页',

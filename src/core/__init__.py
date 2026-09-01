@@ -5,10 +5,8 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""运行试验的核心代码
-"""
+"""运行试验的核心代码"""
 
-from .exp import MyExperiment
 from .model import Model
 
-__all__ = ["Model", "MyExperiment"]
+__all__ = ["Model"]

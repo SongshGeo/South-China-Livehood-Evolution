@@ -28,8 +28,10 @@ class CompetingCell(PatchCell):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.slope: float = np.random.uniform(0, 30)
-        self.elevation: float = np.random.uniform(0, 300)
+        # 占位值，随后被 setup_dem 的栅格覆盖；用常量而非随机数，避免未被覆盖的
+        # 格子带上不受种子控制的状态
+        self.slope: float = 0.0
+        self.elevation: float = 0.0
         self.water_type: int = 0  # -1=海，0=陆地，1=近水陆地
         self._is_water: Optional[bool] = None
 
@@ -303,23 +305,29 @@ class Env(BaseNature):
         # 设置完 DEM 后立即计算全局人口上限
         self.calculate_global_hunter_limit()
 
-    def calculate_global_hunter_limit(self):
-        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量"""
-        try:
-            # 获取所有非水体栅格（water_type != -1）
-            non_water_cells = self.dem.cells_lst.select({"is_water": False})
+    def calculate_global_hunter_limit(self) -> None:
+        """计算全局 Hunter 人口上限 = lim_h * 非水体栅格数量。
 
-            # 使用配置中的 lim_h 值（每个栅格的承载力）
-            lim_h = self.params.get("lim_h", 31.93)
+        Note:
+            初始化期算不出承载力就应当直接失败：这个上限决定狩猎采集者对空间的
+            占据强度，也就是农业被压制的直接原因，静默兜底只会产出一批参数被悄悄
+            改过的结果。`lim_h` 因此是必需参数——取不到就让 OmegaConf 抛
+            `ConfigKeyError`（`KeyError` 的子类），而不是回退到某个默认值。
 
-            # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
-            self.global_hunter_limit = float(lim_h * len(non_water_cells))
+        Raises:
+            KeyError: 配置里没有 `env.lim_h`。
+        """
+        # 获取所有非水体栅格（water_type != -1）
+        non_water_cells = self.dem.cells_lst.select({"is_water": False})
 
-            # 将全局限制存储到模型参数中，供 Hunter 类访问
-            self.model.params.global_hunter_limit = self.global_hunter_limit
-        except Exception:
-            # 如果出错，设置默认值并静默失败
-            self.global_hunter_limit = 100000.0  # 较大的默认值，不会限制
+        # 每个栅格的承载力，单位是人/格（见 config.yaml 的说明）
+        lim_h = self.params["lim_h"]
+
+        # 全局 Hunter 人口上限 = lim_h * 非水体栅格数量
+        self.global_hunter_limit = float(lim_h * len(non_water_cells))
+
+        # 将全局限制存储到模型参数中，供 Hunter 类访问
+        self.model.params.global_hunter_limit = self.global_hunter_limit
 
     def apply_global_hunter_limit(self) -> None:
         """应用全局 Hunter 人口上限控制
@@ -394,6 +402,26 @@ class Env(BaseNature):
         hunters.apply(lambda h: h.random_size(init_min, init_max))
         return hunters
 
+    def _vacant_arable_cells(self, farmer_cls: type) -> ActorsList[CompetingCell]:
+        """按品种取出空着的可耕地。
+
+        水稻的可耕地判据比旱作更严（坡度 ≤ 0.5° 对 ≤ 10°），是旱作可耕地的真子集。
+        两条放置路径——初始化与逐步移民——必须用同一个掩膜，否则主体会被放到
+        `able_to_live()` 本来会拒绝的格子上，而放置不经过该检查（issue #29）。
+
+        Args:
+            farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
+
+        Returns:
+            适合该品种、且当前没有主体的格子。
+        """
+        # 用 issubclass 而非 is：将来若有 RiceFarmer 的子类，用 `is` 会悄悄把它退回
+        # 旱作掩膜，重新引入本 issue
+        raster = "is_rice_arable" if issubclass(farmer_cls, RiceFarmer) else "is_arable"
+        arable = self.dem.get_raster(raster).reshape(self.dem.shape2d)
+        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
+        return arable_cells.select(lambda c: c.agents.has() == 0)
+
     def add_initial_farmers(
         self, farmer_cls: type = Farmer, num: int = 0
     ) -> ActorsList[Farmer | RiceFarmer]:
@@ -410,15 +438,7 @@ class Env(BaseNature):
         if num <= 0:
             return ActorsList(self.model, [])
 
-        # 根据农民类型选择合适的可耕地
-        if farmer_cls == RiceFarmer:
-            arable = self.dem.get_raster("is_rice_arable").reshape(self.dem.shape2d)
-        else:
-            arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-
-        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        # 过滤出没有主体的格子
-        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+        valid_cells = self._vacant_arable_cells(farmer_cls)
 
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(num, len(valid_cells))
@@ -438,7 +458,7 @@ class Env(BaseNature):
 
     def add_farmers(self, farmer_cls: type = Farmer) -> ActorsList[Farmer | RiceFarmer]:
         """
-        添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。当泊松分布生成的农民被创建时，将其放置在地图上任意一个可耕地。
+        添加从北方来的农民，根据全局变量的泊松分布模拟。关于泊松分布的介绍可以看[这个链接](https://zhuanlan.zhihu.com/p/373751245)。新农民被放置在**该品种自己的**可耕地上（水稻用 `is_rice_arable`，旱作用 `is_arable`），因此不会落在 `able_to_live()` 会拒绝的格子上。
 
         Args:
             farmer_cls (type): 农民的类型。可以是 Farmer 或 RiceFarmer。
@@ -451,12 +471,10 @@ class Env(BaseNature):
         if self.time.tick < self.params.get(tick_key, 0):
             farmers_num = 0
         else:
-            farmers_num = np.random.poisson(self.params.get(lam_key, 0))
-        # 从可耕地、没有主体的里面选
-        arable = self.dem.get_raster("is_arable").reshape(self.dem.shape2d)
-        arable_cells = ActorsList(self.model, self.dem.array_cells[arable.astype(bool)])
-        # Use lambda function to filter cells with no agents
-        valid_cells = arable_cells.select(lambda c: c.agents.has() == 0)
+            # 走模型的 seeded 生成器，而不是全局 NumPy 流，否则整条移民序列不可复现
+            farmers_num = self.model.rng.poisson(self.params.get(lam_key, 0))
+        # 从该品种能生存的、且没有主体的可耕地里选
+        valid_cells = self._vacant_arable_cells(farmer_cls)
         # 如果可耕地数量不够，则减少农民数量
         farmers_num = min(farmers_num, len(valid_cells))
         if farmers_num == 0:

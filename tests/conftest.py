@@ -5,8 +5,7 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
-"""用于测试的基本模型，和图层。
-"""
+"""用于测试的基本模型，和图层。"""
 
 import os
 

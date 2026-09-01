@@ -87,8 +87,13 @@ class SiteGroup(Actor):
     @alive_required
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self | None:
         """人口分散，采用均匀分布随机选择一个最小和最大的规模，分裂出去。
-        如果分裂出新的小队之后，原有的主体数量小于最小阈值，则原有主体会死掉。
-        确保扩散后总人口数守恒。
+
+        Note:
+            人口并不严格守恒。分裂出新小队后，母体的剩余人口若低于 `min_size`，
+            母体会死亡，那部分残余不会转移给任何主体，直接从系统里消失。上界是每次
+            `min_size - 1` 人，且只可能发生在农业主体上：狩猎采集者要到 `max_size`
+            才分裂，而新小队最大只有 `new_group_size` 的上限，残余必然远高于
+            `min_size`。详见 issue #32。
 
         Parameters:
             group_range:
@@ -122,8 +127,9 @@ class SiteGroup(Actor):
         cls = self.__class__  # The same breed (hunter->hunter; farmer->farmer)
         new = self.model.agents.new(cls, singleton=True, size=size)
 
-        # 减少原有人口（确保人口守恒）
-        self.size -= size  # 这里会触发死亡检查
+        # 减少原有人口。注意这里会触发 size setter 的死亡检查：残余低于 min_size
+        # 时母体死亡，残余人口随之消失（见 docstring 的 Note）
+        self.size -= size
 
         # 新的人移动到找到的格子
         new.move.to(available_cell)
@@ -220,8 +226,3 @@ class SiteGroup(Actor):
         self.convert()
         self.diffuse()
         self.loss()
-
-    def loss_in_competition(self, at: Optional[PatchCell] = None) -> None:
-        """在竞争中失败"""
-        self.die()
-        return at

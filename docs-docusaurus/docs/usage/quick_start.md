@@ -2,22 +2,26 @@
 
 本模型的主要工作流程已经集成完毕。用户可以在命令行中运行模型。
 
-- [快速开始](#快速开始)
-  - [环境配置](#环境配置)
-  - [运行模型](#运行模型)
-  - [数据输出与分析](#数据输出与分析)
-    - [多次实验](#多次实验)
-    - [单次实验](#单次实验)
+## 核心规则
+
+- **每格一主体**：每个格子只能有一个主体，严格遵守空间约束
+- **水体类型系统**：水体图层区分 -1（海）、0（陆地）、1（近水陆地）。注意实际输入里
+  海洋是该图层的 nodata、随整幅栅格一起被掩掉，所以 6835 个建模格子全是陆地；水体的
+  作用是通过 1064 个近水格把 `Hunter.max_size` 从 100 抬到 500
+- **全局人口上限**：狩猎采集者总人口不超过 `lim_h × 建模栅格数量`（基线 28 × 6835 = 191 380），
+  由环境在每个时间步末统一施加
+- **无竞争机制**：主体不能移动到已有其他主体的格子
 
 ## 环境配置
 
-> [!note]
-> 本模型依赖`Python > 3.9`或以上版本，请先安装好`Python`，并安装好`poetry`或`pip`。
+:::note
+本模型需要 Python 3.11，依赖由 [uv](https://docs.astral.sh/uv/) 管理。请先安装 `uv`（macOS/Linux：`curl -LsSf https://astral.sh/uv/install.sh | sh`）。
+:::
 
 首先将本模型克隆到本地，注意替换`<your folder name>`为你喜欢的文件夹名称：
 
 ```bash
-git clone https://github.com/SongshGeo/SC-20230710-SCE.git <your folder name>
+git clone https://github.com/SongshGeo/South-China-Livehood-Evolution.git <your folder name>
 ```
 
 然后在终端进入模型所在文件夹：
@@ -28,47 +32,63 @@ cd <your folder name>
 
 安装依赖：
 
-**选项1**: 使用`poetry`安装依赖：
-
 ```bash
-make setup
+# 运行时 + 开发依赖
+uv sync
+
+# 如果还要跑 reports/ 下的 notebook
+uv sync --all-groups
 ```
 
-**选项2**: 使用`pip`安装依赖：
-
-```bash
-pip install -r requirements.txt
-```
+`uv sync` 会按 `uv.lock` 创建 `.venv` 并以可编辑方式安装本项目。
 
 ## 运行模型
 
-您可以修改[配置文件]中的参数，让实验结果更符合您的预期，或进行多组实验。参数名称一般都很直观，您可以根据需要进行修改。请注意保持参数名称前的缩进，不要轻易修改参数名，并小心保持YAML格式的正确性。
-
-为了方便进行多组实验，您可以创建多个配置文件，而不是在一个文件中反复修改。例如，您可以在项目目录下的`config`文件夹中创建一个新的配置文件`config_2.yaml`。然后在运行模型时，选择对应的参数文件：
+### 基本运行
 
 ```bash
-python main.py --config-name config_2
+uv run python src
 ```
 
-如果您的配置文件位于不同的文件夹中，可以指定完整路径：
+### 多情景运行测试
 
 ```bash
-python main.py --config-name config/custom/config_2
+uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 ```
 
-您还可以在运行时覆盖特定的参数值：
+### 参数覆盖
+
+您可以在运行时覆盖特定的参数值：
 
 ```bash
-python main.py --config-name config_2 model.parameter1=new_value
+# 覆盖单个参数
+uv run python src env.init_farmers=100
+
+# 覆盖多个参数
+uv run python src env.init_farmers=100 env.init_rice_farmers=400
 ```
 
-您还可以在指定配置文件后，指定参数进行**批量运行的实验**：
+### 批量实验
+
+批量运行实验时，所有参数的笛卡尔积组合都会被运行：
 
 ```bash
-python main.py --config-name config_2 model.parameter1=v1,v2,v3 model.parameter2=a1,a2
+# 批量实验示例
+uv run python src --multirun init_hunters=0.05,0.1,0.2 env.lam_farmer=1,2,3
 ```
 
-批量运行实验时，所有参数的笛卡尔积组合都会被运行。即如上例所示，如果 `model.parameter1` 有3个取值，`model.parameter2` 有2个取值，那么最终会运行 `3 * 2 = 6` 组参数实验，而且每次实验都会进行 `exp.repeat` 次重复实验（默认为5次）。
+如果 `init_hunters` 有3个取值，`env.lam_farmer` 有3个取值，那么最终会运行 `3 * 3 = 9` 组参数实验，而且每次实验都会进行 `exp.repeats` 次重复实验（默认为5次）。
+
+### 配置文件
+
+您可以修改[配置文件]中的参数，让实验结果更符合您的预期。典型的参数包括：
+
+- `env.init_farmers`: 初始普通农民数量
+- `env.init_rice_farmers`: 初始水稻农民数量
+- `env.init_hunters`: 初始 Hunter 比例
+- `time.end`: 模型运行时间步数
+- `Hunter.max_size`: Hunter 最大人口数
+- `Hunter.max_size_water`: Hunter 在近水陆地的最大人口数
 
 ## 数据输出与分析
 
@@ -76,29 +96,38 @@ python main.py --config-name config_2 model.parameter1=v1,v2,v3 model.parameter2
 
 ### 多次实验
 
-运行一次实验后，在`out/<model name>/<date>/<time>`路径下会保存本次实验的所有输出结果。其中 `<model name>` 是您在配置文件中设置的模型名称（默认为 `south_china_evolution`），`<date>` 是实验运行的日期，`<time>` 是实验运行的时间，每个文件夹中包括：
+运行一次实验后，输出保存在 `out/<exp.name>/<date>/<time>/`（`exp.name` 默认
+`south_china_evolution`）。用 `hydra.run.dir` 可以把它固定成一个不带日期的稳定路径，
+稿件那批扫描就是这么做的——目录稳定，断点恢复才有意义。目录里包括：
 
-- `multirun.yaml`：实验配置文件，记录了实验的参数设置，有哪些参数被修改过，取值范围等；
-- 文件夹 `<job.id>_<config>`：记录了当前 `<config>` 配置下，所有[单次实验](#单次实验)的输出结果；`<job.id>` 是子实验的唯一标识符，即该组参数配置相同。
-- `breakpoints.jpg`: 一个 `3 * <jobs>` 的矩阵图，对每组参数配置（唯一的 `<job.id>`），绘制了该组参数下，所有子实验的 `breakpoint` 分布图。
-- `heatmap.jpg`: 一个 `x * y` 的矩阵图，应满足 `x * y = jobs`，展示2维参数配置俩俩组合下，实验某变量的平均输出结果。
-- `len_<breed>_<ratio>.jpg`: 每组参数配置下，所有子实验 `<breed>` 这种主体的**群体数**占全部群体数的比例变化图。
-- `num_<breed>_<ratio>.jpg`: 每组参数配置下，所有子实验 `<breed>` 这种主体的**个体数**占全部群体数的比例变化图。
-- summary.csv: 对本次实验的总结，每个参数配置下每次重复的最终结果。
+- `multirun.yaml`：本次扫描的配置快照，记录扫了哪些参数、每个参数有哪些取值；
+- 文件夹 `<job_id>_<overrides>/`：每个参数组合一个，内含该组合的全部重复。
+
+:::note 实验级的汇总图与 `summary.csv` 已经不再产出
+它们由 `MyExperiment` 的四个绘图方法提供，那个类在投稿定稿时删除了。稿件的图改由
+`reports/` 下的两个 notebook 独立产出，见[从模型到手稿]。
+:::
 
 ### 单次实验
 
-- `ABSESpyExp.log`：实验日志
-- `repeat_<x>_<figure>.png/jpg`：实验图表，`<x>`为实验序号，`<figure>`为图表名称，包括：
-    1. `hist.jpg`: 人口和族群数量的分布
-    2. `dynamic.jpg`: 人口和族群数量的变化趋势
-    3. `heatmap.jpg`: 人口空间分布热力图（地图）
-- `repeat_<x>_conversion.csv`: 人口转化情况，记录每种主体的转化情况
+每个参数组合的目录里：
+
+- `<run_id>_tracking.csv`：**主力数据**，一行一个时间步，列是 `tracker` 里声明的指标；
+  每次重复一份，`<run_id>` 从 1 数到 `exp.repeats`。
+- `repeat_<run_id>_conversion.csv`：该次重复的人口转化矩阵（出身 × 现状）。
+- `model.log` / `<exp.name>.log`：运行日志。
+
+只有把 `save_plots` 设为 true 时，才会额外写出 `repeat_<x>_dynamic.jpg` 与
+`repeat_<x>_heatmap.jpg`；默认不写盘。
+
+怎么把这些文件读成一张可分析的长表，见[数据输出与分析]。
 
 如果您遇到任何问题或有改进建议，欢迎在 [GitHub] 上提出 issue 或贡献代码。
 
 **祝您使用愉快！**
 
 <!-- Links -->
-[配置文件]: ./config.md
-[GitHub]: https://github.com/SongshGeo/SC-20230710-SCE
+[配置文件]: /docs/usage/config
+[数据输出与分析]: /docs/usage/plots
+[从模型到手稿]: /docs/usage/manuscript_pipeline
+[GitHub]: https://github.com/SongshGeo/South-China-Livehood-Evolution

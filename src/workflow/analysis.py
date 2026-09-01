@@ -5,9 +5,15 @@
 # GitHub   : https://github.com/SongshGeo
 # Website: https://cv.songshgeo.com/
 
+"""模型结果的时间序列分析。
+
+目前只剩断点检测：`Model.detect_breakpoints` 用它给 `bkp_*` tracker 供数，
+`src/api` 之外没有别的调用方。（同文件里的堆积折线图辅助函数零引用，随投稿前的
+整理一并删掉了。）
+"""
+
 from typing import List
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import ruptures as rpt
 
@@ -52,14 +58,3 @@ def detect_breakpoints(
     if n_bkps == 1:
         return breakpoints[0] if breakpoints else None
     return breakpoints
-
-
-# 自定义堆积折线图绘制函数
-def draw_stacked_lineplot(data, x, y, hue, **kwargs):
-    """自定义可输入 seaborn.FaceGrid 的堆积图"""
-    # 转换数据为堆叠格式
-    pivoted = data.pivot_table(index=x, columns=hue, values=y)
-    ratio = pivoted.div(pivoted.sum(axis=1), axis=0)
-    # 绘制堆积折线图
-    colors = kwargs.get("colors")
-    plt.stackplot(ratio.index, ratio.T, colors=colors, labels=ratio.columns)

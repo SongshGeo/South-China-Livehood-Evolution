@@ -51,21 +51,6 @@ class Hunter(SiteGroup):
         """
         return self.size > self.params.is_complex if self.on_earth else False
 
-    @alive_required
-    def merge(self, other_hunter: Hunter) -> bool:
-        """狩猎采集者合并，保证人口守恒（不再检查全局人口上限，改为在 loss 时统一控制）。
-
-        Parameters:
-            other_hunter: 另一个狩猎采集者。
-
-        Returns:
-            是否被合并了。
-        """
-        # 直接进行合并（确保人口守恒）
-        other_hunter.size = other_hunter.size + self.size
-        self.die()
-        return True
-
     def diffuse(self, group_range: Tuple[Number] | None = None) -> Self:
         """如果人口大于一定规模，狩猎采集者分散出去
 

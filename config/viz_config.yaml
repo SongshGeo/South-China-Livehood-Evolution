@@ -33,9 +33,9 @@ env.water_ratio:
 
 env.lim_h:
   type: Slider
-  min: 20
+  min: 10   # 最低要能滑到扫描的最小一档（12 人/格）
   max: 200
-  step: 10
+  step: 2
   label: Lim H
 
 env.lam_farmer:

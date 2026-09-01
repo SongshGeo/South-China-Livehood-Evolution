@@ -1,5 +1,11 @@
 # Changelog
 
+## Analysis notes (2026-06-05) — not part of a release
+
+### Analysis
+* **aDNA gap check:** Systematic search of OpenAlex, Zotero, and parsed PDFs identified 10 missing agricultural diffusion cases with aDNA data. Most critical: Japan Jomon→Yayoi (Cooke 2021) shows ~20% farmer ancestry in HG, similar to S China's ~25%, making E Asia a "bidirectional mixing" pattern rather than S China being unique. Also found Tsoupas 2025 (ABC-estimated admixture rate ~2.4%/gen, directly comparable to ABM convert_prob). See `outputs/adna-gap-check.md`.
+* **ABM–aDNA cross-calibration:** Built semi-quantitative framework mapping ABM `convert_prob` parameters to global aDNA farmer/HG admixture data (16 regions). Key finding: f2h=0.002 produces ~27% farmer-origin fraction in HG population, matching South China's ~25% observed in Yang et al. 2020. South China is one of only 3 global cases with bidirectional mixing (farmer_in_HG > 0), supporting the "suppressed diffusion via high f2h" hypothesis.
+* **Artifacts:** `outputs/abm-adna-calibration.md` (full report), `outputs/adna-gap-check.md` (gap analysis), `outputs/.research/` (data tables, charts) — all removed in the pre-submission clean-out (2026-09-01) once the findings had been recorded elsewhere; recoverable from git history.
 ## [0.9.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.8.0...v0.9.0) (2026-01-17)
 
 
