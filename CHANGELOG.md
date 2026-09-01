@@ -6,6 +6,32 @@
 * **aDNA gap check:** Systematic search of OpenAlex, Zotero, and parsed PDFs identified 10 missing agricultural diffusion cases with aDNA data. Most critical: Japan Jomon→Yayoi (Cooke 2021) shows ~20% farmer ancestry in HG, similar to S China's ~25%, making E Asia a "bidirectional mixing" pattern rather than S China being unique. Also found Tsoupas 2025 (ABC-estimated admixture rate ~2.4%/gen, directly comparable to ABM convert_prob). See `outputs/adna-gap-check.md`.
 * **ABM–aDNA cross-calibration:** Built semi-quantitative framework mapping ABM `convert_prob` parameters to global aDNA farmer/HG admixture data (16 regions). Key finding: f2h=0.002 produces ~27% farmer-origin fraction in HG population, matching South China's ~25% observed in Yang et al. 2020. South China is one of only 3 global cases with bidirectional mixing (farmer_in_HG > 0), supporting the "suppressed diffusion via high f2h" hypothesis.
 * **Artifacts:** `outputs/abm-adna-calibration.md` (full report), `outputs/adna-gap-check.md` (gap analysis), `outputs/.research/` (data tables, charts) — all removed in the pre-submission clean-out (2026-09-01) once the findings had been recorded elsewhere; recoverable from git history.
+## [1.0.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.9.0...v1.0.0) (2026-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **paper:** src.core.MyExperiment and src.app are removed. Construct abses.Experiment directly; the Solara demo has no replacement.
+
+### Features
+
+* **model:** derive env.lim_h from areal density, and re-run as rerun_v3 ([cb37e6e](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/cb37e6e963ec648ff5f95bfad99c98b0a5cec666))
+* **paper:** freeze every quoted number in results.json, drop superseded code ([dfafc4a](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/dfafc4adc0f773f6c61f02eb40dd33e7b8166dcc))
+* **paper:** make the radiocarbon timeline Figure 1 ([158b6ea](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/158b6eae692f928c51d06767aec9f7d26b79abfa))
+* **paper:** rebuild figures on rerun_v3, update SI-2 to 79 dates ([a69c1e2](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/a69c1e291c75d9d5c8a9a1f693f35ceb12908ad6))
+* **paper:** turn the SI-2 radiocarbon table into a figure ([75c3c4e](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/75c3c4ecb65d6a6421878e410a2f01e90781dc81))
+
+
+### Bug Fixes
+
+* **paper:** close the gaps the pre-submission review found ([7fc7772](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/7fc77722399d9a88ae09c3a492ff5be8dda67d2d))
+
+
+### Documentation
+
+* bring the documentation back in line with the frozen manuscript ([124d772](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/124d7725b3d00a8d82b9a3a0639f85967b33b05d))
+* **paper:** the study-area map is dropped, not moved to the SI ([ca75200](https://github.com/SongshGeo/South-China-Livehood-Evolution/commit/ca75200857ab5d461ae7ed059908c1954b9db2d1))
+
 ## [0.9.0](https://github.com/SongshGeo/South-China-Livehood-Evolution/compare/v0.8.0...v0.9.0) (2026-01-17)
 
 

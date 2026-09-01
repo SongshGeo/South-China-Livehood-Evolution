@@ -1,6 +1,6 @@
 [project]
 name = "abses_sce"
-version = "0.9.0"
+version = "1.0.0"
 description = "South China Livelihood Evolution Model - agent-based simulation of prehistoric livelihood change"
 readme = "README.md"
 authors = [{ name = "SongshGeo", email = "songshgeo@gmail.com" }]
