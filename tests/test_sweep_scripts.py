@@ -7,10 +7,16 @@
 
 """SLURM 扫描脚本与文稿表格的一致性。
 
-`paper/build_tables.py::swept_ranges` 从 `run_slurm.sh` 里读 `F2H_VALUES` /
-`H2F_VALUES` 两个数组，填进 Table S1 的 "Swept" 列。但重跑用的是
-`run_slurm_rerun.sh`。两个脚本各写一份扫描值，一旦分叉，表里报告的扫描范围就与
-真正产出数据的脚本不符——而且不会有任何报错。这里把等式锁住。
+`paper/build_tables.py` 从 `run_slurm_rerun.sh` 里读 `F2H_VALUES` / `H2F_VALUES`
+两个数组填 Table S1 的 "Swept" 列，读 `for lh in ...` 那一行填承载力扫描列——都从
+**产出已发表数据的那个脚本**里读，而不是各处写字面量。表里报告的范围因此不可能与真
+正跑过的组合分家。
+
+（曾经还有一个 `run_slurm.sh`，两个脚本各写一份扫描值，这里锁的是两者逐值相等。
+它在 rerun_v3 定稿后删掉了：产数据的脚本只剩一个，那条等式也就无处可分叉了。）
+
+这里剩下的是脚本自身的不变式：取值等距、基线落在被扫的档位里、任务清单一一对应、
+以及 `--verify` 给出的重投区间算得对。
 """
 
 import re
@@ -21,7 +27,8 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = (ROOT / "run_slurm.sh", ROOT / "run_slurm_rerun.sh")
+#: 产出已发表数据的扫描脚本——本仓库现在只有这一个。
+SCRIPT = ROOT / "run_slurm_rerun.sh"
 
 
 def _bash_array(script: Path, name: str) -> list[float]:
@@ -36,23 +43,13 @@ def _bash_array(script: Path, name: str) -> list[float]:
     raise AssertionError(f"{name} not declared at top level in {script.name}")
 
 
-class TestSweptValuesAgree:
-    """两个扫描脚本必须报告同一组精细网格取值。"""
-
-    @pytest.mark.parametrize("name", ["F2H_VALUES", "H2F_VALUES"])
-    def test_both_scripts_declare_the_same_values(self, name):
-        """run_slurm.sh 与 run_slurm_rerun.sh 的扫描值逐项相等。"""
-        original, rerun = (_bash_array(s, name) for s in SCRIPTS)
-
-        assert original == rerun, (
-            f"{name} 在两个脚本里不一致；"
-            f"paper/build_tables.py 读的是 run_slurm.sh，会把错误的范围写进 Table S1"
-        )
+class TestSweptValues:
+    """精细网格的取值本身。"""
 
     @pytest.mark.parametrize("name", ["F2H_VALUES", "H2F_VALUES"])
     def test_values_are_an_even_grid(self, name):
         """取值必须是等距的——Table S1 用首末值加步长概括，不等距就会失真。"""
-        values = _bash_array(SCRIPTS[0], name)
+        values = _bash_array(SCRIPT, name)
         steps = {round(b - a, 12) for a, b in zip(values, values[1:])}
 
         assert len(values) == 11
@@ -62,7 +59,7 @@ class TestSweptValuesAgree:
 class TestForagerCapacityArms:
     """Figure 4b 的三档承载力，以及基线必须是其中一档。
 
-    `{15, 25, 35}` 这个三元组曾同时硬编码在四个互不相干的地方：产数据的
+    `{12, 20, 28}` 这个三元组曾同时硬编码在四个互不相干的地方：产数据的
     `run_slurm_rerun.sh`、`paper/build_tables.py` 的两处字符串字面量、以及主文
     Methods。改一处不会有任何报错，表里报告的扫描范围就与真正跑的数据不符。
     `build_tables.limh_swept()` 现在从脚本里读，这里锁住剩下的那条不变式：
@@ -128,13 +125,15 @@ class TestRerunTaskList:
 
         assert len(set(dirs)) == len(dirs)
 
-    def test_fine_grid_index_matches_the_original_run(self):
-        """精细网格的组内 idx 必须与 run_slurm.sh 的 INDEX%11 映射一致。
+    def test_fine_grid_index_matches_the_declared_values(self):
+        """精细网格的组内 idx 必须是 `f2h = idx % 11`、`h2f = idx // 11`。
 
-        这样同一个 idx 在新旧两批数据里指同一组参数，可以交叉核对。
+        目录名里的数值和 override 里的数值同出于循环变量，但顺序（谁变得最快）只有
+        在这里才查得到。它决定了同一个 idx 在新旧两批数据里指不指同一组参数——
+        `out/` 下那几批更早的 `grid_*` 就是靠这个映射交叉核对的。
         """
-        f2h_values = _bash_array(SCRIPTS[0], "F2H_VALUES")
-        h2f_values = _bash_array(SCRIPTS[0], "H2F_VALUES")
+        f2h_values = _bash_array(SCRIPT, "F2H_VALUES")
+        h2f_values = _bash_array(SCRIPT, "H2F_VALUES")
         fine = [d for d in self._task_dirs() if "/grid_fine/" in d]
 
         assert len(fine) == len(f2h_values) * len(h2f_values)

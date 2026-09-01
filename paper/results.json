@@ -1,0 +1,114 @@
+{
+  "_meta": {
+    "built_by": "paper/build_results.py",
+    "sweep": "out/south_china_evolution/rerun_v3",
+    "tail_steps": 50,
+    "significant_digits": 6
+  },
+  "landscape": {
+    "cells": 6835,
+    "arable": 2620,
+    "rice_arable": 885,
+    "near_water": 1064,
+    "inland": 5771,
+    "cell_area_km2": 78.2,
+    "west": 104.4,
+    "east": 121.2,
+    "south": 19.2,
+    "north": 29.1
+  },
+  "parameters": {
+    "lim_h_per_cell": 28.0,
+    "regional_forager_ceiling": 191380,
+    "lam_farmer": 3.0,
+    "lam_ricefarmer": 0.1,
+    "steps": 500,
+    "repeats": 5,
+    "seed": 42
+  },
+  "c14": {
+    "n_dates": 79,
+    "n_sites": 27,
+    "n_provinces": 3,
+    "sites_by_subsistence": {
+      "Farming": 9,
+      "Foraging": 18
+    },
+    "oldest_cal_bp": 8635.0,
+    "youngest_cal_bp": 4158.0,
+    "coexistence_window_cal_bp": [
+      7575.0,
+      4325.0
+    ],
+    "coexistence_fraction": 0.725933
+  },
+  "figure2": {
+    "end_agri_share": 0.179944
+  },
+  "figure3": {
+    "baseline_farmers": 13825.3,
+    "convert_off_farmers": 305282.0,
+    "release_ratio": 22.0813,
+    "cliff": {
+      "at_zero": 308145.0,
+      "at_knee": 29865.0,
+      "at_max": 6746.11,
+      "drop_share_before_knee": 0.923295
+    },
+    "log_additive": {
+      "r2": 0.993393,
+      "resid_rms": 0.0591747,
+      "resid_min": -0.16335,
+      "resid_max": 0.258945
+    }
+  },
+  "figure4": {
+    "lam_farmer_levels": {
+      "2": 13043.3,
+      "4": 15926.8,
+      "6": 18701.4,
+      "8": 19884.6,
+      "10": 21783.1
+    },
+    "lim_h_levels": {
+      "12": 9896.48,
+      "20": 12502.2,
+      "28": 13825.3
+    },
+    "terrain_levels": {
+      "Baseline (real terrain)": 13825.3,
+      "Fully homogenized": 24863.2,
+      "Homogenized DEM": 20591.6,
+      "Homogenized slope": 15562.3
+    },
+    "spread_ratio": {
+      "lam_farmer": 1.67006,
+      "lim_h": 1.397,
+      "terrain": 1.79838
+    }
+  },
+  "figure5": {
+    "leverage_curves": {
+      "lam_farmer": {
+        "1x": 43884.5,
+        "2x": 44742.9,
+        "3x": 52200.1,
+        "4x": 55755.8,
+        "5x": 56863.0
+      },
+      "lam_ricefarmer": {
+        "1x": 43884.5,
+        "2x": 71761.7,
+        "3x": 119173.0,
+        "4x": 169530.0,
+        "5x": 221451.0
+      }
+    },
+    "x5_over_x1": {
+      "lam_farmer": 1.29574,
+      "lam_ricefarmer": 5.04622
+    },
+    "leverage_ratio": 3.89446,
+    "replicate_cv_mean": 0.0586248
+  }
+}

@@ -5,8 +5,11 @@ revised. Every entry carries a `file:line`. Entries marked **[ASK]** are things 
 code does not settle; they are questions for the author, not values to invent.
 
 Scope: the model proper is `src/api/` (agents and environment) plus
-`src/core/model.py` (the step loop). `src/app.py` is a synthetic-landscape demo, not
-the published model, and is excluded. `src/workflow/` is post-hoc analysis.
+`src/core/model.py` (the step loop). `src/workflow/` is post-hoc analysis — loaders and
+panel builders (`figures.py`, `c14.py`), the headline numbers (`results.py`), and
+breakpoint detection (`analysis.py`). A `src/app.py` Solara demo on a synthetic
+landscape used to sit alongside them; it was never the published model and was deleted
+before submission.
 
 Recovered against commit on `dev` at the time of writing; ABSESpy 0.11.5, Python 3.11.
 
@@ -23,14 +26,18 @@ in place: `rerun_v2/` (same code, `lim_h` = 35 per cell) and, before that, the
 pre-fix date-stamped directories. The manuscript figure
 pipeline no longer reads either — `tests/test_manuscript_figures_source.py` locks all
 seven of the notebook's data-path constants to `rerun_v3/`, because pointing one back
-at an old directory would still run and still produce figures, just superseded ones. The
-exploratory notebooks elsewhere in `reports/` do still read the old directories; they
-are working notes, not figure sources, and the numbers in them describe the pre-fix
-runs they were written against. `convert_prob_2d_fine_v1.ipynb` in particular reports
-$R^2$ = 0.9922 for the log-additive fit, which is the *old* fine grid; the manuscript
-quotes 0.993, refitted on `rerun_v3/grid_fine` (0.9934; the same fit gives 0.9926 on
-`rerun_v2/grid_fine`, so the quoted three-decimal value is unchanged by the `lim_h`
-revision). All three are right about their own data.
+at an old directory would still run and still produce figures, just superseded ones.
+`reports/` used to hold a dozen exploratory notebooks that still read the old
+directories; they were working notes, not figure sources, and every number in them
+described the pre-fix runs they were written against. They were deleted before
+submission (git history keeps them) so that no file in `reports/` reports a number
+from data the manuscript does not use. Only the two figure notebooks remain.
+
+The log-additive $R^2$ is the one number that survived that clean-out, and it now has
+a single implementation: `src/workflow/results.py::fit_log_additive`. On
+`rerun_v3/grid_fine` it is 0.9934, which is what the manuscript's 0.993 rounds from;
+the same fit gives 0.9926 on `rerun_v2/grid_fine` and 0.9922 on the pre-fix grid, so
+the quoted three-decimal value happens to be unchanged by the `lim_h` revision.
 
 Two sweeps were run to their full design rather than to what the old directories
 happened to contain: the broad conversion grid is 6×6 (was 25 of 36) and the
@@ -45,36 +52,55 @@ cell appears in both `grid_broad/idx0` and `grid_fine/idx0`, which ran as separa
 array tasks on different nodes, and all five replicate `*_tracking.csv` are
 byte-identical between them.
 
-**What the re-run changed.** Every qualitative claim behind Figures 2–5 survives; the
-levels move and the noise drops sharply.
+**Every number below is quoted from `paper/results.json`**, which
+`paper/build_results.py` computes from `rerun_v3` and which
+`tests/test_results_regression.py` re-derives and compares key by key. Do not retype a
+value here; rebuild the file and copy from it. This paragraph is why: until the
+pre-submission clean-out, this section was headed `rerun_v3` while all seven of its
+figures were still `rerun_v2`'s — the re-run had happened, the section had not been
+updated, and nothing anywhere said so.
 
-- **Figure 2.** End-state agricultural share falls 17.6% → 15.4%. The shape of the
-  trajectory is unchanged, and so is the claim it supports — agriculture stays a
-  small share of total population.
-- **Figure 3b.** Materially cleaner, and for a reason worth recording: the old broad
-  grid held only 25 of its 36 cells, so several `h2f` curves had gaps and were drawn
-  across them, which read as curves crossing one another. The response surface itself
-  was never non-monotonic — both the old and the new grid increase in `h2f` along
-  every `f2h` row wherever data exists. The re-run fills all 36 cells, so the six
-  curves separate cleanly and converge at `f2h` = 0. The apparent crossing was a
-  coverage artefact, not a modelling result.
+**What the `lim_h` re-derivation changed (`rerun_v2` → `rerun_v3`).** Every
+qualitative claim behind Figures 2–5 survives. Lowering the regional forager ceiling
+from 239 225 to 191 380 leaves foragers pressed against it from step 0 (F9), so
+rainfed farmers sit lower in absolute terms while taking a larger share.
+
+- **Figure 2.** End-state agricultural share rises 15.4% → **18.0%**. Trimming
+  foragers harder frees proportionally more of the total for farming, but the shape of
+  the trajectory and the claim it supports are unchanged — agriculture stays a small
+  share of total population.
+- **Figure 3a.** Baseline rainfed farmers fall 15 546 → **13 825** while the
+  conversion-off arm barely moves (301 371 → **305 282**), so the release ratio widens
+  19.4× → **22.1×**. The panel's claim gets stronger, not weaker.
+- **Figure 3b.** Unchanged by the re-derivation; the improvement recorded here was
+  against the *pre-fix* directories, where the broad grid held only 25 of its 36
+  cells. Several `h2f` curves had gaps and were drawn across them, which read as
+  curves crossing one another. The response surface itself was never non-monotonic.
+  The full 6×6 grid makes the six curves separate cleanly and converge at `f2h` = 0.
+  With no compensating path (`h2f` = 0), 92.3% of the whole drop over `f2h` ∈ [0, 0.1]
+  is spent by `f2h` = 0.02 — the "cliff" the panel is built around.
+- **Figure 3c.** Log-additive $R^2$ 0.9926 → **0.9934**; the manuscript's 0.993 is
+  unaffected.
 - **Figure 4.** The ranking of the three factors — the point of the panel — is
-  unchanged, and so are the effect sizes to within a few percent. Measured as the
-  ratio of the largest to the smallest level of each factor (50-step tail mean of
-  `num_farmers_n`): terrain 1.77× → **1.91×**, `lam_farmer` 1.63× → **1.66×**,
-  `lim_h` 1.44× → **1.43×**. Terrain still leads, forager carrying capacity still
-  trails.
-- **Figure 5.** The paddy-versus-dryland contrast holds and strengthens. End-state
-  agricultural population (the 50-step tail mean the panel plots) at ×5 relative to
-  ×1 goes from 1.40× to **1.60×** for `lam_farmer` and from 4.89× to **5.70×** for
-  `lam_ricefarmer`. The ratio between the two leverages — the actual claim — is
-  essentially unmoved: 3.50 → 3.56.
+  unchanged, and the effect sizes move by a few percent. Measured as the ratio of the
+  largest to the smallest level of each factor (tail mean of `num_farmers_n` over the
+  last 51 steps): terrain 1.91× → **1.80×**, `lam_farmer` 1.66× → **1.67×**, `lim_h`
+  1.43× → **1.40×**. Terrain still leads, forager carrying capacity still trails. Note
+  that the `lim_h` pair is not a like-for-like comparison: the swept arms themselves
+  moved from {15, 25, 35} to {12, 20, 28} per cell, so it contrasts the spread of one
+  triple with the spread of another.
+- **Figure 5.** The paddy-versus-dryland contrast holds, and the ratio it rests on
+  *widens*. End-state agricultural population at ×5 relative to ×1 falls 1.60× →
+  **1.30×** for `lam_farmer` and 5.70× → **5.05×** for `lam_ricefarmer` — both flatter
+  against a tighter ceiling — but the ratio between the two leverages, which is the
+  actual claim, goes 3.56 → **3.89**.
 
-The precision gain is uniform, not selective: across the ten slices Figure 5 plots
-(five levels of each of the two intensities, of which nine are distinct combinations —
-the baseline cell belongs to both slices), the coefficient of variation over the five
-replicates falls from a mean of **12.6% to 6.9%**, and it falls in every slice
-individually. That is the expected return on seeding plus common random numbers.
+Replicate noise is low and did not depend on the re-derivation: across the ten slices
+Figure 5 plots (five levels of each of the two intensities, of which nine are distinct
+combinations — the baseline cell belongs to both slices), the coefficient of variation
+over the five replicates averages **5.9%** on `rerun_v3` and 6.9% on `rerun_v2`,
+against 12.6% on the unseeded pre-fix runs. That is the expected return on seeding
+plus common random numbers.
 
 ---
 
@@ -129,7 +155,7 @@ Derived landscape counts at initialisation: `is_arable` 2 620 cells,
 
 Baseline values are those Hydra actually composes (verified by composition, not by
 reading), `config/config.yaml` unless noted. Swept ranges come from
-`run_slurm.sh:67-68` and `reports/*.ipynb`.
+`run_slurm_rerun.sh:150-151` and the sweep script's task list.
 
 | Parameter | Default | Swept | Source of value |
 |---|---|---|---|
@@ -188,13 +214,16 @@ Deterministic: population growth (`people.py:85`), intensification
 
 ## 6. Existing evidence
 
-- Unit tests: 134 passing, covering agents, environment, conversion thresholds, seed
-  reproducibility, and the figure builders (`tests/`, `make test`).
+- Unit tests: 228 passing, covering agents, environment, conversion thresholds, seed
+  reproducibility, the figure builders, the sweep script's task list, and the headline
+  numbers (`tests/`, `make test`).
+- Every number the manuscript quotes is frozen in `paper/results.json` and re-derived
+  from the data by `tests/test_results_regression.py`; see `paper/README.md`.
 - No global sensitivity analysis (no Sobol/Morris) — the sweeps are one- and
   two-factor grids. This is the abm profile's standing objection #6.
 - No independent validation dataset; evaluation is pattern-oriented by design.
 - Breakpoint detection (`ruptures`, `Dynp`, `n_bkps`=1, `min_size`=5,
-  `src/workflow/analysis.py:15-54`) produces the `bkp_*` outputs used for heatmaps.
+  `src/workflow/analysis.py`) produces the `bkp_*` outputs used for heatmaps.
   It does not feed Figures 2–5.
 
 ---
@@ -263,7 +292,8 @@ irreproducibility: see F14, which showed that no seed was ever set in the first
 place. Both were fixed together; `tests/test_reproducibility.py` locks the behaviour.
 
 **F14. No seed was ever set for any run — FIXED.** `src/__main__.py` constructed
-`MyExperiment(Model, cfg=cfg, nature_class=Env)` without a `seed`, so ABSESpy's
+the experiment as `MyExperiment(Model, cfg=cfg, nature_class=Env)` without a
+`seed` (that empty `Experiment` subclass has since been dropped), so ABSESpy's
 `Experiment._base_seed` stayed `None` and `_get_seed()` returned `None` for every
 replicate, leaving mesa to seed from OS entropy. Measured before the fix:
 
@@ -369,8 +399,7 @@ and the step-0 totals are identical in `rerun_v2` and `rerun_v3`.
 
 **F11. The terrain experiment is a 2×2 factorial, not a binary contrast.** Four arms —
 real terrain, homogenised slope, homogenised DEM, fully homogenised — keyed on
-(`ds.dem`, `ds.slope`) pairs (`src/workflow/figures.py:56-61`,
-`reports/secondary_indicators_validation.ipynb`). Homogenised surfaces are the
+(`ds.dem`, `ds.slope`) pairs (`src/workflow/figures.py`, `TERRAIN_LABELS`). Homogenised surfaces are the
 constant rasters `data/ohn_value1.tif` (DEM) and `data/ohn_value0.tif` (slope). Both
 documents described it as "real versus homogenised".
 

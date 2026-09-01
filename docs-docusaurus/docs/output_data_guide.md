@@ -235,7 +235,7 @@ tracking.csv 共有 14 列（不含索引列），可以分为四组理解：
 
 ## 七、整合 multirun 数据并绘制增长轨迹
 
-Hydra 的 multirun 把每组参数、每次重复分散在单独的文件里。真正用于分析之前，需要把它们拼成一张「长表」（tidy DataFrame），再交给 `seaborn.relplot` 等函数作图。下面给出可复用的最小范式，`reports/experiment_manager_demo.ipynb`、`reports/hunter_dynamics_validation.ipynb` 都沿用这套流程。
+Hydra 的 multirun 把每组参数、每次重复分散在单独的文件里。真正用于分析之前，需要把它们拼成一张「长表」（tidy DataFrame），再交给 `seaborn.relplot` 等函数作图。下面给出可复用的最小范式；`src/workflow/figures.py` 的四个加载器就是它的成品版本，出图 notebook 与 `paper/build_results.py` 都用那一份，不要在别处再抄一遍。
 
 ### 7.1 解析 job 目录名
 
@@ -304,7 +304,7 @@ def load_trajectories(multirun_dir: Path, cols: list[str]) -> pd.DataFrame:
 - 把 override 同步注入为列，之后可以直接作为 `hue/col/row` 分面；
 - `run_id` 来自文件名，`job_id` 来自目录名——二者合起来唯一标识一条 repeat。
 
-如需 `ExperimentManager` 风格的「行 = 一条 repeat」长表，用同一张 DataFrame 按 `(job_id, run_id)` 聚合并调用 `ExperimentManager.update_result()` 即可（见 `reports/experiment_manager_demo.ipynb`）。
+如需 `ExperimentManager` 风格的「行 = 一条 repeat」长表，用同一张 DataFrame 按 `(job_id, run_id)` 聚合并调用 `ExperimentManager.update_result()` 即可。
 
 ### 7.3 用 `sns.relplot` 画分面轨迹图
 

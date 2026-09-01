@@ -82,7 +82,7 @@ class TestSeededReproducibility:
 class TestSeedIsWiredThrough:
     """种子必须真的从配置流到 Experiment。
 
-    这一组测的是 `src/__main__.py` 那一行本身——直接构造 `MyExperiment(..., seed=...)`
+    这一组测的是 `src/__main__.py` 那一行本身——直接构造 `Experiment(..., seed=...)`
     的测试无法发现"入口忘了传种子"，而那正是当初的缺陷。
     """
 
@@ -101,7 +101,7 @@ class TestSeedIsWiredThrough:
         run_cfg = _fast_cfg(tmp_path)
         run_cfg.seed = 4321
 
-        with patch.object(entry, "MyExperiment") as fake_experiment:
+        with patch.object(entry, "Experiment") as fake_experiment:
             # outpath 下的 tracking.csv 被认为已存在，main 因此在 batch_run 前返回
             fake_experiment.return_value = MagicMock()
             entry.main(run_cfg)

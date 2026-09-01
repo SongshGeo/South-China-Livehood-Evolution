@@ -47,6 +47,11 @@ JOB_DIR_RE = re.compile(r"^(?P<job_id>\d+)_(?P<rest>.+)$")
 #: 精细网格子目录名 ``idx<n>_f2h<a>_h2f<b>``（SLURM job array 产出）。
 FINE_DIR_RE = re.compile(r"^idx(?P<idx>\d+)_f2h(?P<f2h>[\d.]+)_h2f(?P<h2f>[\d.]+)$")
 
+#: 终态窗口长度（步）。``_tail_mean`` 取 ``step >= max_step - TAIL_STEPS``，左端点含在
+#: 内，所以实际是末 51 步（model-inventory 的 F12）。图和 :mod:`src.workflow.results`
+#: 共用这一个值——两边各写一个 50，就是两条能各自漂移的终态定义。
+TAIL_STEPS: int = 50
+
 #: 三类人群的英文图例标签。
 GROUP_LABEL: dict[str, str] = {
     "farmers": "Rainfed farmer",
@@ -61,6 +66,57 @@ TERRAIN_LABELS: dict[tuple[str, str], str] = {
     ("ohn_value1.tif", "ohnslo10.tif"): "Homogenized DEM",
     ("ohn_value1.tif", "ohn_value0.tif"): "Fully homogenized",
 }
+
+#: 一批重跑结果里，主图要读的七个目录（相对扫描根目录）。
+#:
+#: 目录名由 ``run_slurm_rerun.sh`` 的 override 串派生，这里是**读侧**的唯一一份：
+#: ``paper/build_results.py`` 直接经 :func:`rerun_dirs` 取用。出图 notebook 出于「投稿
+#: 前不再改动出图代码」的考虑仍写着自己的字面量，改由
+#: ``tests/test_manuscript_figures_source.py`` 逐个比对到本表——两边任何一处被改回旧
+#: 目录，图照样出、数照样算，只是全都属于旧数据，不会有任何报错。
+RERUN_SUBDIRS: dict[str, str] = {
+    # Figure 2 / 3a 的基准：f2h 0.1、h2f 0.05、h2r 0.05（convert3 组内第 22 个）。
+    "baseline": (
+        "convert3/22_Farmer.convert_prob.to_hunter=0.1,"
+        "Hunter.convert_prob.to_farmer=0.05,Hunter.convert_prob.to_rice=0.05"
+    ),
+    # Figure 3a 的对照：三条转化路径全关（组内第 0 个）。
+    "convert_off": (
+        "convert3/0_Farmer.convert_prob.to_hunter=0.0,"
+        "Hunter.convert_prob.to_farmer=0.0,Hunter.convert_prob.to_rice=0.0"
+    ),
+    "lam": "lam",  # 5×5 移民强度：Figure 4a 与 Figure 5
+    "limh": "limh",  # 狩猎采集者承载力三档：Figure 4b
+    "terrain": "terrain",  # 地貌均质化 2×2：Figure 4c
+    "grid_broad": "grid_broad",  # 6×6，f2h/h2f ∈ [0, 0.10]：Figure 3b
+    "grid_fine": "grid_fine",  # 11×11 详查区：Figure 3c
+}
+
+
+def rerun_dirs(root: Path) -> dict[str, Path]:
+    """把 :data:`RERUN_SUBDIRS` 接到某个扫描根目录上，并当场检查七个都在。
+
+    早失败是有意的：任一目录缺失时，下游的加载器只会在半程抛一个看不出所以然的
+    ``FileNotFoundError``，而缺失最常见的原因是数据还没同步下来。
+
+    参数:
+        root: 扫描输出根目录，如 ``out/south_china_evolution/rerun_v3``。
+
+    返回:
+        ``{名字: 绝对/相对路径}``，键与 :data:`RERUN_SUBDIRS` 一致。
+
+    异常:
+        FileNotFoundError: 任一目录不存在，报文里附上取数与核验命令。
+    """
+    dirs = {name: Path(root) / sub for name, sub in RERUN_SUBDIRS.items()}
+    missing = [f"{name}: {p}" for name, p in dirs.items() if not p.exists()]
+    if missing:
+        raise FileNotFoundError(
+            "扫描结果目录缺失：\n  " + "\n  ".join(missing) + "\n"
+            "先把重跑结果同步下来：make fetch-rerun\n"
+            "再核对完整性：bash run_slurm_rerun.sh --verify"
+        )
+    return dirs
 
 
 # ── 数据加载器 ───────────────────────────────────────────────────────────
@@ -263,7 +319,7 @@ def _tail_mean(
     df: pd.DataFrame,
     group_cols: list[str],
     value_cols: list[str],
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> pd.DataFrame:
     """取每条轨迹最后 ``last`` 步的均值作为终态，按 ``group_cols`` 聚合。
 
@@ -271,7 +327,7 @@ def _tail_mean(
         df: 含 ``step`` 的长表。
         group_cols: 聚合分组键（如 ``["scenario", "run_id"]``）。
         value_cols: 求均值的指标列。
-        last: 末尾窗口长度（步），默认 50。
+        last: 末尾窗口长度（步），默认 :data:`TAIL_STEPS`。
 
     返回:
         分组终态均值表（``as_index=False``）。
@@ -284,7 +340,7 @@ def _convert_heatmap_table(
     grid_df: pd.DataFrame,
     metric: str = "num_farmers_n",
     h2r: float = 0.05,
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> pd.DataFrame:
     """把 3³ 网格在固定 ``h2r`` 切片上聚成 ``f2h × h2f`` 的终态透视表。
 
@@ -292,7 +348,7 @@ def _convert_heatmap_table(
         grid_df: :func:`load_grid` 的结果（含 ``f2h/h2f/h2r``）。
         metric: 终态指标列，默认 ``num_farmers_n``。
         h2r: 固定的 hunter→rice 概率切片，默认基准值 0.05。
-        last: 终态窗口长度，默认 50。
+        last: 终态窗口长度，默认 :data:`TAIL_STEPS`。
 
     返回:
         行索引 ``f2h``（高在上）、列 ``h2f``（低在左）的透视表。
@@ -312,7 +368,7 @@ def _grid_endstate(
     index_col: str = "f2h",
     col_col: str = "h2f",
     metric: str = "num_farmers_n",
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> pd.DataFrame:
     """把网格聚成 ``index_col × col_col`` 的终态透视表（行索引降序）。
 
@@ -321,7 +377,7 @@ def _grid_endstate(
         index_col: 行轴列名，默认 ``f2h``。
         col_col: 列轴列名，默认 ``h2f``。
         metric: 终态指标列，默认 ``num_farmers_n``。
-        last: 终态窗口长度，默认 50。
+        last: 终态窗口长度，默认 :data:`TAIL_STEPS`。
 
     返回:
         行 ``index_col``（高在上）、列 ``col_col``（低在左）的透视表。
@@ -519,7 +575,7 @@ def plot_f2h_cliff(
     ax: Axes | None = None,
     metric: str = "num_farmers_n",
     shade: tuple[float, float] | None = (0.0, 0.02),
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> Axes:
     """Figure 3b：终态农民规模随 ``f2h`` 的"悬崖"曲线（每条线一个 ``h2f`` 切片）。
 
@@ -531,7 +587,7 @@ def plot_f2h_cliff(
         ax: 目标 Axes，None 时自建。
         metric: 终态指标，默认 ``num_farmers_n``。
         shade: 高亮的详查区间 ``(x0, x1)``，None 不画。
-        last: 终态窗口长度，默认 50。
+        last: 终态窗口长度，默认 :data:`TAIL_STEPS`。
 
     返回:
         绘好的 Axes（log 纵轴）。
@@ -561,7 +617,7 @@ def plot_grid_heatmap(
     ax: Axes | None = None,
     metric: str = "num_farmers_n",
     log: bool = True,
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> Axes:
     """Figure 3c：精细 ``f2h × h2f`` 网格上终态农民规模的热图。
 
@@ -570,7 +626,7 @@ def plot_grid_heatmap(
         ax: 目标 Axes，None 时自建。
         metric: 终态指标，默认 ``num_farmers_n``。
         log: 是否 log 归一化色标（全为正时生效），默认 True。
-        last: 终态窗口长度，默认 50。
+        last: 终态窗口长度，默认 :data:`TAIL_STEPS`。
 
     返回:
         绘好的 Axes。
@@ -641,7 +697,7 @@ def plot_leverage_endstate(
     df: pd.DataFrame,
     ax: Axes | None = None,
     metric: str = "agri_n",
-    last: int = 50,
+    last: int = TAIL_STEPS,
 ) -> Axes:
     """Figure 5b：终态农业总人口随参数倍数的响应（两条 scan 曲线对比斜率）。
 
@@ -649,7 +705,7 @@ def plot_leverage_endstate(
         df: :func:`build_leverage_frame` 的结果（含 ``scan/param_mult/agri_n``）。
         ax: 目标 Axes，None 时自建。
         metric: 响应指标，默认 ``agri_n``。
-        last: 终态窗口长度，默认 50。
+        last: 终态窗口长度，默认 :data:`TAIL_STEPS`。
 
     返回:
         绘好的 Axes；``lam_ricefarmer`` 斜率应更陡。

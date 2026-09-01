@@ -12,11 +12,12 @@ import logging
 import os
 
 import hydra
+from abses import Experiment
 from omegaconf import DictConfig
 from twist_academic import maybe_notify
 
 from src.api import Env
-from src.core import Model, MyExperiment
+from src.core import Model
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,8 @@ def main(cfg: DictConfig | None = None) -> None:
 
     该函数是模型的主入口点,用于批量运行实验并生成相关图表和摘要。具体步骤包括:
     1. 初始化实验对象
-    2. 批量运行模型
-    3. 绘制动态图表(人口数量、比例,群体数量、比例)
-    4. 绘制断点图(数量、位置、分布)
-    5. 生成并保存实验摘要(summary.csv)
-    6. 根据配置绘制热力图(如果指定)
+    2. 已经跑完的组合直接跳过（断点恢复；判据与 run_slurm_rerun.sh --verify 一致）
+    3. 批量运行模型，每个组合重复 `exp.repeats` 次
 
     参数:
         cfg (DictConfig | None, optional): Hydra配置对象。默认为None。
@@ -44,15 +42,11 @@ def main(cfg: DictConfig | None = None) -> None:
 
     返回:
         None
-
-    异常:
-        ValueError: 热力图绘制出现问题时可能引发。
-        AttributeError: 热力图绘制出现问题时可能引发。
     """
     # `seed` 是 Experiment.__init__ 的具名参数；若混进 **kwargs 会被转发给模型
     # 构造函数，replicate 就仍然拿不到种子。这里刻意用 cfg.seed 而非 cfg.get("seed")：
     # 配置缺了这个键应当直接报错，而不是悄悄退回不可复现的运行。
-    exp = MyExperiment(Model, cfg=cfg, seed=cfg.seed, nature_class=Env)
+    exp = Experiment(Model, cfg=cfg, seed=cfg.seed, nature_class=Env)
 
     expected = [
         exp.outpath / f"{i}_tracking.csv" for i in range(1, cfg.exp.repeats + 1)

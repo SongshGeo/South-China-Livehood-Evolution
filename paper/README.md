@@ -17,6 +17,8 @@ Written here, tracked by this repository's git:
   vault because it is a working ledger keyed to this code, never exported.
 - `build_tables.py` — builds `figs/SCE_Tables.xlsx` from the config, the rasters,
   and the sweep script, so no table value is retyped.
+- `build_results.py` + `results.json` — the **gold standard** for every number the
+  paper quotes. See below.
 - `figs/` — the generated tables workbook, copied into the vault by `make
   sync-vault`.
 
@@ -98,6 +100,42 @@ Consequences worth knowing before you edit:
   from the current data — reach for it whenever the outputs under `out/` have
   changed.
 
+## Every quoted number lives in `results.json`
+
+The figures are files, and a stale file is at least visible. The numbers *read off*
+them are not: an end-state share, an effect-size ratio, an $R^2$ get copied into the
+main text, the figure captions, `model-inventory.md` and the SI, and each copy goes
+stale on its own after a re-run, silently.
+
+So each number is computed once — in `src/workflow/results.py`, which shares its
+end-state window with the panel builders rather than redefining it — and frozen into
+`results.json`, which is committed:
+
+```sh
+make results        # recompute from rerun_v3 and rewrite results.json
+make check-results  # recompute and diff without writing; names the key that moved
+```
+
+`tests/test_results_regression.py` runs the same comparison inside `make test`. The
+file has two tiers:
+
+| Tier | Keys | Verifiable |
+|---|---|---|
+| Repo | `landscape`, `parameters`, `c14` | anywhere — the rasters, the Hydra config and the SI-2 workbook are versioned here |
+| Sweep | `figure2`–`figure5` | only where `out/south_china_evolution/rerun_v3` is present (`make fetch-rerun`); the test skips otherwise |
+
+Values are stored to six significant figures: far tighter than any model change worth
+noticing, far looser than the last-bit noise a NumPy upgrade can introduce.
+
+**When a revision re-runs the model**, the regression test fails and names each key
+with its old and new value. Rebuild the file, then propagate: the prose scenes, the
+figure captions, `model-inventory.md`, and the notebook markdown all quote from it.
+
+This is not hypothetical. The pre-submission clean-out found `model-inventory.md`'s
+"What the re-run changed" section headed `rerun_v3` with all seven of its figures
+still carrying `rerun_v2`'s values — the re-run had happened, the section had not been
+updated, and nothing said so. `results.json` exists so that cannot recur silently.
+
 ## Tables live in the workbook, not in the prose
 
 Every table the manuscript needs is a sheet in the one workbook,
@@ -117,7 +155,7 @@ whose only copy is the prose, and it would be typeset outside the house style.
 The `_index` sheet registers each table's label, caption, and the source of its
 numbers. Rebuild the workbook with `uv run python build_tables.py` from the
 repository root: it reads defaults from the composed Hydra config, landscape
-counts from the input rasters, and swept ranges from `run_slurm.sh`, so no value
+counts from the input rasters, and swept ranges from `run_slurm_rerun.sh`, so no value
 is retyped. Edit the script, not the spreadsheet — a hand-edit is lost on the
 next rebuild. Formulas are never written into cells: the export reads cached
 values, so a formula renders blank in the PDF with no error.

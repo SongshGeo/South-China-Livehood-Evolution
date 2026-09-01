@@ -7,7 +7,7 @@ The ``_index`` sheet registers where each sheet's numbers came from.
 
 Values are read from their sources rather than retyped: parameter defaults from
 the composed Hydra config, landscape counts from the input rasters, swept ranges
-from ``run_slurm.sh``. Formulas are never written — ``xlsx_table.lua`` reads
+from ``run_slurm_rerun.sh``. Formulas are never written — ``xlsx_table.lua`` reads
 cached cell values, and a formula written here would render blank in the PDF.
 
 Run from the repository root::
@@ -102,8 +102,13 @@ def limh_swept() -> list[int]:
 
 
 def swept_ranges() -> dict[str, str]:
-    """The conversion grid actually dispatched, read from the SLURM script."""
-    text = (ROOT / "run_slurm.sh").read_text(encoding="utf-8")
+    """The conversion grid actually dispatched, read from the SLURM script.
+
+    Read from the script that produced the published data, for the same reason
+    `limh_swept` is: a literal here, or a read from a superseded script, goes on
+    reporting a range no run used and nothing says so.
+    """
+    text = (ROOT / "run_slurm_rerun.sh").read_text(encoding="utf-8")
     out = {}
     for key, var in (("f2h", "F2H_VALUES"), ("h2f", "H2F_VALUES")):
         line = next(ln for ln in text.splitlines() if ln.startswith(f"{var}="))
@@ -713,7 +718,7 @@ def build() -> None:
             "Table 1",
             "tbl:key-params",
             "Baseline values and swept ranges for the parameters that govern how fast farming spreads.",
-            "config/config.yaml; run_slurm.sh:67-68; data/*.tif via paper/build_tables.py",
+            "config/config.yaml; run_slurm_rerun.sh:150-151; data/*.tif via paper/build_tables.py",
             BUILT,
         ],
         [
@@ -727,7 +732,7 @@ def build() -> None:
             "Table S2",
             "tbl:conversion-paths",
             "The five directed conversion paths, with the conditions and probability gating each.",
-            "src/api/hunter.py, farmer.py, rice_farmer.py; config/config.yaml; run_slurm.sh:67-68",
+            "src/api/hunter.py, farmer.py, rice_farmer.py; config/config.yaml; run_slurm_rerun.sh:150-151",
             BUILT,
         ],
         [
@@ -741,7 +746,7 @@ def build() -> None:
             "Table S4",
             "tbl:parameters",
             "Every model parameter with baseline value, swept range, and provenance.",
-            "config/config.yaml; run_slurm.sh:67-68; provenance per paper/model-inventory.md section 4",
+            "config/config.yaml; run_slurm_rerun.sh:150-151; provenance per paper/model-inventory.md section 4",
             BUILT,
         ],
     ]:

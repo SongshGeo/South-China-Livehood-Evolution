@@ -94,7 +94,18 @@ fetch-rerun:
 # Everything is checked before anything is copied, and the copies run under
 # `set -e`: a half-synced vault is worse than an unsynced one, because the mix of
 # old and new files carries no sign of which is which.
-.PHONY: sync-vault figures
+.PHONY: sync-vault figures results check-results
+# The gold standard for every number the paper quotes. `results` recomputes and
+# rewrites paper/results.json; `check-results` recomputes and diffs without writing,
+# naming the key that moved. The same comparison runs inside `make test`
+# (tests/test_results_regression.py), which skips the figure tiers when the sweep
+# is not on this machine.
+results:
+	uv run python paper/build_results.py
+
+check-results:
+	uv run python paper/build_results.py --check
+
 sync-vault:
 	@test -d "$(VAULT_PROJECT)/figs" || { \
 		echo "Error: no figs/ under the longform project:"; \
@@ -144,7 +155,9 @@ sync-vault:
 	@echo "Synced SCE_figure*.{png,pdf} + SCE_Tables.xlsx into:"
 	@echo "  $(VAULT_PROJECT)/figs/"
 
-# Rebuild every generated manuscript asset, then push it to the vault.
+# Rebuild every generated manuscript asset, then push it to the vault. The notebooks
+# redraw the figures, build_tables rebuilds the workbook, and build_results refreshes
+# paper/results.json so the numbers quoted in the prose cannot lag the figures.
 figures:
 	@set -e; for nb in $(FIGURE_NOTEBOOKS); do \
 		test -f "reports/$$nb.ipynb" || { \
@@ -158,6 +171,7 @@ figures:
 		uv run jupyter nbconvert --execute --to notebook --inplace "reports/$$nb.ipynb"; \
 	done
 	uv run python paper/build_tables.py
+	uv run python paper/build_results.py
 	@$(MAKE) --no-print-directory sync-vault
 
 fetch-geany-data:

@@ -18,11 +18,14 @@ Figures 2–5 至今换过两次数据源，每次旧目录都原地留着：
 两类漂移都是"无声"的，所以都要钉住：
 
 1. **数据来源**：旧目录仍留在 `out/` 下，任何一个路径常量被改回去，notebook
-   照样跑通、照样出图，只是出的是修复前的图，没有任何报错。
+   照样跑通、照样出图，只是出的是修复前的图，没有任何报错。这里查两件事：常量都
+   从 `RERUN` 派生，且**字面量与 `src.workflow.figures.RERUN_SUBDIRS` 逐字相等**
+   ——后者是 `paper/build_results.py` 算见刊数字时读的那一份，两边分家就意味着
+   图和 `paper/results.json` 读的不是同一批目录。
 2. **可加模型的 R²**：同一个数字被抄在多处（主文场景、SI、notebook
    正文）。重跑后手工更新时确实漏掉了其中一处，靠人眼没抓住。这里只要求各处
-   相等，不判定数值本身对不对——数值要靠重新拟合，而 `out/` 在 .gitignore 里，
-   CI 上没有数据。
+   相等，不判定数值本身对不对——数值本身由 `paper/results.json` 与
+   `tests/test_results_regression.py` 守着，而 `out/` 在 .gitignore 里，CI 上没有数据。
 
 同理，本文件全部只做纯文本检查，不碰真实数据。
 
@@ -33,25 +36,31 @@ Figures 2–5 至今换过两次数据源，每次旧目录都原地留着：
 把整个套件判红。notebook 是本仓库自带的，任何时候都仍然要引到 R²。
 """
 
+import ast
 import json
 import re
 from pathlib import Path
 
 import pytest
 
+from src.workflow import figures as F
+
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOK = ROOT / "reports" / "manuscript_figures.ipynb"
 
-#: notebook 里全部七个数据路径常量，每一个都必须从 RERUN 派生。
-PATH_CONSTANTS = (
-    "BASELINE_DIR",
-    "OFF_DIR",
-    "LAM_ROOT",
-    "LIMH_ROOT",
-    "TERRAIN_ROOT",
-    "BROAD_GRID",
-    "FINE_GRID",
-)
+#: notebook 的路径常量 → :data:`src.workflow.figures.RERUN_SUBDIRS` 的键。
+#:
+#: notebook 的字面量是投稿时冻住的那一份，包里的表是 ``paper/build_results.py`` 用的
+#: 那一份；出图和算数各读各的，就有了两条能各自漂移的路。这张对照表把它们钉在一起。
+PATH_CONSTANTS: dict[str, str] = {
+    "BASELINE_DIR": "baseline",
+    "OFF_DIR": "convert_off",
+    "LAM_ROOT": "lam",
+    "LIMH_ROOT": "limh",
+    "TERRAIN_ROOT": "terrain",
+    "BROAD_GRID": "grid_broad",
+    "FINE_GRID": "grid_fine",
+}
 
 #: 主文的写作源：vault 里 longform 项目的 manuscript/，经软链接接入。
 MS_SCENES = ROOT / "paper" / "manuscript"
@@ -112,12 +121,57 @@ def _assignments(name: str) -> list[str]:
     ]
 
 
+def _rerun_literals() -> dict[str, str]:
+    """notebook 里每个 ``<NAME> = RERUN / "<字面量>"`` 的字面量。
+
+    走 AST 而不是正则：这些字面量是跨行隐式拼接的长串（``"convert3/22_..." "..."``），
+    正则要么只抓到第一段，要么得把拼接规则再实现一遍。
+    """
+    out: dict[str, str] = {}
+    for node in ast.walk(ast.parse(SOURCE)):
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        value = node.value
+        if (
+            isinstance(target, ast.Name)
+            and isinstance(value, ast.BinOp)
+            and isinstance(value.op, ast.Div)
+            and isinstance(value.left, ast.Name)
+            and value.left.id == "RERUN"
+            and isinstance(value.right, ast.Constant)
+            and isinstance(value.right.value, str)
+        ):
+            out[target.id] = value.right.value
+    return out
+
+
 class TestFigureDataSource:
     """Figures 2–5 的数据来源。"""
 
     def test_rerun_root_points_at_rerun_v3(self):
         """RERUN 必须是 rerun_v3——重跑脚本写死的输出根。"""
         assert 'RERUN = DATA / "rerun_v3"' in SOURCE
+
+    def test_the_package_table_covers_exactly_these_constants(self):
+        """两边的目录集合必须一样大——包里多一个或少一个都说明对照表过期了。"""
+        assert set(F.RERUN_SUBDIRS) == set(PATH_CONSTANTS.values())
+
+    @pytest.mark.parametrize(("name", "key"), sorted(PATH_CONSTANTS.items()))
+    def test_notebook_literal_matches_the_package(self, name: str, key: str):
+        """notebook 的字面量与 :data:`figures.RERUN_SUBDIRS` 逐字相等。
+
+        不相等意味着图和 ``paper/results.json`` 读的不是同一批目录，而这两边都能
+        照常跑完，谁都不会报错。
+        """
+        literals = _rerun_literals()
+
+        assert name in literals, f'{name} 不是 `RERUN / "..."` 的形式'
+        assert literals[name] == F.RERUN_SUBDIRS[key], (
+            f"{name} 与 figures.RERUN_SUBDIRS[{key!r}] 不一致：\n"
+            f"  notebook: {literals[name]}\n"
+            f"  package : {F.RERUN_SUBDIRS[key]}"
+        )
 
     @pytest.mark.parametrize("name", PATH_CONSTANTS)
     def test_every_path_constant_derives_from_rerun(self, name):

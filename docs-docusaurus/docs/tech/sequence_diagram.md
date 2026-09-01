@@ -7,7 +7,7 @@
 ```mermaid
 sequenceDiagram
     participant User as 用户
-    participant Exp as MyExperiment
+    participant Exp as Experiment
     participant Model as Model
     participant Env as Environment
     participant H as Hunter

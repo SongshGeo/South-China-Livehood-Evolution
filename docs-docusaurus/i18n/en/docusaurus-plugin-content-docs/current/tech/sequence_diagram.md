@@ -7,7 +7,7 @@ This document illustrates the running process of the South China Livelihood Evol
 ```mermaid
 sequenceDiagram
     participant User
-    participant Exp as MyExperiment
+    participant Exp as Experiment
     participant Model
     participant Env as Environment
     participant H as Hunter

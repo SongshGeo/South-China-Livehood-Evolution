@@ -92,7 +92,7 @@
 #   sbatch --array=0,22,27-215%32 run_slurm_rerun.sh
 #       ↑ 只跑正文要用的：convert3 里 manuscript_figures.ipynb 只读第 0（全关）和第 22
 #         （基线）两个目录，其余 25 组是为复现原始 3³ 扫描而跑的（约 85 task-hours）。
-#         其它 notebook（如 hypothesis_validation.ipynb）会用到完整 3³，按需取舍。
+#         完整 3³ 是为复现原始扫描留的，正文用不到——只想出图的话可以省掉。
 #   bash run_slurm_rerun.sh --list                # 本地打印任务清单，不提交
 #   TASK=5 bash run_slurm_rerun.sh --dry-run      # 看第 5 个任务会执行什么
 #   bash run_slurm_rerun.sh --verify              # 跑完后核对产出，列出未完成的任务号
@@ -139,10 +139,10 @@ load_cluster_python() {
 
 SWEEP_ROOT="out/south_china_evolution/rerun_v3"
 
-# 精细网格的扫描值。必须与 run_slurm.sh 的同名数组逐值相等：
-# paper/build_tables.py::swept_ranges 从 run_slurm.sh 读这两个数组来填 Table S1 的
-# "Swept" 列，而数据现在由本脚本产出——两处不一致，表里报告的扫描范围就是错的。
-# tests/test_sweep_scripts.py 锁住这个等式。
+# 精细网格的扫描值。paper/build_tables.py::swept_ranges 直接读这两个数组来填 Table S1
+# 的 "Swept" 列——读的就是产出数据的这个脚本，所以表里的范围不可能与真正跑过的组合
+# 分家。（早先还有一个 run_slurm.sh 各写一份，靠测试锁两者相等；rerun_v3 定稿后它被
+# 删掉了。）tests/test_sweep_scripts.py 锁住取值等距、以及基线落在被扫的档位里。
 #
 # 同理，下面 build_tasks 里 `for lh in ...` 那一行被 build_tables.py::limh_swept
 # 直接解析，填 Table 1 / Table S1 的承载力扫描列。改那一行等于改表，别改成
