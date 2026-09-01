@@ -11,11 +11,11 @@
     "rice_arable": 885,
     "near_water": 1064,
     "inland": 5771,
-    "cell_area_km2": 78.2,
-    "west": 104.4,
-    "east": 121.2,
-    "south": 19.2,
-    "north": 29.1
+    "cell_area_km2": 78.3,
+    "west": 104.42,
+    "east": 121.25,
+    "south": 19.23,
+    "north": 29.14
   },
   "parameters": {
     "lim_h_per_cell": 28.0,
@@ -52,7 +52,7 @@
     "cliff": {
       "at_zero": 308145.0,
       "at_knee": 29865.0,
-      "at_max": 6746.11,
+      "at_widest_f2h": 6746.11,
       "drop_share_before_knee": 0.923295
     },
     "log_additive": {

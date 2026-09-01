@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import inspect
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -88,9 +90,35 @@ class TestRoundSig:
 class TestEndStateWindow:
     """终态窗口与重复权重。"""
 
-    def test_tail_window_is_shared_with_the_panels(self):
-        """算数和画图必须是同一个窗口，否则正文的数对不上图。"""
-        assert res.TAIL == fig.TAIL_STEPS
+    def test_window_is_the_last_51_steps_inclusive(self):
+        """左端点含在内——`step >= max - 50` 取的是 51 步，不是 50 步。
+
+        这条差别写在 model-inventory 的 F12 里，也是 results.py 的硬约束之一，但它
+        只有一步之差：把判据写成 `>` 仍然能算出一个很像的数。所以这里让**第 50 步
+        单独扛起全部的量**：窗口对了均值是 1.0，端点被漏掉就是 0.0。
+        """
+        df = _runs((1, 0.0))
+        df.loc[df["step"] == 50, "num_farmers_n"] = 51.0
+
+        got = res._by_run(df, ["run_id"], "num_farmers_n")["num_farmers_n"].iloc[0]
+
+        assert got == pytest.approx(1.0)  # 51 / 51
+
+    def test_the_panels_use_that_same_window(self):
+        """画图和算数共用一个窗口，否则正文的数对不上图。
+
+        比的是两条路径**算出来的数**：面板 builder 走 `_tail_mean` 的默认窗口，
+        见刊数字走 `results.TAIL`。断言 `res.TAIL == fig.TAIL_STEPS` 是不行的——
+        那只是在断言一句赋值，永远不会失败。第 50 步扛着全部的量，两个窗口只要差
+        一步，两个数就不相等。
+        """
+        df = _runs((1, 0.0))
+        df.loc[df["step"] == 50, "num_farmers_n"] = 51.0
+
+        panel = fig._tail_mean(df, ["run_id"], ["num_farmers_n"])["num_farmers_n"]
+        number = res._by_run(df, ["run_id"], "num_farmers_n")["num_farmers_n"]
+
+        assert panel.iloc[0] == pytest.approx(number.iloc[0])
 
     def test_agri_share_matches_the_definition(self):
         """$(F+R)/(F+H+R)$：20 + 20 农业 / 160 总数 = 0.25。"""
@@ -192,13 +220,32 @@ class TestCliff:
         """1000 → 200 → 0：0.02 之前吃掉 800/1000 = 80%。"""
         got = res.cliff_drop(self._broad(**{"0_0": 1000.0, "0_02": 200.0, "0_1": 0.0}))
 
-        assert (got["at_zero"], got["at_knee"], got["at_max"]) == (1000.0, 200.0, 0.0)
+        assert (got["at_zero"], got["at_knee"], got["at_widest_f2h"]) == (
+            1000.0,
+            200.0,
+            0.0,
+        )
         assert got["drop_share_before_knee"] == pytest.approx(0.8)
 
     def test_missing_knee_raises(self):
         """膝点那一档不在网格里就报错，而不是悄悄挑一个最近的档。"""
         with pytest.raises(ValueError, match="f2h = 0.02"):
             res.cliff_drop(self._broad(**{"0_0": 1000.0, "0_1": 0.0}))
+
+    def test_no_net_drop_raises(self):
+        """整行持平（或反向）时占比无定义，要报错而不是把 inf 写进 results.json。"""
+        flat = self._broad(**{"0_0": 1000.0, "0_02": 1000.0, "0_1": 1000.0})
+
+        with pytest.raises(ValueError, match="no net drop"):
+            res.cliff_drop(flat)
+
+    def test_the_knee_defaults_to_the_shaded_boundary(self):
+        """膝点默认值就是面板上金色阴影区的右边界，两处不能各写一个字面量。"""
+        knee = inspect.signature(res.cliff_drop).parameters["knee"].default
+        shade = inspect.signature(fig.plot_f2h_cliff).parameters["shade"].default
+
+        assert knee == fig.CLIFF_KNEE_F2H
+        assert shade == (0.0, fig.CLIFF_KNEE_F2H)
 
 
 # ── Figure 4 ─────────────────────────────────────────────────────────────

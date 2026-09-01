@@ -56,15 +56,18 @@ def round_sig(value: float, digits: int = 6) -> float:
     约 1e-6 的相对精度，远严于任何有意义的模型变化，又远松于 pandas/NumPy 换版本
     可能带来的末位抖动。
 
+    走 Python 的 ``round``，即银行家舍入（.5 进偶数），不是截断——两个方向都比模型
+    变化小若干个数量级，选哪个都不影响判定，但文档要说的是代码真正在做的事。
+
     参数:
-        value: 待截断的数。
+        value: 待处理的数。
         digits: 有效数字位数，默认 6。
 
     返回:
-        截断后的 float；0 与非有限值原样返回。
+        舍入后的 float；0 与非有限值原样返回。
 
     异常:
-        ValueError: ``digits`` 不是正整数。
+        ValueError: ``digits`` 小于 1。
     """
     if digits < 1:
         raise ValueError(f"digits must be >= 1, got {digits}")
@@ -192,7 +195,7 @@ def fit_log_additive(table: pd.DataFrame) -> dict[str, float]:
     }
 
 
-def cliff_drop(broad: pd.DataFrame, knee: float = 0.02) -> dict[str, float]:
+def cliff_drop(broad: pd.DataFrame, knee: float = F.CLIFF_KNEE_F2H) -> dict[str, float]:
     """f2h「悬崖」：在 h2f = 0 那一行上，第一小步吃掉了多少跌幅（Figure 3b）。
 
     只取 ``h2f`` = 0 的一行，因为正文的说法是「没有补偿通路时，``f2h`` 一小步就吃掉
@@ -200,14 +203,17 @@ def cliff_drop(broad: pd.DataFrame, knee: float = 0.02) -> dict[str, float]:
 
     参数:
         broad: :func:`figures.load_fine_grid` 读出的广网格长表。
-        knee: 悬崖右端的 ``f2h``，默认 0.02，与面板上金色阴影区的右边界一致。
+        knee: 悬崖右端的 ``f2h``，默认 :data:`figures.CLIFF_KNEE_F2H`——与面板上
+            金色阴影区的右边界同出一处。
 
     返回:
-        ``{"at_zero", "at_knee", "at_max", "drop_share_before_knee"}``，前三项是终态
-        农民数，最后一项是 ``knee`` 之前吃掉的跌幅占全程跌幅的比例。
+        ``{"at_zero", "at_knee", "at_widest_f2h", "drop_share_before_knee"}``，前三项
+        是终态农民数（``at_widest_f2h`` 是**最大 f2h 那一档的值**，不是最大值），
+        最后一项是 ``knee`` 之前吃掉的跌幅占全程跌幅的比例。
 
     异常:
-        ValueError: 网格里没有 ``h2f`` = 0 的行，或缺 ``f2h`` = 0 / ``knee`` 这两档。
+        ValueError: 网格里没有 ``h2f`` = 0 的行、缺 ``f2h`` = 0 / ``knee`` 这两档，
+            或者这一行没有净跌幅（比值无定义）。
     """
     row = broad[np.isclose(broad["h2f"], 0.0)]
     if row.empty:
@@ -224,12 +230,24 @@ def cliff_drop(broad: pd.DataFrame, knee: float = 0.02) -> dict[str, float]:
         raise ValueError(f"the broad grid has no f2h = {want:g} level")
 
     at_zero, at_knee = pick(0.0), pick(knee)
-    at_max = by_f2h[max(by_f2h)]
+    at_widest = by_f2h[max(by_f2h)]
+
+    # 全程跌幅是分母。曲线要是不再单调下降（或整行持平），这个差会是 0 或负数，比值
+    # 随即变成 inf / 负占比，而它会一路流进 results.json 和正文。兄弟函数
+    # spread_ratio / conversion_release 都挡了各自的退化情形，这里也得挡。
+    total_drop = at_zero - at_widest
+    if total_drop <= 0:
+        raise ValueError(
+            f"no net drop across f2h on the h2f = 0 row "
+            f"(f2h=0 -> {at_zero:g}, f2h={max(by_f2h):g} -> {at_widest:g}); "
+            "the cliff share is undefined"
+        )
+
     return {
         "at_zero": at_zero,
         "at_knee": at_knee,
-        "at_max": at_max,
-        "drop_share_before_knee": (at_zero - at_knee) / (at_zero - at_max),
+        "at_widest_f2h": at_widest,
+        "drop_share_before_knee": (at_zero - at_knee) / total_drop,
     }
 
 
@@ -296,7 +314,7 @@ def compute_results(rerun_root: Path) -> dict:
     fine = F.load_fine_grid(dirs["grid_fine"])
 
     # Figure 4a 只看 lam_ricefarmer 固定在基准 0.1 的那一片，和面板画的一致。
-    lam_slice = lam[np.isclose(lam["env.lam_ricefarmer"], 0.1)]
+    lam_slice = lam[np.isclose(lam["env.lam_ricefarmer"], F.BASELINE_LAM_RICEFARMER)]
 
     lam_levels = _levels(lam_slice, "env.lam_farmer", FARMER_METRIC)
     limh_levels = _levels(limh, "env.lim_h", FARMER_METRIC)

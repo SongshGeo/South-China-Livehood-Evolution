@@ -142,17 +142,27 @@ def build(sweep: Path = SWEEP) -> dict:
 
 
 def flatten(node, prefix: str = "") -> dict[str, object]:
-    """``{"figure4.spread_ratio.lim_h": 1.397, ...}`` — one leaf per line, for diffing."""
+    """``{"figure4.spread_ratio.lim_h": 1.397, ...}`` — one leaf per line, for diffing.
+
+    Lists are indexed too (``c14.coexistence_window_cal_bp.0``). Treating a list as one
+    leaf would report a change to either endpoint as a whole-list swap, which is exactly
+    the kind of report that gets skimmed past.
+    """
     if isinstance(node, dict):
         out: dict[str, object] = {}
         for k, v in node.items():
             out.update(flatten(v, f"{prefix}.{k}" if prefix else str(k)))
         return out
+    if isinstance(node, list):
+        out = {}
+        for i, v in enumerate(node):
+            out.update(flatten(v, f"{prefix}.{i}"))
+        return out
     return {prefix: node}
 
 
 def diff(old: dict, new: dict) -> list[str]:
-    """Human-readable leaf-by-leaf differences, oldest key order first."""
+    """Human-readable leaf-by-leaf differences, in key order."""
     a, b = flatten(old), flatten(new)
     lines = []
     for key in sorted(set(a) | set(b)):
@@ -191,6 +201,27 @@ def main(argv: list[str] | None = None) -> int:
             "      fetch it with: make fetch-rerun",
             file=sys.stderr,
         )
+
+    if not args.check and OUT.exists():
+        # Refuse to write a file that is *less* than the one on disk. Without the
+        # sweep, `build` returns only the repo tier, and writing that would delete
+        # figure2-5 from the gold standard — quietly, on any clone that has not run
+        # `make fetch-rerun`. That is the same class of silent loss this file exists
+        # to prevent, so it fails loudly instead.
+        stored = json.loads(OUT.read_text(encoding="utf-8"))
+        dropped = sorted(k for k in stored if not k.startswith("_") and k not in fresh)
+        if dropped:
+            print(
+                f"refusing to write {OUT.name}: it would lose "
+                f"{', '.join(dropped)}.\n"
+                f"Those tiers are recomputed from {_rel(args.sweep)}, which is not on "
+                "this machine.\n"
+                "Fetch the sweep first:\n"
+                "  make fetch-rerun\n"
+                "  bash run_slurm_rerun.sh --verify",
+                file=sys.stderr,
+            )
+            return 1
 
     if args.check:
         if not OUT.exists():

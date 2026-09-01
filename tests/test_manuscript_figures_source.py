@@ -24,9 +24,10 @@ Figures 2–5 至今换过两次数据源，每次旧目录都原地留着：
    ——后者是 `paper/build_results.py` 算见刊数字时读的那一份，两边分家就意味着
    图和 `paper/results.json` 读的不是同一批目录。
 2. **可加模型的 R²**：同一个数字被抄在多处（主文场景、SI、notebook
-   正文）。重跑后手工更新时确实漏掉了其中一处，靠人眼没抓住。这里只要求各处
-   相等，不判定数值本身对不对——数值本身由 `paper/results.json` 与
-   `tests/test_results_regression.py` 守着，而 `out/` 在 .gitignore 里，CI 上没有数据。
+   正文）。重跑后手工更新时确实漏掉了其中一处，靠人眼没抓住。这里查两层：各处
+   **彼此相等**，且**等于 `paper/results.json` 里那个真正拟合出来的值**。只查前者
+   是有洞的——重跑后金标准变了而三处抄写一起停在旧值，前者照样通过。金标准自身
+   由 `tests/test_results_regression.py` 拿真实数据重算守着。
 
 同理，本文件全部只做纯文本检查，不碰真实数据。
 
@@ -48,6 +49,9 @@ from src.workflow import figures as F
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOK = ROOT / "reports" / "manuscript_figures.ipynb"
+
+#: 金标准。R² 的各处抄写不只要彼此相等，还要等于这里面那个真正拟合出来的值。
+GOLD_FILE = ROOT / "paper" / "results.json"
 
 #: notebook 的路径常量 → :data:`src.workflow.figures.RERUN_SUBDIRS` 的键。
 #:
@@ -245,3 +249,28 @@ class TestQuotedGoodnessOfFit:
         values = {v for vs in quoted.values() for v in vs}
 
         assert len(values) == 1, f"R² 在各处不一致: {quoted}"
+
+    def test_it_agrees_with_the_gold_standard(self):
+        """各处一致还不够，还得和 `paper/results.json` 里那个拟合值一致。
+
+        只查"各处相等"是有洞的：返修重跑之后 `figure3.log_additive.r2` 变成 0.985，
+        而三处抄写一起停在 0.993，上面那条断言照样通过。这里把它们钉到金标准上——
+        金标准本身由 `tests/test_results_regression.py` 拿真实数据重算守着。
+        """
+        quoted = self._quoted()
+        values = {v for vs in quoted.values() for v in vs}
+        assert values, "没有任何一处引到 R²"
+
+        gold = json.loads(GOLD_FILE.read_text(encoding="utf-8"))
+        r2 = gold.get("figure3", {}).get("log_additive", {}).get("r2")
+        assert r2 is not None, (
+            "paper/results.json 里没有 figure3.log_additive.r2；"
+            "在有扫描数据的机器上重建：make results"
+        )
+
+        quoted_value = next(iter(values))
+        expected = f"{r2:.{len(quoted_value.split('.')[1])}f}"
+        assert quoted_value == expected, (
+            f"正文引的 R² = {quoted_value}，但金标准算出来是 {r2}（应写 {expected}）。"
+            "\n重跑之后要先 `make results`，再把各处抄写一起改。"
+        )

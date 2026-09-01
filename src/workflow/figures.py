@@ -52,6 +52,15 @@ FINE_DIR_RE = re.compile(r"^idx(?P<idx>\d+)_f2h(?P<f2h>[\d.]+)_h2f(?P<h2f>[\d.]+
 #: 共用这一个值——两边各写一个 50，就是两条能各自漂移的终态定义。
 TAIL_STEPS: int = 50
 
+#: Figure 3b 里 f2h「悬崖」的右端。同一个 0.02 同时是面板上金色阴影区的右边界
+#: (:func:`plot_f2h_cliff` 的 ``shade``) 和 :func:`results.cliff_drop` 算跌幅占比时的
+#: 膝点——两处各写一个字面量，改了图不改数（或反过来）不会有任何报错。
+CLIFF_KNEE_F2H: float = 0.02
+
+#: Figure 4a 的 ``lam_farmer`` 扫描切在 ``lam_ricefarmer`` 的哪一档上。也是
+#: :func:`build_leverage_frame` 归一化 Figure 5 时用的水田基准。
+BASELINE_LAM_RICEFARMER: float = 0.1
+
 #: 三类人群的英文图例标签。
 GROUP_LABEL: dict[str, str] = {
     "farmers": "Rainfed farmer",
@@ -392,7 +401,9 @@ def _grid_endstate(
 
 
 def build_leverage_frame(
-    traj: pd.DataFrame, base_farmer: float = 2.0, base_rice: float = 0.1
+    traj: pd.DataFrame,
+    base_farmer: float = 2.0,
+    base_rice: float = BASELINE_LAM_RICEFARMER,
 ) -> pd.DataFrame:
     r"""从 ``lam_farmer × lam_ricefarmer`` 网格切出两条撬动曲线（Figure 5）。
 
@@ -574,7 +585,7 @@ def plot_f2h_cliff(
     df: pd.DataFrame,
     ax: Axes | None = None,
     metric: str = "num_farmers_n",
-    shade: tuple[float, float] | None = (0.0, 0.02),
+    shade: tuple[float, float] | None = (0.0, CLIFF_KNEE_F2H),
     last: int = TAIL_STEPS,
 ) -> Axes:
     """Figure 3b：终态农民规模随 ``f2h`` 的"悬崖"曲线（每条线一个 ``h2f`` 切片）。

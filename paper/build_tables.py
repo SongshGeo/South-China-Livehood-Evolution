@@ -65,12 +65,18 @@ def landscape_counts() -> dict[str, int | float]:
         rice = grid & lowland & (slope <= 0.5)
     near_water = grid & (water == 1)
 
-    # Mean cell area over the latitude band, on a spherical Earth.
+    # Mean cell area on a spherical Earth, averaged over the **modelled** cells, not
+    # over the whole raster frame. The frame includes the nodata rows that masking
+    # removes, and they sit at latitudes the model never occupies: averaging over the
+    # frame gives 78.23 km² where the 6835 modelled cells give 78.30. The SI and
+    # finding F8 both quote the modelled figure -- F8's 80 km²/cell divisor is rounded
+    # from it -- so that is the one this file must produce.
     radius_km = 6371.0088
     lats = np.array([bounds.top - (i + 0.5) * res for i in range(shape[0])])
     dlat = res * np.pi / 180 * radius_km
     dlon = dlat * np.cos(np.radians(lats))
-    area = float((dlat * dlon).mean())
+    cell_area = (dlat * dlon)[:, None] * np.ones((1, shape[1]))
+    area = float(cell_area[grid].mean())
 
     return {
         "cells": int(grid.sum()),
@@ -79,10 +85,12 @@ def landscape_counts() -> dict[str, int | float]:
         "near_water": int(near_water.sum()),
         "inland": int(grid.sum()) - int(near_water.sum()),
         "cell_area_km2": round(area, 1),
-        "west": round(bounds.left, 1),
-        "east": round(bounds.right, 1),
-        "south": round(bounds.bottom, 1),
-        "north": round(bounds.top, 1),
+        # Two decimals, not one: the east edge is 121.2499...°, so one decimal forces a
+        # choice between understating the coverage (121.2) and overstating it (121.3).
+        "west": round(bounds.left, 2),
+        "east": round(bounds.right, 2),
+        "south": round(bounds.bottom, 2),
+        "north": round(bounds.top, 2),
     }
 
 

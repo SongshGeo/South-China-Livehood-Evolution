@@ -129,8 +129,8 @@ One cell holds at most one group (`max_agents = 1`, `env.py:27`), enforced in
 | Raster frame | 119 × 202 = 24 038 cells | `data/ohndem10.tif` |
 | **Modelled cells** (after nodata masking) | **6 835** | measured at runtime |
 | Resolution | 5 arc-min (0.08333°), EPSG:4326 | raster metadata |
-| Cell area | 75 km² (29.1°N) to 81 km² (19.2°N); mean ≈ **78 km²** | computed from resolution and latitude |
-| Extent | 104.4–121.3°E, 19.2–29.1°N | raster bounds |
+| Cell area | 75 km² (29.1°N) to 81 km² (19.2°N); mean over the 6835 modelled cells **78.3 km²** | `results.json` `landscape.cell_area_km2` |
+| Extent | 104.42–121.25°E, 19.23–29.14°N | raster bounds; `results.json` `landscape.west/east/south/north` |
 | Run length | `time.end` = 500 steps | `config/config.yaml:67` |
 | Replicates | `exp.repeats` = 5 | `config/config.yaml:25` |
 | **What one step means in real time** | **Nothing — deliberately.** No calendar, no time driver, no unit anywhere in config or code; confirmed by the author as an abstract generation-scale interval (#36) | — |
